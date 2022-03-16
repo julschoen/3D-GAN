@@ -20,15 +20,15 @@ class Params(object):
         self.beta1G = 0.5
         self.beta1D = 0.5
         self.epochs = 50
-        self.batch_size = 2
-        self.ngpu=1
+        self.batch_size = 32
+        self.ngpu=2
 
         self.steps_per_log = 10
         self.steps_per_img_log = 50
 
         ### Model Params ###
-        self.z_size = 2048
-        self.filterG = 128
+        self.z_size = 100
+        self.filterG = 256
         self.filterD = 128
 
         self.clamp_lower = -0.01
@@ -75,7 +75,7 @@ class Trainer(object):
         self.fid_epoch = []
 
     def make_labels(self, size):
-        labels = (torch.randint(900,1000, size, device=device)/1000).float()
+        labels = (torch.randint(900,1000, size, device=self.device)/1000).float()
         i = torch.randint(0,100, size)
         labels[i < 5] = 0.
         return labels
@@ -98,7 +98,7 @@ class Trainer(object):
                 )
 
         print('[%d/%d][%d/%d]\tLoss_D: %.4f\tLoss_G: %.4f\tD(x): %.4f\tD(G(z)): %.4f / %.4f\tFID %.4f'
-                    % (epoch+1, self.p.epochs, step, len(self.generator_train),
+                    % (epoch+1, self.p.epochs, step%len(self.generator_train), len(self.generator_train),
                         self.D_losses[-1], self.G_losses[-1], D_x, D_G_z1, D_G_z2, self.fid[-1]))
 
     def log_interpolation(self, step):
@@ -164,14 +164,6 @@ class Trainer(object):
 
         print("Starting Training...")
         for epoch in range(epoch_done, self.p.epochs):
-            if epoch < 20 and epoch % 5 == 0 and (not epoch == 0):
-                self.netD.std_reduce = self.netD.std_reduce + 10
-            elif epoch == 20:
-                self.netD.std_reduce = 100
-            elif 20 < epoch < 26:
-                self.netD.std_reduce = self.netD.std_reduce*4
-            else:
-                self.netD.noise = False
             for i, data in enumerate(self.generator_train, 0):      
                 
                 for p in self.netD.parameters():
