@@ -161,7 +161,7 @@ class Trainer(object):
     def train(self):
         step, epoch_done = self.start_from_checkpoint()
         FID.set_config(device=self.device)
-
+        epoch = self.p.epochs
         print("Starting Training...")
         for epoch in range(epoch_done, self.p.epochs):
             for i, data in enumerate(self.generator_train, 0):      
