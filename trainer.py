@@ -212,5 +212,5 @@ class Trainer(object):
             self.fid = []
             self.save_checkpoint(epoch, step)
         
-        self.log_final(epoch, step, fake, real, D_x.item(), D_G_z1.item(), D_G_z2.item())
+        self.log_final(epoch, step, fake, real, errD_real.item(), errD_fake.item(), errG.item())
         print('...Done')
