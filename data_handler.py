@@ -1,5 +1,5 @@
 import numpy as np
-from torchvision import transforms
+import torch
 from torch.utils.data.dataset import Dataset
 
 
@@ -10,7 +10,7 @@ class BRATS(Dataset):
 
   def __getitem__(self, index):
       image = self.data[index]
-      return transforms.ToTensor()(image).float()
+      return torch.from_numpy(image).float()
 
   def __len__(self):
       return self.len
