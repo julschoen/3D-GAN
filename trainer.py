@@ -74,12 +74,6 @@ class Trainer(object):
         self.fid = []
         self.fid_epoch = []
 
-    def make_labels(self, size):
-        labels = (torch.randint(900,1000, size, device=self.device)/1000).float()
-        i = torch.randint(0,100, size)
-        labels[i < 5] = 0.
-        return labels
-
     def weights_init(self, m):
         classname = m.__class__.__name__
         if classname.find('Conv') != -1:
@@ -97,9 +91,9 @@ class Trainer(object):
                     )
                 )
 
-        print('[%d/%d][%d/%d]\tLoss_D: %.4f\tLoss_G: %.4f\tD(x): %.4f\tD(G(z)): %.4f / %.4f\tFID %.4f'
+        print('[%d|%d][%d|%d]\tLoss_D: %.4f\tD(x): %.4f\tD(G(z)): %.4f | %.4f\tFID %.4f'
                     % (epoch+1, self.p.epochs, step%len(self.generator_train), len(self.generator_train),
-                        self.D_losses[-1], self.G_losses[-1], D_x, D_G_z1, D_G_z2, self.fid[-1]))
+                        self.D_losses[-1], D_x, D_G_z1, D_G_z2, self.fid[-1]))
 
     def log_interpolation(self, step):
         noise = torch.randn(self.p.batch_size, self.p.z_size, 1, 1,1,
@@ -162,6 +156,9 @@ class Trainer(object):
         step, epoch_done = self.start_from_checkpoint()
         FID.set_config(device=self.device)
         epoch = self.p.epochs
+        one = torch.FloatTensor([1]).to(self.device)
+        mone = one * -1
+
         print("Starting Training...")
         for epoch in range(epoch_done, self.p.epochs):
             for i, data in enumerate(self.generator_train, 0):      
@@ -173,20 +170,17 @@ class Trainer(object):
                     p.data.clamp_(self.p.clamp_lower, self.p.clamp_upper)
 
                 real = data.to(self.device).unsqueeze(dim=1)
-
-                label = self.make_labels((self.p.batch_size,))
                 
                 self.netD.zero_grad()
                 errD_real = self.netD(real)
-                errD_real.backward()
+                errD_real.backward(one)
 
                 noise = torch.randn(self.p.batch_size, self.p.z_size, 1, 1,1,
                                     dtype=torch.float, device=self.device)
                 fake = self.netG(noise)
-                label = label.fill_(0.)
 
                 errD_fake = self.netD(fake.detach())
-                errD_fake.backward()
+                errD_fake.backward(mone)
                 errD = errD_real - errD_fake
 
                 self.optimizerD.step()
@@ -195,10 +189,12 @@ class Trainer(object):
                     p.requires_grad = False
 
                 self.netG.zero_grad()
-                label = label.fill_(1.)  # fake labels are real for generator cost
                 
+                noise = torch.randn(self.p.batch_size, self.p.z_size, 1, 1,1,
+                                    dtype=torch.float, device=self.device)
+                fake = self.netG(noise)
                 errG = self.netD(fake)
-                errG.backward()
+                errG.backward(one)
 
                 self.optimizerG.step()
                 self.G_losses.append(errG.item())
