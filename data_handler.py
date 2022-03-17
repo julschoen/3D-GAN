@@ -10,6 +10,7 @@ class BRATS(Dataset):
 
   def __getitem__(self, index):
       image = self.data[index]
+      image = np.clip(image, 0,1)
       return torch.from_numpy(image).float()
 
   def __len__(self):

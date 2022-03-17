@@ -10,7 +10,7 @@ class Generator(nn.Module):
         self.ngpu = params.ngpu
         self.main = nn.Sequential(
             # input is Z, going into a convolution
-            nn.ConvTranspose3d(nz, ngf * 16, (1,4,4), 1, 0, bias=False),
+            nn.ConvTranspose3d(nz, ngf * 16, 4, 1, 0, bias=False),
             nn.BatchNorm3d(ngf * 16),
             nn.ReLU(True),
             # state size. (ngf*16) x 4 x 4
@@ -18,11 +18,11 @@ class Generator(nn.Module):
             nn.BatchNorm3d(ngf * 8),
             nn.ReLU(True),
             # state size. (ngf*8) x 8 x 8
-            nn.ConvTranspose3d(ngf * 8, ngf * 4, (6,4,4), 2, 1, bias=False),
+            nn.ConvTranspose3d(ngf * 8, ngf * 4, 4, 2, 1, bias=False),
             nn.BatchNorm3d(ngf * 4),
             nn.ReLU(True),
             # state size. (ngf*4) x 16 x 16 
-            nn.ConvTranspose3d(ngf * 4, ngf * 2, (5,4,4), 2, 1, bias=False),
+            nn.ConvTranspose3d(ngf * 4, ngf * 2, 4, 2, 1, bias=False),
             nn.BatchNorm3d(ngf * 2),
             nn.ReLU(True),
             # state size. (ngf*2) x 32 x 32
@@ -32,7 +32,7 @@ class Generator(nn.Module):
             # state size. (ngf) x 64 x 64
             nn.ConvTranspose3d(    ngf,      nc, 4, 2, 1, bias=False),
             nn.Sigmoid()
-            # state size. (nc) x 52 x 128 x 128
+            # state size. (nc) x 128 x 128 x 128
         )
 
 
@@ -74,7 +74,7 @@ class Discriminator(nn.Module):
             nn.BatchNorm3d(ndf * 16),
             nn.LeakyReLU(0.2, inplace=True),
             # state size. (ndf*16) x 4 x 4
-            nn.Conv3d(ndf * 16, 1, (1,4,4), stride=1, padding=0, bias=False),
+            nn.Conv3d(ndf * 16, 1, 4, stride=1, padding=0, bias=False),
             # state size. 1
         )
 
