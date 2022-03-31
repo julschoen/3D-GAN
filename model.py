@@ -7,6 +7,7 @@ class Generator(nn.Module):
         nz = params.z_size
         ngf = params.filterG
         nc = 1
+
         self.ngpu = params.ngpu
         self.main = nn.Sequential(
             # input is Z, going into a convolution
@@ -31,9 +32,12 @@ class Generator(nn.Module):
             nn.ReLU(True),
             # state size. (ngf) x 64 x 64
             nn.ConvTranspose3d(    ngf,      nc, 4, 2, 1, bias=False),
-            nn.Sigmoid()
             # state size. (nc) x 128 x 128 x 128
         )
+        if params.lidc:
+            self.act = nn.Tanh()
+        else:
+            self.act = nn.Sigmoid()
 
 
     def forward(self, input):
@@ -42,7 +46,7 @@ class Generator(nn.Module):
         else: 
             output = self.main(input)
         
-        return output
+        return self.act(output)
 
 
 class Discriminator(nn.Module):

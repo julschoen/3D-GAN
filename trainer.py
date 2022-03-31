@@ -6,46 +6,21 @@ import torch
 import torch.optim as optim
 import torch.nn as nn
 from torch.utils.data import DataLoader
+from torch.autograd import Variable, grad
 
 import torchvision
 import torchvision.utils as vutils
 
 from model import Discriminator, Generator
 
-
-class Params(object):
-    def __init__(self, **kwargs):
-        self.lrG = 0.0002
-        self.lrD = 0.0002
-        self.beta1G = 0.5
-        self.beta1D = 0.5
-        self.epochs = 50
-        self.batch_size = 32
-        self.ngpu=2
-
-        self.steps_per_log = 10
-        self.steps_per_img_log = 50
-
-        ### Model Params ###
-        self.z_size = 100
-        self.filterG = 256
-        self.filterD = 128
-
-        self.clamp_lower = -0.01
-        self.clamp_upper = 0.01
-
-        for key, val in kwargs.items():
-            if val is not None:
-                self.__dict__[key] = val
-
 class Trainer(object):
-    def __init__(self, dataset, params=Params(), log_dir='', device='cuda'):
+    def __init__(self, dataset, params):
         ### Misc ###
         self.p = params
-        self.device = device
+        self.device = params.device
 
         ### Make Dirs ###
-        self.log_dir = log_dir
+        self.log_dir = params.log_dir
         os.makedirs(self.log_dir, exist_ok=True)
         self.models_dir = os.path.join(self.log_dir, 'models')
         self.images_dir = os.path.join(self.log_dir, 'images')
@@ -53,12 +28,12 @@ class Trainer(object):
         os.makedirs(self.images_dir, exist_ok=True)
 
         ### Make Models ###
-        self.netG = Generator(self.p).to(device)
+        self.netG = Generator(self.p).to(self.device)
         self.optimizerG = optim.Adam(self.netG.parameters(), lr=self.p.lrG,
-                                     betas=(self.p.beta1G, 0.999))
-        self.netD = Discriminator(self.p).to(device)
+                                     betas=(0.5, 0.999))
+        self.netD = Discriminator(self.p).to(self.device)
         self.optimizerD = optim.Adam(self.netD.parameters(), lr=self.p.lrD,
-                                     betas=(self.p.beta1D, 0.999))
+                                     betas=(0.5, 0.999))
         self.netG.apply(self.weights_init)
         self.netD.apply(self.weights_init)
 
@@ -91,9 +66,9 @@ class Trainer(object):
                     )
                 )
 
-        print('[%d|%d][%d|%d]\tLoss_D: %.4f\tD(x): %.4f\tD(G(z)): %.4f | %.4f\tFID %.4f'
+        print('[%d/%d][%d/%d]\tLoss_D: %.4f\tLoss_G: %.4f\tD(x): %.4f\tD(G(z)): %.4f / %.4f\tFID %.4f'
                     % (epoch+1, self.p.epochs, step%len(self.generator_train), len(self.generator_train),
-                        self.D_losses[-1], D_x, D_G_z1, D_G_z2, self.fid[-1]))
+                        self.D_losses[-1], self.G_losses[-1], D_x, D_G_z1, D_G_z2, self.fid[-1]))
 
     def log_interpolation(self, step):
         noise = torch.randn(self.p.batch_size, self.p.z_size, 1, 1,1,
@@ -152,10 +127,31 @@ class Trainer(object):
         self.log_interpolation(step)
         self.save_checkpoint(epoch, step)
 
+    def calc_gradient_penalty(self, real_data, fake_data):
+        alpha = torch.rand(real_data.shape[0], 1, 1, 1, 1)
+        alpha = alpha.expand_as(real_data)
+        alpha = alpha.to(self.device)
+        interpolates = alpha * real_data + ((1 - alpha) * fake_data)
+
+        
+        interpolates = interpolates.to(self.device)
+        interpolates = Variable(interpolates, requires_grad=True)
+
+        disc_interpolates = self.netD(interpolates)
+
+        gradients = grad(outputs=disc_interpolates,
+                         inputs=interpolates,
+                         grad_outputs=torch.ones(disc_interpolates.size()).to(self.device),
+                         create_graph=True,
+                         retain_graph=True,
+                         only_inputs=True)[0]
+        
+        gradient_penalty = ((gradients.norm(2, dim=1) - 1) **2).mean() * self.p.lam
+        return gradient_penalty
+
     def train(self):
         step, epoch_done = self.start_from_checkpoint()
         FID.set_config(device=self.device)
-        epoch = self.p.epochs
         one = torch.FloatTensor([1]).to(self.device)
         mone = one * -1
 
@@ -166,22 +162,23 @@ class Trainer(object):
                 for p in self.netD.parameters():
                     p.requires_grad = True
 
-                for p in self.netD.parameters():
-                    p.data.clamp_(self.p.clamp_lower, self.p.clamp_upper)
-
                 real = data.to(self.device).unsqueeze(dim=1)
                 
                 self.netD.zero_grad()
                 errD_real = self.netD(real)
-                errD_real.backward(one)
+                errD_real.backward(mone)
 
-                noise = torch.randn(self.p.batch_size, self.p.z_size, 1, 1,1,
+                noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
                                     dtype=torch.float, device=self.device)
                 fake = self.netG(noise)
 
                 errD_fake = self.netD(fake.detach())
-                errD_fake.backward(mone)
-                errD = errD_real - errD_fake
+                errD_fake.backward(one)
+
+                gradient_penalty = self.calc_gradient_penalty(real.data, fake.data)
+                gradient_penalty.backward()
+
+                errD = errD_fake - errD_real + gradient_penalty
 
                 self.optimizerD.step()
 
@@ -189,12 +186,11 @@ class Trainer(object):
                     p.requires_grad = False
 
                 self.netG.zero_grad()
-                
-                noise = torch.randn(self.p.batch_size, self.p.z_size, 1, 1,1,
+                noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
                                     dtype=torch.float, device=self.device)
                 fake = self.netG(noise)
                 errG = self.netD(fake)
-                errG.backward(one)
+                errG.backward(mone)
 
                 self.optimizerG.step()
                 self.G_losses.append(errG.item())
