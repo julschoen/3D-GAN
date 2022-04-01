@@ -13,6 +13,7 @@ import torchvision.utils as vutils
 
 from model import Discriminator, Generator
 
+
 class Trainer(object):
     def __init__(self, dataset, params):
         ### Misc ###
@@ -30,11 +31,11 @@ class Trainer(object):
         ### Make Models ###
         self.netG = Generator(self.p).to(self.device)
         self.optimizerG = optim.Adam(self.netG.parameters(), lr=self.p.lrG,
-                                     betas=(0.5, 0.999))
+                                     betas=(0., 0.9))
+        self.netG.apply(self.weights_init)
         self.netD = Discriminator(self.p).to(self.device)
         self.optimizerD = optim.Adam(self.netD.parameters(), lr=self.p.lrD,
-                                     betas=(0.5, 0.999))
-        self.netG.apply(self.weights_init)
+                                     betas=(0., 0.9))
         self.netD.apply(self.weights_init)
 
         ### Make Data Generator ###
@@ -42,12 +43,17 @@ class Trainer(object):
 
         ### Prep Training
         self.fixed_test_noise = None
-        self.criterion = nn.BCEWithLogitsLoss()
         self.img_list = []
         self.G_losses = []
         self.D_losses = []
         self.fid = []
         self.fid_epoch = []
+
+    def inf_train_gen(self):
+        while True:
+            for data in self.generator_train:
+                yield data
+
 
     def weights_init(self, m):
         classname = m.__class__.__name__
@@ -57,7 +63,7 @@ class Trainer(object):
             nn.init.normal_(m.weight.data, 1.0, 0.02)
             nn.init.constant_(m.bias.data, 0)
         
-    def log_train(self, epoch, step, fake, real, D_x, D_G_z1, D_G_z2):
+    def log_train(self, step, fake, real, D_x, D_G_z1, D_G_z2):
         with torch.no_grad():
             self.fid.append(
                 FID.fid(
@@ -66,8 +72,8 @@ class Trainer(object):
                     )
                 )
 
-        print('[%d/%d][%d/%d]\tLoss_D: %.4f\tLoss_G: %.4f\tD(x): %.4f\tD(G(z)): %.4f / %.4f\tFID %.4f'
-                    % (epoch+1, self.p.epochs, step%len(self.generator_train), len(self.generator_train),
+        print('[%d/%d]\tLoss_D: %.4f\tLoss_G: %.4f\tD(x): %.4f\tD(G(z)): %.4f / %.4f\tFID %.4f'
+                    % (step, 20000,
                         self.D_losses[-1], self.G_losses[-1], D_x, D_G_z1, D_G_z2, self.fid[-1]))
 
     def log_interpolation(self, step):
@@ -84,12 +90,10 @@ class Trainer(object):
 
     def start_from_checkpoint(self):
         step = 0
-        epoch_done = 0
         checkpoint = os.path.join(self.models_dir, 'checkpoint.pt')
         if os.path.isfile(checkpoint):
             state_dict = torch.load(checkpoint)
             step = state_dict['step']
-            epoch_done = state_dict['epoch'] +1
             self.netG.load_state_dict(state_dict['modelG_state_dict'])
             self.netD.load_state_dict(state_dict['modelD_state_dict'])
 
@@ -100,11 +104,10 @@ class Trainer(object):
             self.D_losses = state_dict['lossD']
             self.fid_epoch = state_dict['fid']
             print('starting from step {}'.format(step))
-        return step, epoch_done
+        return step
 
-    def save_checkpoint(self, epoch, step):
+    def save_checkpoint(self, step):
         torch.save({
-        'epoch': epoch,
         'step': step,
         'modelG_state_dict': self.netG.state_dict(),
         'modelD_state_dict': self.netD.state_dict(),
@@ -115,17 +118,17 @@ class Trainer(object):
         'fid': self.fid_epoch,
         }, os.path.join(self.models_dir, 'checkpoint.pt'))
 
-    def log(self, epoch, step, fake, real, D_x, D_G_z1, D_G_z2):
+    def log(self, step, fake, real, D_x, D_G_z1, D_G_z2):
         if step % self.p.steps_per_log == 0:
-            self.log_train(epoch, step, fake, real, D_x, D_G_z1, D_G_z2)
+            self.log_train(step, fake, real, D_x, D_G_z1, D_G_z2)
 
         if step % self.p.steps_per_img_log == 0:
             self.log_interpolation(step)
 
-    def log_final(self, epoch, step, fake, real, D_x, D_G_z1, D_G_z2):
-        self.log_train(epoch, step, fake, real, D_x, D_G_z1, D_G_z2)
+    def log_final(self, step, fake, real, D_x, D_G_z1, D_G_z2):
+        self.log_train(step, fake, real, D_x, D_G_z1, D_G_z2)
         self.log_interpolation(step)
-        self.save_checkpoint(epoch, step)
+        self.save_checkpoint(step)
 
     def calc_gradient_penalty(self, real_data, fake_data):
         alpha = torch.rand(real_data.shape[0], 1, 1, 1, 1)
@@ -136,34 +139,33 @@ class Trainer(object):
         
         interpolates = interpolates.to(self.device)
         interpolates = Variable(interpolates, requires_grad=True)
-
         disc_interpolates = self.netD(interpolates)
-
+        
         gradients = grad(outputs=disc_interpolates,
                          inputs=interpolates,
                          grad_outputs=torch.ones(disc_interpolates.size()).to(self.device),
                          create_graph=True,
                          retain_graph=True,
                          only_inputs=True)[0]
-        
+
+        gradients = gradients.view(gradients.size(0), -1)
         gradient_penalty = ((gradients.norm(2, dim=1) - 1) **2).mean() * self.p.lam
         return gradient_penalty
 
     def train(self):
-        step, epoch_done = self.start_from_checkpoint()
+        step_done = self.start_from_checkpoint()
         FID.set_config(device=self.device)
         one = torch.FloatTensor([1]).to(self.device)
         mone = one * -1
+        gen = self.inf_train_gen()
 
         print("Starting Training...")
-        for epoch in range(epoch_done, self.p.epochs):
-            for i, data in enumerate(self.generator_train, 0):      
-                
-                for p in self.netD.parameters():
-                    p.requires_grad = True
-
+        for i in range(step_done, self.p.niters):
+            for p in self.netD.parameters():
+                p.requires_grad = True
+            for _ in range(self.p.iterD):    
+                data = next(gen)
                 real = data.to(self.device).unsqueeze(dim=1)
-                
                 self.netD.zero_grad()
                 errD_real = self.netD(real)
                 errD_real.backward(mone)
@@ -171,7 +173,6 @@ class Trainer(object):
                 noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
                                     dtype=torch.float, device=self.device)
                 fake = self.netG(noise)
-
                 errD_fake = self.netD(fake.detach())
                 errD_fake.backward(one)
 
@@ -182,27 +183,26 @@ class Trainer(object):
 
                 self.optimizerD.step()
 
-                for p in self.netD.parameters():
-                    p.requires_grad = False
+            for p in self.netD.parameters():
+                p.requires_grad = False
 
-                self.netG.zero_grad()
-                noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
-                                    dtype=torch.float, device=self.device)
-                fake = self.netG(noise)
-                errG = self.netD(fake)
-                errG.backward(mone)
-
-                self.optimizerG.step()
-                self.G_losses.append(errG.item())
-                self.D_losses.append(errD.item())
-
-                self.log(epoch, step, fake, real, errD_real.item(), errD_fake.item(), errG.item())
-
-                step += 1
+            self.netG.zero_grad()
             
-            self.fid_epoch.append(np.array(self.fid).mean())
-            self.fid = []
-            self.save_checkpoint(epoch, step)
+            noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
+                                dtype=torch.float, device=self.device)
+            fake = self.netG(noise)
+            errG = self.netD(fake)
+            errG.backward(mone)
+
+            self.optimizerG.step()
+            self.G_losses.append(errG.item())
+            self.D_losses.append(errD.item())
+
+            self.log(i, fake, real, errD_real.item(), errD_fake.item(), errG.item())
+            if i%400 == 0 and i>0:
+                self.fid_epoch.append(np.array(self.fid).mean())
+                self.fid = []
+                self.save_checkpoint(i)
         
-        self.log_final(epoch, step, fake, real, errD_real.item(), errD_fake.item(), errG.item())
+        self.log_final(i, fake, real, errD_real.item(), errD_fake.item(), errG.item())
         print('...Done')
