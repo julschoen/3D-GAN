@@ -2,6 +2,29 @@ import torch
 import torch.nn as nn
 from msl import RandomCrop3D
 
+class Res_up(nn.Module):
+    def __init__(self, channel_in, channel_out, scale = 2):
+        super(Res_up, self).__init__()
+        
+        self.conv1 = nn.Conv3d(channel_in, channel_out//2, 3, 1, 1)
+        self.BN1 = nn.BatchNorm3d(channel_out//2)
+        self.conv2 = nn.Conv3d(channel_out//2, channel_out, 3, 1, 1)
+        self.BN2 = nn.BatchNorm3d(channel_out)
+        
+        self.conv3 = nn.Conv3d(channel_in, channel_out, 3, 1, 1)
+        
+        self.UpNN = nn.Upsample(scale_factor = scale,mode = "nearest")
+        
+    def forward(self, x):
+        skip = self.conv3(self.UpNN(x))
+        
+        x = F.rrelu(self.BN1(self.conv1(x)))
+        x = self.UpNN(x)
+        x = self.BN2(self.conv2(x))
+        
+        x = F.rrelu(x + skip)
+        return x
+
 class Generator(nn.Module):
     def __init__(self, params):
         super(Generator, self).__init__()
@@ -10,32 +33,45 @@ class Generator(nn.Module):
         nc = 1
 
         self.ngpu = params.ngpu
-        self.main = nn.Sequential(
-            # input is Z, going into a convolution
-            nn.ConvTranspose3d(nz, ngf * 16, 4, 1, 0, bias=False),
-            nn.BatchNorm3d(ngf * 16),
-            nn.ReLU(True),
-            # state size. (ngf*16) x 4 x 4
-            nn.ConvTranspose3d(ngf * 16, ngf * 8, 4, 2, 1, bias=False),
-            nn.BatchNorm3d(ngf * 8),
-            nn.ReLU(True),
-            # state size. (ngf*8) x 8 x 8
-            nn.ConvTranspose3d(ngf * 8, ngf * 4, 4, 2, 1, bias=False),
-            nn.BatchNorm3d(ngf * 4),
-            nn.ReLU(True),
-            # state size. (ngf*4) x 16 x 16 
-            nn.ConvTranspose3d(ngf * 4, ngf * 2, 4, 2, 1, bias=False),
-            nn.BatchNorm3d(ngf * 2),
-            nn.ReLU(True),
-            # state size. (ngf*2) x 32 x 32
-            nn.ConvTranspose3d(ngf * 2,     ngf, 4, 2, 1, bias=False),
-            nn.BatchNorm3d(ngf),
-            nn.ReLU(True),
-            # state size. (ngf) x 64 x 64
-            nn.ConvTranspose3d(    ngf,      nc, 4, 2, 1, bias=False),
-            # state size. (nc) x 128 x 128 x 128
-            nn.Tanh()
-        )
+        if params.res:
+            self.main = nn.Sequential(
+                Res_up(nz, ngf*16),
+                Res_up(ngf*16, ngf*8),
+                Res_up(ngf*8, ngf*8),
+                Res_up(ngf*8, ngf*4),
+                Res_up(ngf*4, ngf*2),
+                Res_up(ngf*2, ngf),
+                Res_up(ngf, ngf//2),
+                nn.Conv3d(ngf//2, nc, 3, 1, 1),
+                nn.Tanh()
+            )
+        else:
+            self.main = nn.Sequential(
+                # input is Z, going into a convolution
+                nn.ConvTranspose3d(nz, ngf * 16, 4, 1, 0, bias=False),
+                nn.BatchNorm3d(ngf * 16),
+                nn.ReLU(True),
+                # state size. (ngf*16) x 4 x 4
+                nn.ConvTranspose3d(ngf * 16, ngf * 8, 4, 2, 1, bias=False),
+                nn.BatchNorm3d(ngf * 8),
+                nn.ReLU(True),
+                # state size. (ngf*8) x 8 x 8
+                nn.ConvTranspose3d(ngf * 8, ngf * 4, 4, 2, 1, bias=False),
+                nn.BatchNorm3d(ngf * 4),
+                nn.ReLU(True),
+                # state size. (ngf*4) x 16 x 16 
+                nn.ConvTranspose3d(ngf * 4, ngf * 2, 4, 2, 1, bias=False),
+                nn.BatchNorm3d(ngf * 2),
+                nn.ReLU(True),
+                # state size. (ngf*2) x 32 x 32
+                nn.ConvTranspose3d(ngf * 2,     ngf, 4, 2, 1, bias=False),
+                nn.BatchNorm3d(ngf),
+                nn.ReLU(True),
+                # state size. (ngf) x 64 x 64
+                nn.ConvTranspose3d(    ngf,      nc, 4, 2, 1, bias=False),
+                # state size. (nc) x 128 x 128 x 128
+                nn.Tanh()
+            )
 
     def forward(self, input):
         if isinstance(input.data, torch.cuda.FloatTensor) and self.ngpu > 1:
