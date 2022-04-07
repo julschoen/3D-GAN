@@ -39,7 +39,7 @@ class Trainer(object):
         self.netD.apply(self.weights_init)
 
         ### Make Data Generator ###
-        self.generator_train = DataLoader(dataset, batch_size=self.p.batch_size, shuffle=True, num_workers=2)
+        self.generator_train = DataLoader(dataset, batch_size=self.p.batch_size, shuffle=True, num_workers=4)
 
         ### Prep Training
         self.fixed_test_noise = None
@@ -73,7 +73,7 @@ class Trainer(object):
                 )
 
         print('[%d/%d]\tLoss_D: %.4f\tLoss_G: %.4f\tD(x): %.4f\tD(G(z)): %.4f / %.4f\tFID %.4f'
-                    % (step, 20000,
+                    % (step, self.p.niters,
                         self.D_losses[-1], self.G_losses[-1], D_x, D_G_z1, D_G_z2, self.fid[-1]))
 
     def log_interpolation(self, step):
@@ -199,7 +199,7 @@ class Trainer(object):
             self.D_losses.append(errD.item())
 
             self.log(i, fake, real, errD_real.item(), errD_fake.item(), errG.item())
-            if i%400 == 0 and i>0:
+            if i%100 == 0 and i>0:
                 self.fid_epoch.append(np.array(self.fid).mean())
                 self.fid = []
                 self.save_checkpoint(i)

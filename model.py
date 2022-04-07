@@ -1,5 +1,6 @@
 import torch 
 import torch.nn as nn
+from msl import RandomCrop3D
 
 class Generator(nn.Module):
     def __init__(self, params):
@@ -33,12 +34,8 @@ class Generator(nn.Module):
             # state size. (ngf) x 64 x 64
             nn.ConvTranspose3d(    ngf,      nc, 4, 2, 1, bias=False),
             # state size. (nc) x 128 x 128 x 128
+            nn.Tanh()
         )
-        if params.lidc:
-            self.act = nn.Tanh()
-        else:
-            self.act = nn.Sigmoid()
-
 
     def forward(self, input):
         if isinstance(input.data, torch.cuda.FloatTensor) and self.ngpu > 1:
@@ -46,8 +43,7 @@ class Generator(nn.Module):
         else: 
             output = self.main(input)
         
-        return self.act(output)
-
+        return output
 
 class Discriminator(nn.Module):
     def __init__(self, params):
@@ -57,32 +53,52 @@ class Discriminator(nn.Module):
         nc = 1
         self.ngpu=params.ngpu
         
-        self.main = nn.Sequential(
-            # input is 128 x 128 x 128
-            nn.Conv3d(nc, ndf, 4, stride=2, padding=1, bias=False), 
-            nn.LeakyReLU(0.2, inplace=True),
-            # state size. (ndf) x 14 x 14
-            nn.Conv3d(ndf, ndf * 2, 4, stride=2, padding=1, bias=False),
-            nn.LayerNorm([ndf * 2, 32, 32, 32]),
-            nn.LeakyReLU(0.2, inplace=True),
-            # state size. (ndf*2) x 7 x 7
-            nn.Conv3d(ndf * 2, ndf * 4, 4, stride=2, padding=1, bias=False),
-            nn.LayerNorm([ndf * 4, 16, 16, 16]),
-            #nn.BatchNorm3d(ndf * 4),
-            nn.LeakyReLU(0.2, inplace=True),
-            # state size. (ndf*4) x 6 x 6 
-            nn.Conv3d(ndf * 4, ndf * 8, 4, stride=2, padding=1, bias=False),
-            nn.LayerNorm([ndf * 8, 8, 8, 8]),
-            #nn.BatchNorm3d(ndf * 8),
-            nn.LeakyReLU(0.2, inplace=True),
-            # state size. (ndf*8) x 5 x 5
-            nn.Conv3d(ndf * 8, ndf * 16, 4, stride=2, padding=1, bias=False),
-            nn.LayerNorm([ndf * 16, 4, 4, 4]),
-            #nn.BatchNorm3d(ndf * 16),
-            nn.LeakyReLU(0.2, inplace=True),
-            # state size. (ndf*16) x 4 x 4
-            nn.Conv3d(ndf * 16, 1, (4,4,4), stride=1, padding=0, bias=False),
-        )
+        if params.msl:
+            self.main = nn.Sequential(
+                # input is 128 x 128 x 128
+                RandomCrop3D(device=params.device),
+                nn.Conv3d(nc, ndf, 4, stride=2, padding=1, bias=False), 
+                nn.LeakyReLU(0.2, inplace=True),
+                # state size. (ndf) x 14 x 14
+                nn.Conv3d(ndf, ndf * 2, 4, stride=2, padding=1, bias=False),
+                nn.LayerNorm([ndf * 2, 16, 16, 16]),
+                nn.LeakyReLU(0.2, inplace=True),
+                # state size. (ndf*4) x 6 x 6 
+                nn.Conv3d(ndf * 2, ndf * 4, 4, stride=2, padding=1, bias=False),
+                nn.LayerNorm([ndf * 4, 8, 8, 8]),
+                nn.LeakyReLU(0.2, inplace=True),
+                # state size. (ndf*8) x 5 x 5
+                nn.Conv3d(ndf * 4, ndf * 8, 4, stride=2, padding=1, bias=False),
+                nn.LayerNorm([ndf * 8, 4, 4, 4]),
+                nn.LeakyReLU(0.2, inplace=True),
+                # state size. (ndf*16) x 4 x 4
+                nn.Conv3d(ndf * 8, 1, (4,4,4), stride=1, padding=0, bias=False),
+                # state size. 1
+            )
+        else:  
+            self.main = nn.Sequential(
+                # input is 128 x 128 x 128
+                nn.Conv3d(nc, ndf, 4, stride=2, padding=1, bias=False), 
+                nn.LeakyReLU(0.2, inplace=True),
+                # state size. (ndf) x 14 x 14
+                nn.Conv3d(ndf, ndf * 2, 4, stride=2, padding=1, bias=False),
+                nn.LayerNorm([ndf * 2, 32, 32, 32]),
+                nn.LeakyReLU(0.2, inplace=True),
+                # state size. (ndf*2) x 7 x 7
+                nn.Conv3d(ndf * 2, ndf * 4, 4, stride=2, padding=1, bias=False),
+                nn.LayerNorm([ndf * 4, 16, 16, 16]),
+                nn.LeakyReLU(0.2, inplace=True),
+                # state size. (ndf*4) x 6 x 6 
+                nn.Conv3d(ndf * 4, ndf * 8, 4, stride=2, padding=1, bias=False),
+                nn.LayerNorm([ndf * 8, 8, 8, 8]),
+                nn.LeakyReLU(0.2, inplace=True),
+                # state size. (ndf*8) x 5 x 5
+                nn.Conv3d(ndf * 8, ndf * 16, 4, stride=2, padding=1, bias=False),
+                nn.LayerNorm([ndf * 16, 4, 4, 4]),
+                nn.LeakyReLU(0.2, inplace=True),
+                # state size. (ndf*16) x 4 x 4
+                nn.Conv3d(ndf * 16, 1, (4,4,4), stride=1, padding=0, bias=False),
+            )
 
     def forward(self, input):
         if isinstance(input.data, torch.cuda.FloatTensor) and self.ngpu > 1:
