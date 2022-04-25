@@ -7,6 +7,7 @@ import torch.optim as optim
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.autograd import Variable, grad
+from torch.cuda.amp import autocast, GradScaler
 
 import torchvision
 import torchvision.utils as vutils
@@ -47,6 +48,8 @@ class Trainer(object):
                                          betas=(0., 0.9))
         self.optimizerG = optim.Adam(self.netG.parameters(), lr=self.p.lrG,
                                          betas=(0., 0.9))
+
+        self.scaler = GradScaler()
 
         ### Make Data Generator ###
         self.generator_train = DataLoader(dataset, batch_size=self.p.batch_size, shuffle=True, num_workers=4, drop_last=True)
@@ -191,10 +194,12 @@ class Trainer(object):
                 fake = self.netG(noise)
 
                 if self.p.sagan or self.p.biggan:
-                    errD_real = (nn.ReLU()(1.0 - self.netD(real))).mean()
-                    errD_fake = (nn.ReLU()(1.0 + self.netD(fake))).mean()
-                    errD = errD_fake + errD_real
-                    errD.backward()
+                    with autocast():
+                        errD_real = (nn.ReLU()(1.0 - self.netD(real))).mean()
+                        errD_fake = (nn.ReLU()(1.0 + self.netD(fake))).mean()
+                        errD = errD_fake + errD_real
+                    self.scaler.scale(errD).backward()
+                    self.scaler.step(self.optimizerD)
                 else:
                     errD_real = self.netD(real)
                     errD_real.backward(mone)
@@ -207,24 +212,29 @@ class Trainer(object):
 
                     errD = errD_fake - errD_real + gradient_penalty
 
-                self.optimizerD.step()
+                    self.optimizerD.step()
 
             for p in self.netD.parameters():
                 p.requires_grad = False
 
             self.netG.zero_grad()
-            
-            noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
-                                dtype=torch.float, device=self.device)
-            fake = self.netG(noise)
             if self.p.sagan or self.p.biggan:
-                errG = -self.netD(fake).mean()
-                errG.backward()
+                with autocast():
+                    noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
+                                dtype=torch.float, device=self.device)
+                    fake = self.netG(noise)
+                    errG = -self.netD(fake).mean()
+
+                self.scaler.scale(errG).backward()
+                self.scaler.step(self.optimizerG)
             else:
+                noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
+                                dtype=torch.float, device=self.device)
+                fake = self.netG(noise)
                 errG = self.netD(fake)
                 errG.backward(mone)
-
-            self.optimizerG.step()
+                self.optimizerG.step()
+                
             self.G_losses.append(errG.item())
             self.D_losses.append(errD.item())
 
