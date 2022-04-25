@@ -37,8 +37,8 @@ class Trainer(object):
             self.netD = Discriminator(self.p).to(self.device)
             self.netD.apply(self.weights_init)
         else:
-            self.netD = BigD()
-            self.netG = BigG()
+            self.netD = BigD(self.p)
+            self.netG = BigG(self.p)
 
         self.optimizerD = optim.Adam(self.netD.parameters(), lr=self.p.lrD,
                                          betas=(0., 0.9))
