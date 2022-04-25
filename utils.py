@@ -26,8 +26,8 @@ class Attention(nn.Module):
   def forward(self, x, y=None):
     # Apply convs
     theta = self.theta(x)
-    phi = F.max_pool3d(self.phi(x), [2,2])
-    g = F.max_pool3d(self.g(x), [2,2])    
+    phi = F.max_pool3d(self.phi(x), 2)
+    g = F.max_pool3d(self.g(x), 2)    
     # Perform reshapes
     theta = theta.view(-1, self. ch // 8, x.shape[2] * x.shape[3] * x.shape[4])
     phi = phi.view(-1, self. ch // 8, x.shape[2] * x.shape[3] * x.shape[4] // 4)
