@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from msl import RandomCrop3D
+from self_attention import SelfAttentionBlock
 
 class Res_up(nn.Module):
     def __init__(self, channel_in, channel_out, scale = 2):
@@ -44,6 +45,32 @@ class Generator(nn.Module):
                 Res_up(ngf*2, ngf),
                 Res_up(ngf, ngf//2),
                 nn.Conv3d(ngf//2, nc, 3, 1, 1),
+                nn.Tanh()
+            )
+        elif params.sagan:
+            self.main = nn.Sequential(
+                nn.ConvTranspose3d(nz, ngf*16, 4, stride=1),
+                SpectralNorm(),
+                nn.BatchNorm3d(ngf*16),
+                nn.ReLU(True),
+                nn.ConvTranspose3d(ngf*16, ngf*8, 4, stride=2, padding=1),
+                SpectralNorm(),
+                nn.BatchNorm3d(ngf*8),
+                nn.ReLU(True),
+                nn.ConvTranspose3d(ngf*8, ngf*4, 4, stride=2, padding=1),
+                SpectralNorm(),
+                nn.BatchNorm3d(ngf*4),
+                nn.ReLU(True),
+                nn.ConvTranspose3d(ngf*4, ngf*2, 4, stride=2, padding=1),
+                SpectralNorm(),
+                nn.BatchNorm3d(ngf*2),
+                nn.ReLU(True),
+                nn.ConvTranspose3d(ngf*2, ngf, 4, stride=2, padding=1),
+                SpectralNorm(),
+                nn.BatchNorm3d(ngf),
+                nn.ReLU(True),
+                nn.ConvTranspose3d(ngf, 1, 4, stride=2, padding=1),
+                SpectralNorm(),
                 nn.Tanh()
             )
         else:
@@ -112,6 +139,27 @@ class Discriminator(nn.Module):
                 nn.Conv3d(ndf * 8, 1, (4,4,4), stride=1, padding=0, bias=False),
                 # state size. 1
             )
+        elif params.sagan:
+            self.main = nn.Sequential(
+                nn.Conv3d(1, ndf, 4, stride=1, padding=1),
+                SpectralNorm(),
+                nn.LeakyReLU(0.2, inplace=True),
+                nn.Conv3d(ndf, ndf*2, 4, stride=2, padding=1),
+                SpectralNorm(),
+                nn.LeakyReLU(0.2, inplace=True),
+                nn.Conv3d(ndf*2, ndf*4, 4, stride=2, padding=1),
+                SpectralNorm(),
+                nn.LeakyReLU(0.2, inplace=True),
+                SelfAttentionBlock(ndf*4),
+                nn.Conv3d(ndf*4, ndf*8, 4, stride=2, padding=1),
+                SpectralNorm(),
+                nn.LeakyReLU(0.2, inplace=True),
+                nn.Conv3d(ndf*8, ndf*16, 4, stride=2, padding=1),
+                SpectralNorm(),
+                nn.LeakyReLU(0.2, inplace=True),
+                nn.Conv3d(ndf*16, 1, 3, stride=1, padding=0)
+                SpectralNorm(),
+            )
         else:  
             self.main = nn.Sequential(
                 # input is 128 x 128 x 128
@@ -142,6 +190,9 @@ class Discriminator(nn.Module):
             output = nn.parallel.data_parallel(self.main, input, range(self.ngpu))
         else: 
             output = self.main(input)
-            
-        output = output.mean(0)
-        return output.view(1)
+
+        if not sagan:
+            output = output.mean(0)
+            output = output.view(1)
+        
+        return output

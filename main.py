@@ -23,6 +23,7 @@ def main():
 	parser.add_argument('--device', type=str, default='cuda', help='Torch Device Choice')
 	parser.add_argument('--msl', type=bool, default=False, help='Use MSL Module in Discriminator')
 	parser.add_argument('--res', type=bool, default=False, help='Use ResNet Generator')
+	parser.add_argument('--sagan', type=bool, default=False, help='Use SAGAN')
 	params = parser.parse_args()
 
 	dataset_train = DATA(path=params.data_path)

@@ -56,12 +56,20 @@ class Trainer(object):
 
 
     def weights_init(self, m):
-        classname = m.__class__.__name__
-        if classname.find('Conv') != -1:
-            nn.init.normal_(m.weight.data, 0.0, 0.02)
-        elif classname.find('BatchNorm') != -1:
-            nn.init.normal_(m.weight.data, 1.0, 0.02)
-            nn.init.constant_(m.bias.data, 0)
+        if self.p.sagan:
+            classname = m.__class__.__name__
+            if classname.find('Conv') != -1:
+                nn.init.orthogonal_(m.weight)
+            elif classname.find('BatchNorm') != -1:
+                nn.init.normal_(m.weight.data, 1.0, 0.02)
+                nn.init.constant_(m.bias.data, 0)
+        else:
+            classname = m.__class__.__name__
+            if classname.find('Conv') != -1:
+                nn.init.normal_(m.weight.data, 0.0, 0.02)
+            elif classname.find('BatchNorm') != -1:
+                nn.init.normal_(m.weight.data, 1.0, 0.02)
+                nn.init.constant_(m.bias.data, 0)
         
     def log_train(self, step, fake, real, D_x, D_G_z1, D_G_z2):
         with torch.no_grad():
@@ -167,19 +175,27 @@ class Trainer(object):
                 data = next(gen)
                 real = data.to(self.device).unsqueeze(dim=1)
                 self.netD.zero_grad()
-                errD_real = self.netD(real)
-                errD_real.backward(mone)
-
+                
                 noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
                                     dtype=torch.float, device=self.device)
                 fake = self.netG(noise)
-                errD_fake = self.netD(fake.detach())
-                errD_fake.backward(one)
 
-                gradient_penalty = self.calc_gradient_penalty(real.data, fake.data)
-                gradient_penalty.backward()
+                if self.p.sagan:
+                    errD_real = (nn.ReLU()(1.0 - self.netD(real))).mean()
+                    errD_fake = (nn.ReLU()(1.0 + self.netD(fake))).mean()
+                    errD = errD_fake + errD_real
+                    errD.backward()
+                else:
+                    errD_real = self.netD(real)
+                    errD_real.backward(mone)
 
-                errD = errD_fake - errD_real + gradient_penalty
+                    errD_fake = self.netD(fake.detach())
+                    errD_fake.backward(one)
+
+                    gradient_penalty = self.calc_gradient_penalty(real.data, fake.data)
+                    gradient_penalty.backward()
+
+                    errD = errD_fake - errD_real + gradient_penalty
 
                 self.optimizerD.step()
 
