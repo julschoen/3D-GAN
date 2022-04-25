@@ -21,7 +21,7 @@ class Attention(nn.Module):
     phi = F.max_pool3d(self.phi(x), [2,2])
     g = F.max_pool3d(self.g(x), [2,2])    
     # Perform reshapes
-    theta = theta.view(-1, self. ch // 8, x.shape[2] * x.shape[3] * * x.shape[4])
+    theta = theta.view(-1, self. ch // 8, x.shape[2] * x.shape[3] * x.shape[4])
     phi = phi.view(-1, self. ch // 8, x.shape[2] * x.shape[3] * x.shape[4] // 4)
     g = g.view(-1, self. ch // 2, x.shape[2] * x.shape[3] * x.shape[4] // 4)
     # Matmul and softmax to get attention maps
