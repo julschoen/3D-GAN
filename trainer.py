@@ -12,6 +12,8 @@ import torchvision
 import torchvision.utils as vutils
 
 from model import Discriminator, Generator
+from biggan import Discriminator as BigD
+from biggan import Generator as BigD
 
 
 class Trainer(object):
@@ -29,14 +31,19 @@ class Trainer(object):
         os.makedirs(self.images_dir, exist_ok=True)
 
         ### Make Models ###
-        self.netG = Generator(self.p).to(self.device)
-        self.optimizerG = optim.Adam(self.netG.parameters(), lr=self.p.lrG,
-                                     betas=(0., 0.9))
-        self.netG.apply(self.weights_init)
-        self.netD = Discriminator(self.p).to(self.device)
+        if not self.p.biggan:
+            self.netG = Generator(self.p).to(self.device)
+            self.netG.apply(self.weights_init)
+            self.netD = Discriminator(self.p).to(self.device)
+            self.netD.apply(self.weights_init)
+        else:
+            self.netD = BigD()
+            self.netG = BigG()
+
         self.optimizerD = optim.Adam(self.netD.parameters(), lr=self.p.lrD,
-                                     betas=(0., 0.9))
-        self.netD.apply(self.weights_init)
+                                         betas=(0., 0.9))
+        self.optimizerG = optim.Adam(self.netG.parameters(), lr=self.p.lrG,
+                                         betas=(0., 0.9))
 
         ### Make Data Generator ###
         self.generator_train = DataLoader(dataset, batch_size=self.p.batch_size, shuffle=True, num_workers=4, drop_last=True)
@@ -180,7 +187,7 @@ class Trainer(object):
                                     dtype=torch.float, device=self.device)
                 fake = self.netG(noise)
 
-                if self.p.sagan:
+                if self.p.sagan or self.biggan:
                     errD_real = (nn.ReLU()(1.0 - self.netD(real))).mean()
                     errD_fake = (nn.ReLU()(1.0 + self.netD(fake))).mean()
                     errD = errD_fake + errD_real
@@ -207,7 +214,7 @@ class Trainer(object):
             noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
                                 dtype=torch.float, device=self.device)
             fake = self.netG(noise)
-            if self.p.sagan:
+            if self.p.sagan or self.biggan:
                 errG = -self.netD(fake).mean()
                 errG.backward()
             else:
