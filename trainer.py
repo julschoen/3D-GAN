@@ -207,8 +207,8 @@ class Trainer(object):
             noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
                                 dtype=torch.float, device=self.device)
             fake = self.netG(noise)
-            errG = self.netD(fake)
-            errG.backward(mone)
+            errG = -self.netD(fake)
+            errG.backward()
 
             self.optimizerG.step()
             self.G_losses.append(errG.item())
