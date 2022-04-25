@@ -30,7 +30,7 @@ class Attention(nn.Module):
     o = self.o(torch.bmm(g, beta.transpose(1,2)).view(-1, self.ch // 2, x.shape[2], x.shape[3], x.shape[4]))
     return self.gamma * o + x
 
-def snconv3d(in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, bias=True):
+def snconv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=0, dilation=1, bias=True):
     return SpectralNorm(nn.Conv3d(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
                                    stride=stride, padding=padding, dilation=dilation, bias=bias))
 
