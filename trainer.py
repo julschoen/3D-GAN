@@ -187,7 +187,7 @@ class Trainer(object):
                                     dtype=torch.float, device=self.device)
                 fake = self.netG(noise)
 
-                if self.p.sagan or self.biggan:
+                if self.p.sagan or self.p.biggan:
                     errD_real = (nn.ReLU()(1.0 - self.netD(real))).mean()
                     errD_fake = (nn.ReLU()(1.0 + self.netD(fake))).mean()
                     errD = errD_fake + errD_real
