@@ -89,8 +89,8 @@ class Trainer(object):
         with torch.no_grad():
             self.fid.append(
                 FID.fid(
-                    torch.reshape(fake, (-1,1,128,128)).expand(-1,3,-1,-1), 
-                    real_images=torch.reshape(real, (-1,1,128,128)).expand(-1,3,-1,-1)
+                    torch.reshape(fake.to(torch.float32), (-1,1,128,128)).expand(-1,3,-1,-1), 
+                    real_images=torch.reshape(real.to(torch.float32), (-1,1,128,128)).expand(-1,3,-1,-1)
                     )
                 )
 
@@ -189,13 +189,12 @@ class Trainer(object):
                 data = next(gen)
                 real = data.to(self.device).unsqueeze(dim=1)
                 self.netD.zero_grad()
-                
-                noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
-                                    dtype=torch.float, device=self.device)
-                fake = self.netG(noise)
 
                 if self.p.sagan or self.p.biggan:
                     with autocast():
+                        noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
+                                    dtype=torch.float, device=self.device)
+                        fake = self.netG(noise)
                         errD_real = (nn.ReLU()(1.0 - self.netD(real))).mean()
                         errD_fake = (nn.ReLU()(1.0 + self.netD(fake))).mean()
                         errD = errD_fake + errD_real
@@ -203,6 +202,9 @@ class Trainer(object):
                     self.scalerD.step(self.optimizerD)
                     self.scalerD.update()
                 else:
+                    noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
+                                    dtype=torch.float, device=self.device)
+                    fake = self.netG(noise)
                     errD_real = self.netD(real)
                     errD_real.backward(mone)
 
