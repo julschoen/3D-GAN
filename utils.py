@@ -26,12 +26,12 @@ class Attention(nn.Module):
   def forward(self, x, y=None):
     # Apply convs
     theta = self.theta(x)
-    phi = F.max_pool3d(self.phi(x), 2)
-    g = F.max_pool3d(self.g(x), 2)    
+    phi = F.max_pool3d(self.phi(x), [2,2,2], stride=2)
+    g = F.max_pool3d(self.g(x), [2,2,2], stride=2)    
     # Perform reshapes
     theta = theta.view(-1, self. ch // 8, x.shape[2] * x.shape[3] * x.shape[4])
-    phi = phi.view(-1, self. ch // 8, x.shape[2] * x.shape[3] * x.shape[4] // 4)
-    g = g.view(-1, self. ch // 2, x.shape[2] * x.shape[3] * x.shape[4] // 4)
+    phi = phi.view(-1, self. ch // 8, x.shape[2] * x.shape[3] * x.shape[4] // 8)
+    g = g.view(-1, self. ch // 2, x.shape[2] * x.shape[3] * x.shape[4] // 8)
     # Matmul and softmax to get attention maps
     beta = F.softmax(torch.bmm(theta.permute(0,2,1), phi), -1)
     # Attention map times g path
