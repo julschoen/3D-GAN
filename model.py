@@ -111,6 +111,7 @@ class Discriminator(nn.Module):
         ndf = params.filterD
         nc = 1
         self.ngpu=params.ngpu
+        self.sagan = params.sagan
         
         if params.msl:
             self.main = nn.Sequential(
@@ -180,7 +181,7 @@ class Discriminator(nn.Module):
         else: 
             output = self.main(input)
 
-        if not sagan:
+        if not self.sagan:
             output = output.mean(0)
             output = output.view(1)
         
