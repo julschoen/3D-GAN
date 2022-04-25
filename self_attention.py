@@ -4,7 +4,7 @@ import torch.nn.utils.spectral_norm as SpectralNorm
 import torch.nn.functional as F
 
 class SelfAttentionBlock(nn.Module):
-    def __init__(self, in_channels, key_channels=None, value_channels=None, out_channels=None, scale=2):
+    def __init__(self, in_channels, key_channels=None, value_channels=None, out_channels=None, scale=3):
         super(SelfAttentionBlock, self).__init__()
         self.scale = scale
         self.in_channels = in_channels
