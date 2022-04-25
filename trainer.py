@@ -13,7 +13,7 @@ import torchvision.utils as vutils
 
 from model import Discriminator, Generator
 from biggan import Discriminator as BigD
-from biggan import Generator as BigD
+from biggan import Generator as BigG
 
 
 class Trainer(object):
