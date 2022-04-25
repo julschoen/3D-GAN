@@ -157,7 +157,7 @@ class Discriminator(nn.Module):
                 nn.Conv3d(ndf*8, ndf*16, 4, stride=2, padding=1),
                 SpectralNorm(),
                 nn.LeakyReLU(0.2, inplace=True),
-                nn.Conv3d(ndf*16, 1, 3, stride=1, padding=0)
+                nn.Conv3d(ndf*16, 1, 3, stride=1, padding=0),
                 SpectralNorm(),
             )
         else:  
