@@ -4,7 +4,7 @@ from torch.nn import init
 import torch.nn.functional as F
 import torch.nn.utils.spectral_norm as SpectralNorm
 import functools
-from utils import Attention, GBlock, snconv3d, snlinear
+from utils import Attention, GBlock, DBlock, snconv3d, snlinear
 
 
 class Generator(nn.Module):
