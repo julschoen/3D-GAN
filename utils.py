@@ -4,15 +4,22 @@ import torch.nn.functional as F
 import torch.nn.utils.spectral_norm as SpectralNorm
 import functools
 
+def snconv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=0, dilation=1, bias=True):
+    return SpectralNorm(nn.Conv3d(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
+                                   stride=stride, padding=padding, dilation=dilation, bias=bias))
+
+def snlinear(in_features, out_features):
+    return SpectralNorm(nn.Linear(in_features=in_features, out_features=out_features))
+
 class Attention(nn.Module):
   def __init__(self, ch):
     super(Attention, self).__init__()
     # Channel multiplier
     self.ch = ch
-    self.theta = self.snconv3d(self.ch, self.ch // 8, kernel_size=1, padding=0, bias=False)
-    self.phi = self.snconv3d(self.ch, self.ch // 8, kernel_size=1, padding=0, bias=False)
-    self.g = self.snconv3d(self.ch, self.ch // 2, kernel_size=1, padding=0, bias=False)
-    self.o = self.snconv3d(self.ch // 2, self.ch, kernel_size=1, padding=0, bias=False)
+    self.theta = snconv3d(self.ch, self.ch // 8, kernel_size=1, padding=0, bias=False)
+    self.phi = snconv3d(self.ch, self.ch // 8, kernel_size=1, padding=0, bias=False)
+    self.g = snconv3d(self.ch, self.ch // 2, kernel_size=1, padding=0, bias=False)
+    self.o = snconv3d(self.ch // 2, self.ch, kernel_size=1, padding=0, bias=False)
     # Learnable gain parameter
     self.gamma = P(torch.tensor(0.), requires_grad=True)
   def forward(self, x, y=None):
@@ -29,13 +36,6 @@ class Attention(nn.Module):
     # Attention map times g path
     o = self.o(torch.bmm(g, beta.transpose(1,2)).view(-1, self.ch // 2, x.shape[2], x.shape[3], x.shape[4]))
     return self.gamma * o + x
-
-def snconv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=0, dilation=1, bias=True):
-    return SpectralNorm(nn.Conv3d(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
-                                   stride=stride, padding=padding, dilation=dilation, bias=bias))
-
-def snlinear(in_features, out_features):
-    return SpectralNorm(nn.Linear(in_features=in_features, out_features=out_features))
 
 class GBlock(nn.Module):
   def __init__(self, in_channels, out_channels, upsample=None, channel_ratio=4):
