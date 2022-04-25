@@ -50,7 +50,7 @@ class Generator(nn.Module):
 
   def forward(self, z):
     # First linear layer
-    h = self.linear(z)
+    h = self.linear(z.squeeze())
     # Reshape
     h = h.view(h.size(0), -1, 4, 4, 4)    
     for index, blocklist in enumerate(self.blocks):
