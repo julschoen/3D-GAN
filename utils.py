@@ -5,7 +5,7 @@ import torch.nn.utils.spectral_norm as SpectralNorm
 import functools
 from torch.nn import Parameter as P
 
-def snconv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=0, dilation=1, bias=True):
+def snconv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, bias=True):
     return SpectralNorm(nn.Conv3d(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
                                    stride=stride, padding=padding, dilation=dilation, bias=bias))
 
@@ -66,7 +66,7 @@ class GBlock(nn.Module):
     h = self.conv1(self.activation(self.bn1(x)))
     # Apply next BN-ReLU
     h = self.activation(self.bn2(h))   
-    # Upsample both h and x at this point  
+    # Upsample both h and x at this point
     if self.upsample:
       h = self.upsample(h)
       x = self.upsample(x)
