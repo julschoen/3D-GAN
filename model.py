@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from msl import RandomCrop3D
 from self_attention import SelfAttentionBlock
+import torch.nn.utils.spectral_norm as SpectralNorm
 
 class Res_up(nn.Module):
     def __init__(self, channel_in, channel_out, scale = 2):
