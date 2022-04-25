@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.utils.spectral_norm as SpectralNorm
+import torch.nn.functional as F
 
 class SelfAttentionBlock(nn.Module):
     def __init__(self, in_channels, key_channels=None, value_channels=None, out_channels=None, scale=2):
