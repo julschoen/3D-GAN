@@ -54,8 +54,8 @@ class Generator(nn.Module):
     # Reshape
     h = h.view(h.size(0), -1, 4, 4, 4)    
     for index, blocklist in enumerate(self.blocks):
-      print(index, h.shape)
       for block in blocklist:
+        print(index, h.shape)
         h = block(h)
     return torch.tanh(self.output_layer(h))
 
