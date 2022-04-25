@@ -28,34 +28,34 @@ class Generator(nn.Module):
       if self.arch['attention'][self.arch['resolution'][index]]:
         self.blocks[-1] += [Attention(self.arch['out_channels'][index])]
 
-      # Turn self.blocks into a ModuleList so that it's all properly registered.
-      self.blocks = nn.ModuleList([nn.ModuleList(block) for block in self.blocks])
+    # Turn self.blocks into a ModuleList so that it's all properly registered.
+    self.blocks = nn.ModuleList([nn.ModuleList(block) for block in self.blocks])
 
-      self.output_layer = nn.Sequential(nn.BatchNorm3d(self.arch['out_channels'][-1]),
-                                      nn.ReLU(inplace=True),
-                                      snconv3d(self.arch['out_channels'][-1], 1))
+    self.output_layer = nn.Sequential(nn.BatchNorm3d(self.arch['out_channels'][-1]),
+                                    nn.ReLU(inplace=True),
+                                    snconv3d(self.arch['out_channels'][-1], 1))
 
-      self.init_weights()
+    self.init_weights()
 
-    def init_weights(self):
-      self.param_count = 0
-      for module in self.modules():
-        if (isinstance(module, nn.Conv2d) 
-            or isinstance(module, nn.Linear) 
-            or isinstance(module, nn.Embedding)):
-          init.orthogonal_(module.weight)
-          self.param_count += sum([p.data.nelement() for p in module.parameters()])
-      print('Param count for G''s initialized parameters: %d' % self.param_count)
+  def init_weights(self):
+    self.param_count = 0
+    for module in self.modules():
+      if (isinstance(module, nn.Conv2d) 
+          or isinstance(module, nn.Linear) 
+          or isinstance(module, nn.Embedding)):
+        init.orthogonal_(module.weight)
+        self.param_count += sum([p.data.nelement() for p in module.parameters()])
+    print('Param count for G''s initialized parameters: %d' % self.param_count)
 
-    def forward(self, z):
-      # First linear layer
-      h = self.linear(z)
-      # Reshape
-      h = h.view(h.size(0), -1, 4, 4, 4)    
-      for index, blocklist in enumerate(self.blocks):
-        for block in blocklist:
-          h = block(h)
-      return torch.tanh(self.output_layer(h))
+  def forward(self, z):
+    # First linear layer
+    h = self.linear(z)
+    # Reshape
+    h = h.view(h.size(0), -1, 4, 4, 4)    
+    for index, blocklist in enumerate(self.blocks):
+      for block in blocklist:
+        h = block(h)
+    return torch.tanh(self.output_layer(h))
 
 
 
