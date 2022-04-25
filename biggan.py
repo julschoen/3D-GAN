@@ -55,7 +55,6 @@ class Generator(nn.Module):
     h = h.view(h.size(0), -1, 4, 4, 4)    
     for index, blocklist in enumerate(self.blocks):
       for block in blocklist:
-        print(index, h.shape)
         h = block(h)
     return torch.tanh(self.output_layer(h))
 
@@ -90,7 +89,7 @@ class Discriminator(nn.Module):
 
     self.blocks = nn.ModuleList([nn.ModuleList(block) for block in self.blocks])
     self.linear = snlinear(self.arch['out_channels'][-1], 1)
-
+    self.activation = nn.ReLU(inplace=True)
     self.init_weights()
 
   def init_weights(self):
