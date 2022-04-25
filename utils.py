@@ -45,11 +45,11 @@ class GBlock(nn.Module):
     self.hidden_channels = self.in_channels // channel_ratio
     
     # Conv layers
-    self.conv1 = self.snconv3d(self.in_channels, self.hidden_channels, 
+    self.conv1 = snconv3d(self.in_channels, self.hidden_channels, 
                                  kernel_size=1, padding=0)
-    self.conv2 = self.snconv3d(self.hidden_channels, self.hidden_channels)
-    self.conv3 = self.snconv3d(self.hidden_channels, self.hidden_channels)
-    self.conv4 = self.snconv3d(self.hidden_channels, self.out_channels, 
+    self.conv2 = snconv3d(self.hidden_channels, self.hidden_channels)
+    self.conv3 = snconv3d(self.hidden_channels, self.hidden_channels)
+    self.conv4 = snconv3d(self.hidden_channels, self.out_channels, 
                                  kernel_size=1, padding=0)
     # Batchnorm layers
     self.bn1 = nn.BatchNorm3d(self.in_channels)
