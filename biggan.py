@@ -32,7 +32,7 @@ class Generator(nn.Module):
       self.blocks = nn.ModuleList([nn.ModuleList(block) for block in self.blocks])
 
       self.output_layer = nn.Sequential(nn.BatchNorm3d(self.arch['out_channels'][-1]),
-                                      nn.ReLU,
+                                      nn.ReLU(inplace=True),
                                       snconv3d(self.arch['out_channels'][-1], 1))
 
       self.init_weights()
