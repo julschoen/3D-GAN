@@ -4,7 +4,7 @@ import torch.nn.utils.spectral_norm as SpectralNorm
 import torch.nn.functional as F
 
 class SelfAttentionBlock(nn.Module):
-    def __init__(self, in_channels, key_channels=None, value_channels=None, out_channels=None, scale=3):
+    def __init__(self, in_channels, key_channels=None, value_channels=None, out_channels=None, scale=2):
         super(SelfAttentionBlock, self).__init__()
         self.scale = scale
         self.in_channels = in_channels
@@ -14,9 +14,9 @@ class SelfAttentionBlock(nn.Module):
         if out_channels is None:
             self.out_channels = in_channels
         if key_channels is None:
-            self.key_channels = in_channels // 2
+            self.key_channels = in_channels // 4
         if value_channels is None:
-            self.value_channels = in_channels // 2
+            self.value_channels = in_channels // 4
         self.pool = nn.MaxPool3d(kernel_size=scale)
         self.f_key = nn.Sequential(
             SpectralNorm(nn.Conv3d(in_channels=self.in_channels, out_channels=self.key_channels,
