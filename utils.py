@@ -65,7 +65,9 @@ class GBlock(nn.Module):
     # Project down to channel ratio
     h = self.conv1(self.activation(self.bn1(x)))
     # Apply next BN-ReLU
-    h = self.activation(self.bn2(h))   
+    h = self.activation(self.bn2(h))
+    if self.in_channels != self.out_channels:
+      x = x[:, :self.out_channels]   
     # Upsample both h and x at this point
     if self.upsample:
       h = self.upsample(h)
