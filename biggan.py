@@ -37,15 +37,15 @@ class Generator(nn.Module):
 
       self.init_weights()
 
-      def init_weights(self):
-        self.param_count = 0
-        for module in self.modules():
-          if (isinstance(module, nn.Conv2d) 
-              or isinstance(module, nn.Linear) 
-              or isinstance(module, nn.Embedding)):
-            init.orthogonal_(module.weight)
-            self.param_count += sum([p.data.nelement() for p in module.parameters()])
-        print('Param count for G''s initialized parameters: %d' % self.param_count)
+    def init_weights(self):
+      self.param_count = 0
+      for module in self.modules():
+        if (isinstance(module, nn.Conv2d) 
+            or isinstance(module, nn.Linear) 
+            or isinstance(module, nn.Embedding)):
+          init.orthogonal_(module.weight)
+          self.param_count += sum([p.data.nelement() for p in module.parameters()])
+      print('Param count for G''s initialized parameters: %d' % self.param_count)
 
     def forward(self, z):
       # First linear layer
