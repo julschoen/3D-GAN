@@ -14,9 +14,9 @@ class SelfAttentionBlock(nn.Module):
         if out_channels is None:
             self.out_channels = in_channels
         if key_channels is None:
-            self.key_channels = in_channels // 4
+            self.key_channels = in_channels // 8
         if value_channels is None:
-            self.value_channels = in_channels // 4
+            self.value_channels = in_channels // 8
         self.pool = nn.MaxPool3d(kernel_size=scale)
         self.f_key = nn.Sequential(
             SpectralNorm(nn.Conv3d(in_channels=self.in_channels, out_channels=self.key_channels,
