@@ -49,7 +49,8 @@ class Trainer(object):
         self.optimizerG = optim.Adam(self.netG.parameters(), lr=self.p.lrG,
                                          betas=(0., 0.9))
 
-        self.scaler = GradScaler()
+        self.scalerD = GradScaler()
+        self.scalerG = GradScaler()
 
         ### Make Data Generator ###
         self.generator_train = DataLoader(dataset, batch_size=self.p.batch_size, shuffle=True, num_workers=4, drop_last=True)
@@ -198,8 +199,9 @@ class Trainer(object):
                         errD_real = (nn.ReLU()(1.0 - self.netD(real))).mean()
                         errD_fake = (nn.ReLU()(1.0 + self.netD(fake))).mean()
                         errD = errD_fake + errD_real
-                    self.scaler.scale(errD).backward()
-                    self.scaler.step(self.optimizerD)
+                    self.scalerD.scale(errD).backward()
+                    self.scalerD.step(self.optimizerD)
+                    self.scalerD.update()
                 else:
                     errD_real = self.netD(real)
                     errD_real.backward(mone)
@@ -225,8 +227,9 @@ class Trainer(object):
                     fake = self.netG(noise)
                     errG = -self.netD(fake).mean()
 
-                self.scaler.scale(errG).backward()
-                self.scaler.step(self.optimizerG)
+                self.scalerG.scale(errG).backward()
+                self.scalerG.step(self.optimizerG)
+                self.scalerG.update()
             else:
                 noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
                                 dtype=torch.float, device=self.device)
@@ -234,7 +237,7 @@ class Trainer(object):
                 errG = self.netD(fake)
                 errG.backward(mone)
                 self.optimizerG.step()
-                
+
             self.G_losses.append(errG.item())
             self.D_losses.append(errD.item())
 
