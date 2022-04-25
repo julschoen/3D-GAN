@@ -16,7 +16,7 @@ class Generator(nn.Module):
              'out_channels' : [item * 64 for item in [16, 8, 4,  2, 1]],
              'upsample' : [True] * 5,
              'resolution' : [8, 16, 32, 64, 128],
-             'attention' : {2**i: (2**i in [int(item) for item in '64'.split('_')]) for i in range(3,8)}}
+             'attention' : {2**i: (2**i in [int(item) for item in '32'.split('_')]) for i in range(3,8)}}
     self.linear = snlinear(self.p.z_size, self.arch['in_channels'][0] * (4**3))
     self.blocks = []
     for index in range(len(self.arch['out_channels'])):
@@ -71,7 +71,7 @@ class Discriminator(nn.Module):
                'out_channels' : [item * 64 for item in [2, 4, 8, 16, 16]],
                'downsample' : [True] * 5 + [False],
                'resolution' : [64, 32, 16, 8, 4, 4],
-               'attention' : {2**i: 2**i in [int(item) for item in '64'.split('_')]
+               'attention' : {2**i: 2**i in [int(item) for item in '32'.split('_')]
                               for i in range(2,8)}}
     
     # Prepare model
