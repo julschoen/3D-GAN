@@ -11,15 +11,13 @@ class Generator(nn.Module):
     super(Generator, self).__init__()
     self.p = params
 
-    self.arch = {'in_channels' :  [item * 64 for item in [16, 16, 8, 4, 2]],
-               'out_channels' : [item * 64 for item in [16, 8, 4,  2, 1]],
-               'upsample' : [True] * 5,
-               'resolution' : [8, 16, 32, 64, 128],
-               'attention' : {2**i: (2**i in [int(item) for item in '64'.split('_')]) for i in range(3,8)}}
-
-	self.linear = snlinear(self.p.z_size, self.arch['in_channels'][0] * (4**3))
-
-	self.blocks = []
+  self.arch = {'in_channels' :  [item * 64 for item in [16, 16, 8, 4, 2]],
+           'out_channels' : [item * 64 for item in [16, 8, 4,  2, 1]],
+           'upsample' : [True] * 5,
+           'resolution' : [8, 16, 32, 64, 128],
+           'attention' : {2**i: (2**i in [int(item) for item in '64'.split('_')]) for i in range(3,8)}}
+  self.linear = snlinear(self.p.z_size, self.arch['in_channels'][0] * (4**3))
+  self.blocks = []
     for index in range(len(self.arch['out_channels'])):
       self.blocks += [[GBlock(in_channels=self.arch['in_channels'][index],
                              out_channels=self.arch['in_channels'][index] if g_index==0 else self.arch['out_channels'][index],
@@ -40,16 +38,16 @@ class Generator(nn.Module):
     self.init_weights()
 
     def init_weights(self):
-	    self.param_count = 0
-	    for module in self.modules():
-	      if (isinstance(module, nn.Conv2d) 
-	          or isinstance(module, nn.Linear) 
-	          or isinstance(module, nn.Embedding)):
-	        init.orthogonal_(module.weight)
-	        self.param_count += sum([p.data.nelement() for p in module.parameters()])
-	    print('Param count for G''s initialized parameters: %d' % self.param_count)
+      self.param_count = 0
+      for module in self.modules():
+        if (isinstance(module, nn.Conv2d) 
+            or isinstance(module, nn.Linear) 
+            or isinstance(module, nn.Embedding)):
+          init.orthogonal_(module.weight)
+          self.param_count += sum([p.data.nelement() for p in module.parameters()])
+      print('Param count for G''s initialized parameters: %d' % self.param_count)
 
-	def forward(self, z):
+  def forward(self, z):
     # First linear layer
     h = self.linear(z)
     # Reshape
