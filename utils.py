@@ -33,9 +33,9 @@ class Attention(nn.Module):
     phi = phi.view(-1, self. ch // 8, x.shape[2] * x.shape[3] * x.shape[4] // 4)
     g = g.view(-1, self. ch // 2, x.shape[2] * x.shape[3] * x.shape[4] // 4)
     # Matmul and softmax to get attention maps
-    beta = F.softmax(torch.bmm(theta.transpose(1, 2), phi), -1)
+    beta = F.softmax(torch.bmm(theta.permute(0,2,1), phi), -1)
     # Attention map times g path
-    o = self.o(torch.bmm(g, beta.transpose(1,2)).view(-1, self.ch // 2, x.shape[2], x.shape[3], x.shape[4]))
+    o = self.o(torch.bmm(g, beta.permute(0,2,1)).view(-1, self.ch // 2, x.shape[2], x.shape[3], x.shape[4]))
     return self.gamma * o + x
 
 class GBlock(nn.Module):
