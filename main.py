@@ -26,7 +26,7 @@ def main():
 	parser.add_argument('--sagan', type=bool, default=False, help='Use SAGAN')
 	parser.add_argument('--biggan', type=bool, default=False, help='Use BigGAN')
 	parser.add_argument('--att', type=bool, default=True, help='Use Attention in BigGAN')
-	parser.add_argument('--hybrid' type=bool, default=False, help='Use BigGAN generator with DCGAN discriminator')
+	parser.add_argument('--hybrid', type=bool, default=False, help='Use BigGAN generator with DCGAN discriminator')
 	params = parser.parse_args()
 
 	dataset_train = DATA(path=params.data_path)
