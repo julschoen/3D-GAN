@@ -25,9 +25,9 @@ class Generator(nn.Module):
                              upsample=(functools.partial(F.interpolate, scale_factor=2)
                                        if self.arch['upsample'][index] and g_index == 1 else None))]
                        for g_index in range(2)]
-
-      if self.arch['attention'][self.arch['resolution'][index]]:
-        self.blocks[-1] += [Attention(self.arch['out_channels'][index])]
+      if self.p.att:
+        if self.arch['attention'][self.arch['resolution'][index]]:
+          self.blocks[-1] += [Attention(self.arch['out_channels'][index])]
 
     # Turn self.blocks into a ModuleList so that it's all properly registered.
     self.blocks = nn.ModuleList([nn.ModuleList(block) for block in self.blocks])
@@ -83,9 +83,9 @@ class Discriminator(nn.Module):
                        preactivation=True,
                        downsample=(nn.AvgPool3d(2) if self.arch['downsample'][index] and d_index==0 else None))
                        for d_index in range(1)]]
-
-      if self.arch['attention'][self.arch['resolution'][index]]:
-        self.blocks[-1] += [Attention(self.arch['out_channels'][index])]
+      if self.p.att:
+        if self.arch['attention'][self.arch['resolution'][index]]:
+          self.blocks[-1] += [Attention(self.arch['out_channels'][index])]
 
     self.blocks = nn.ModuleList([nn.ModuleList(block) for block in self.blocks])
     self.linear = snlinear(self.arch['out_channels'][-1], 1)
