@@ -39,7 +39,7 @@ class Trainer(object):
             self.netD.apply(self.weights_init)
         elif self.p.hybrid:
             self.netG = BigG(self.p).to(self.device)
-            self.netD = Discriminator(self.p)to(self.device)
+            self.netD = Discriminator(self.p).to(self.device)
             self.netD.apply(self.weights_init)
             if self.p.ngpu > 1:
                 self.netG = nn.DataParallel(self.netG)
