@@ -112,6 +112,7 @@ class Discriminator(nn.Module):
         nc = 1
         self.ngpu=params.ngpu
         self.sagan = params.sagan
+        self.hybrid = params.hybrid
         
         if params.msl:
             self.main = nn.Sequential(
@@ -181,7 +182,7 @@ class Discriminator(nn.Module):
         else: 
             output = self.main(input)
 
-        if not self.sagan:
+        if not self.sagan and not self.hybrid:
             output = output.mean(0)
             output = output.view(1)
         
