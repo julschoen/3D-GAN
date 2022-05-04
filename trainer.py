@@ -32,18 +32,18 @@ class Trainer(object):
         os.makedirs(self.images_dir, exist_ok=True)
 
         ### Make Models ###
-        if not self.p.biggan:
-            self.netG = Generator(self.p).to(self.device)
-            self.netG.apply(self.weights_init)
-            self.netD = Discriminator(self.p).to(self.device)
-            self.netD.apply(self.weights_init)
+        if self.p.biggan:
+            self.netD = BigD(self.p).to(self.device)
+            self.netG = BigG(self.p).to(self.device)
         elif self.p.hybrid:
             self.netG = BigG(self.p).to(self.device)
             self.netD = Discriminator(self.p).to(self.device)
             self.netD.apply(self.weights_init)
         else:
-            self.netD = BigD(self.p).to(self.device)
-            self.netG = BigG(self.p).to(self.device)
+            self.netG = Generator(self.p).to(self.device)
+            self.netG.apply(self.weights_init)
+            self.netD = Discriminator(self.p).to(self.device)
+            self.netD.apply(self.weights_init)
 
         if self.p.ngpu > 1:
             self.netD = nn.DataParallel(self.netD)
