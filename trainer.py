@@ -207,21 +207,22 @@ class Trainer(object):
                     self.scalerD.step(self.optimizerD)
                     self.scalerD.update()
                 else:
-                    noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
-                                    dtype=torch.float, device=self.device)
-                    fake = self.netG(noise)
-                    errD_real = self.netD(real)
-                    errD_real.backward(mone)
+                    with autocast:
+                        noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
+                                        dtype=torch.float, device=self.device)
+                        fake = self.netG(noise)
+                        errD_real = self.netD(real)
+                        errD_real.backward(mone)
 
-                    errD_fake = self.netD(fake.detach())
-                    errD_fake.backward(one)
+                        errD_fake = self.netD(fake.detach())
+                        errD_fake.backward(one)
 
-                    gradient_penalty = self.calc_gradient_penalty(real.data, fake.data)
-                    gradient_penalty.backward()
+                        gradient_penalty = self.calc_gradient_penalty(real.data, fake.data)
+                        gradient_penalty.backward()
 
-                    errD = errD_fake - errD_real + gradient_penalty
+                        errD = errD_fake - errD_real + gradient_penalty
 
-                    self.optimizerD.step()
+                        self.optimizerD.step()
 
             for p in self.netD.parameters():
                 p.requires_grad = False
@@ -238,12 +239,14 @@ class Trainer(object):
                 self.scalerG.step(self.optimizerG)
                 self.scalerG.update()
             else:
-                noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
-                                dtype=torch.float, device=self.device)
-                fake = self.netG(noise)
-                errG = self.netD(fake)
-                errG.backward(mone)
-                self.optimizerG.step()
+                with autocast():
+                    noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
+                                    dtype=torch.float, device=self.device)
+                    fake = self.netG(noise)
+                    errG = -self.netD(fake)
+                self.scalerG.scale(errG).backward()
+                self.scalerG.step(self.optimizerG)
+                self.scalerG.update()
 
             self.G_losses.append(errG.item())
             self.D_losses.append(errD.item())
