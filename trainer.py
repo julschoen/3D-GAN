@@ -212,17 +212,14 @@ class Trainer(object):
                                         dtype=torch.float, device=self.device)
                         fake = self.netG(noise)
                         errD_real = self.netD(real)
-                        errD_real.backward(mone)
-
                         errD_fake = self.netD(fake.detach())
-                        errD_fake.backward(one)
-
                         gradient_penalty = self.calc_gradient_penalty(real.data, fake.data)
-                        gradient_penalty.backward()
 
                         errD = errD_fake - errD_real + gradient_penalty
-
-                        self.optimizerD.step()
+                        errD.backward()
+                    self.scalerD.scale(errD).backward()
+                    self.scalerD.step(self.optimizerD)
+                    self.scalerD.update()
 
             for p in self.netD.parameters():
                 p.requires_grad = False
