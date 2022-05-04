@@ -97,11 +97,7 @@ class Generator(nn.Module):
             )
 
     def forward(self, input):
-        if isinstance(input.data, torch.cuda.FloatTensor) and self.ngpu > 1:
-            output = nn.parallel.data_parallel(self.main, input, range(self.ngpu))
-        else: 
-            output = self.main(input)
-        
+        output = self.main(input)
         return output
 
 class Discriminator(nn.Module):
@@ -177,11 +173,7 @@ class Discriminator(nn.Module):
             )
 
     def forward(self, input):
-        if isinstance(input.data, torch.cuda.FloatTensor) and self.ngpu > 1:
-            output = nn.parallel.data_parallel(self.main, input, range(self.ngpu))
-        else: 
-            output = self.main(input)
-
+        output = self.main(input)
         if not self.sagan and not self.hybrid:
             output = output.mean(0)
             output = output.view(1)

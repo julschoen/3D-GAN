@@ -41,14 +41,13 @@ class Trainer(object):
             self.netG = BigG(self.p).to(self.device)
             self.netD = Discriminator(self.p).to(self.device)
             self.netD.apply(self.weights_init)
-            if self.p.ngpu > 1:
-                self.netG = nn.DataParallel(self.netG)
         else:
             self.netD = BigD(self.p).to(self.device)
             self.netG = BigG(self.p).to(self.device)
-            if self.p.ngpu>1:
-                self.netD = nn.DataParallel(self.netD)
-                self.netG = nn.DataParallel(self.netG)
+
+        if self.p.ngpu > 1:
+            self.netD = nn.parallel.DistributedDataParallel(self.netD)
+            self.netG = nn.parallel.DistributedDataParallel(self.netG)
 
         self.optimizerD = optim.Adam(self.netD.parameters(), lr=self.p.lrD,
                                          betas=(0., 0.9))
