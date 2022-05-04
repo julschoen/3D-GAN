@@ -33,16 +33,13 @@ class Trainer(object):
 
         ### Make Models ###
         if  self.p.biggan:
-            print('Using BigGAN')
             self.netD = BigD(self.p).to(self.device)
             self.netG = BigG(self.p).to(self.device)
         elif self.p.hybrid:
-            print('Using Hybrid Model')
             self.netG = BigG(self.p).to(self.device)
             self.netD = Discriminator(self.p).to(self.device)
             self.netD.apply(self.weights_init)
         else:
-            print('Using DCGAN')
             self.netG = Generator(self.p).to(self.device)
             self.netG.apply(self.weights_init)
             self.netD = Discriminator(self.p).to(self.device)
