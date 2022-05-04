@@ -214,9 +214,9 @@ class Trainer(object):
                         errD_real = self.netD(real)
                         errD_fake = self.netD(fake.detach())
                         gradient_penalty = self.calc_gradient_penalty(real.data, fake.data)
-
+                        print(errD_real, errD_fake, gradient_penalty)
                         errD = errD_fake - errD_real + gradient_penalty
-                        print(errD)
+
                     self.scalerD.scale(errD).backward()
                     self.scalerD.step(self.optimizerD)
                     self.scalerD.update()
