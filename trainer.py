@@ -216,6 +216,7 @@ class Trainer(object):
                         gradient_penalty = self.calc_gradient_penalty(real.data, fake.data)
 
                         errD = errD_fake - errD_real + gradient_penalty
+                        print(errD)
                     self.scalerD.scale(errD).backward()
                     self.scalerD.step(self.optimizerD)
                     self.scalerD.update()
