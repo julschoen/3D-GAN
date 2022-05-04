@@ -12,8 +12,8 @@ class Generator(nn.Module):
     super(Generator, self).__init__()
     self.p = params
 
-    self.arch = {'in_channels' :  [item * 64 for item in [16, 16, 8, 4, 2]],
-             'out_channels' : [item * 64 for item in [16, 8, 4,  2, 1]],
+    self.arch = {'in_channels' :  [item * self.p.filterG for item in [16, 16, 8, 4, 2]],
+             'out_channels' : [item * self.p.filterG for item in [16, 8, 4,  2, 1]],
              'upsample' : [True] * 5,
              'resolution' : [8, 16, 32, 64, 128],
              'attention' : {2**i: (2**i in [int(item) for item in '32'.split('_')]) for i in range(3,8)}}
@@ -64,10 +64,9 @@ class Discriminator(nn.Module):
   def __init__(self, params):
     super(Discriminator, self).__init__()
     self.p = params
- 
     # Architecture
-    self.arch = {'in_channels' :  [item * 64 for item in [1, 2, 4,  8, 16]],
-               'out_channels' : [item * 64 for item in [2, 4, 8, 16, 16]],
+    self.arch = {'in_channels' :  [item * self.p.filterD for item in [1, 2, 4,  8, 16]],
+               'out_channels' : [item * self.p.filterD for item in [2, 4, 8, 16, 16]],
                'downsample' : [True] * 5 + [False],
                'resolution' : [64, 32, 16, 8, 4, 4],
                'attention' : {2**i: 2**i in [int(item) for item in '16'.split('_')]
