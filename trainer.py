@@ -195,7 +195,7 @@ class Trainer(object):
                 real = data.to(self.device).unsqueeze(dim=1)
                 self.netD.zero_grad()
 
-                if self.p.sagan or self.p.biggan or self.p.hybrid:
+                if self.p.sagan or self.p.biggan:
                     with autocast():
                         noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
                                     dtype=torch.float, device=self.device)
@@ -227,7 +227,7 @@ class Trainer(object):
                 p.requires_grad = False
 
             self.netG.zero_grad()
-            if self.p.sagan or self.p.biggan or self.p.hybrid:
+            if self.p.sagan or self.p.biggan:
                 with autocast():
                     noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
                                 dtype=torch.float, device=self.device)
