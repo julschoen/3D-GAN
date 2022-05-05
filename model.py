@@ -169,9 +169,5 @@ class Discriminator(nn.Module):
             )
 
     def forward(self, input):
-        output = self.main(input)
-        if not self.sagan:
-            output = output.mean(0)
-            output = output.view(1)
-        
+        output = self.main(input)        
         return output
