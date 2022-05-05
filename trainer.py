@@ -157,28 +157,6 @@ class Trainer(object):
         self.log_interpolation(step)
         self.save_checkpoint(step)
 
-    def calc_gradient_penalty(self, real_data, fake_data):
-        alpha = torch.rand(real_data.shape[0], 1, 1, 1, 1)
-        alpha = alpha.expand_as(real_data)
-        alpha = alpha.to(self.device)
-        interpolates = alpha * real_data + ((1 - alpha) * fake_data)
-
-        
-        interpolates = interpolates.to(self.device)
-        interpolates = Variable(interpolates, requires_grad=True)
-        disc_interpolates = self.netD(interpolates)
-        
-        gradients = grad(outputs=disc_interpolates,
-                         inputs=interpolates,
-                         grad_outputs=torch.ones(disc_interpolates.size()).to(self.device),
-                         create_graph=True,
-                         retain_graph=True,
-                         only_inputs=True)[0]
-
-        gradients = gradients.view(gradients.size(0), -1)
-        gradient_penalty = ((gradients.norm(2, dim=1) - 1) **2).mean() * self.p.lam
-        return gradient_penalty
-
     def train(self):
         step_done = self.start_from_checkpoint()
         FID.set_config(device=self.device)
@@ -201,15 +179,6 @@ class Trainer(object):
                     errD_real = (nn.ReLU()(1.0 - self.netD(real))).mean()
                     errD_fake = (nn.ReLU()(1.0 + self.netD(fake))).mean()
                     errD = errD_fake + errD_real
-                    
-                    # WGAN-GP currently not used because spectral norm is always applied in generator
-                    #noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
-                    #                dtype=torch.float, device=self.device)
-                    #fake = self.netG(noise)
-                    #errD_real = self.netD(real).mean()
-                    #errD_fake = self.netD(fake.detach()).mean()
-                    #gradient_penalty = self.calc_gradient_penalty(real.data, fake.data)
-                    #errD = errD_fake - errD_real + gradient_penalty
 
                 self.scalerD.scale(errD).backward()
                 self.scalerD.step(self.optimizerD)
