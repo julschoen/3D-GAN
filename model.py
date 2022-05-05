@@ -150,26 +150,22 @@ class Discriminator(nn.Module):
         else:  
             self.main = nn.Sequential(
                 # input is 128 x 128 x 128
-                nn.Conv3d(nc, ndf, 4, stride=2, padding=1, bias=False), 
+                SpectralNorm(nn.Conv3d(nc, ndf, 4, stride=2, padding=1, bias=False)), 
                 nn.LeakyReLU(0.2, inplace=True),
                 # state size. (ndf) x 14 x 14
-                nn.Conv3d(ndf, ndf * 2, 4, stride=2, padding=1, bias=False),
-                nn.LayerNorm([ndf * 2, 32, 32, 32]),
+                SpectralNorm(nn.Conv3d(ndf, ndf * 2, 4, stride=2, padding=1, bias=False)),
                 nn.LeakyReLU(0.2, inplace=True),
                 # state size. (ndf*2) x 7 x 7
-                nn.Conv3d(ndf * 2, ndf * 4, 4, stride=2, padding=1, bias=False),
-                nn.LayerNorm([ndf * 4, 16, 16, 16]),
+                SpectralNorm(nn.Conv3d(ndf * 2, ndf * 4, 4, stride=2, padding=1, bias=False)),
                 nn.LeakyReLU(0.2, inplace=True),
                 # state size. (ndf*4) x 6 x 6 
-                nn.Conv3d(ndf * 4, ndf * 8, 4, stride=2, padding=1, bias=False),
-                nn.LayerNorm([ndf * 8, 8, 8, 8]),
+                SpectralNorm(nn.Conv3d(ndf * 4, ndf * 8, 4, stride=2, padding=1, bias=False)),
                 nn.LeakyReLU(0.2, inplace=True),
                 # state size. (ndf*8) x 5 x 5
-                nn.Conv3d(ndf * 8, ndf * 16, 4, stride=2, padding=1, bias=False),
-                nn.LayerNorm([ndf * 16, 4, 4, 4]),
+                SpectralNorm(nn.Conv3d(ndf * 8, ndf * 16, 4, stride=2, padding=1, bias=False)),
                 nn.LeakyReLU(0.2, inplace=True),
                 # state size. (ndf*16) x 4 x 4
-                nn.Conv3d(ndf * 16, 1, (4,4,4), stride=1, padding=0, bias=False),
+                SpectralNorm(nn.Conv3d(ndf * 16, 1, (4,4,4), stride=1, padding=0, bias=False)),
             )
 
     def forward(self, input):
