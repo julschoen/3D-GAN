@@ -173,12 +173,20 @@ class Trainer(object):
                 real = data.to(self.device).unsqueeze(dim=1)
                 self.netD.zero_grad()
                 with autocast():
-                    noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
-                                dtype=torch.float, device=self.device)
-                    fake = self.netG(noise)
-                    errD_real = (nn.ReLU()(1.0 - self.netD(real))).mean()
-                    errD_fake = (nn.ReLU()(1.0 + self.netD(fake))).mean()
-                    errD = errD_fake + errD_real
+                    if self.p.hinge:
+                        noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
+                                    dtype=torch.float, device=self.device)
+                        fake = self.netG(noise)
+                        errD_real = (nn.ReLU()(1.0 - self.netD(real))).mean()
+                        errD_fake = (nn.ReLU()(1.0 + self.netD(fake))).mean()
+                        errD = errD_fake + errD_real
+                    else:
+                        noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
+                                    dtype=torch.float, device=self.device)
+                        fake = self.netG(noise)
+                        errD_real = self.netD(real).mean()
+                        errD_fake = self.netD(fake).mean()
+                        errD = errD_fake - errD_real
 
                 self.scalerD.scale(errD).backward()
                 self.scalerD.step(self.optimizerD)

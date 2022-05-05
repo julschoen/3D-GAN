@@ -25,6 +25,7 @@ def main():
 	parser.add_argument('--biggan_deep', type=bool, default=True, help='Use BigGAN-deep')
 	parser.add_argument('--att', type=bool, default=True, help='Use Attention in BigGAN')
 	parser.add_argument('--hybrid', type=bool, default=False, help='Use BigGAN generator with DCGAN discriminator')
+	parser.add_argument('--hinge', type=bool, default=True, help='Use Hinge Loss or Wasserstein loss')
 	params = parser.parse_args()
 
 	dataset_train = DATA(path=params.data_path)
