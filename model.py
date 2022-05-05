@@ -5,29 +5,6 @@ from msl import RandomCrop3D
 from self_attention import SelfAttentionBlock
 import torch.nn.utils.spectral_norm as SpectralNorm
 
-class Res_up(nn.Module):
-    def __init__(self, channel_in, channel_out, scale = 2):
-        super(Res_up, self).__init__()
-        
-        self.conv1 = nn.Conv3d(channel_in, channel_out//2, 3, 1, 1)
-        self.BN1 = nn.BatchNorm3d(channel_out//2)
-        self.conv2 = nn.Conv3d(channel_out//2, channel_out, 3, 1, 1)
-        self.BN2 = nn.BatchNorm3d(channel_out)
-        
-        self.conv3 = nn.Conv3d(channel_in, channel_out, 3, 1, 1)
-        
-        self.UpNN = nn.Upsample(scale_factor = scale,mode = "nearest")
-        
-    def forward(self, x):
-        skip = self.conv3(self.UpNN(x))
-        
-        x = F.rrelu(self.BN1(self.conv1(x)))
-        x = self.UpNN(x)
-        x = self.BN2(self.conv2(x))
-        
-        x = F.rrelu(x + skip)
-        return x
-
 class Generator(nn.Module):
     def __init__(self, params):
         super(Generator, self).__init__()
