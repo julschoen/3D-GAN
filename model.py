@@ -34,67 +34,30 @@ class Generator(nn.Module):
         nz = params.z_size
         ngf = params.filterG
         nc = 1
-
         self.ngpu = params.ngpu
-        if params.res:
-            self.main = nn.Sequential(
-                Res_up(nz, ngf*16),
-                Res_up(ngf*16, ngf*8),
-                Res_up(ngf*8, ngf*8),
-                Res_up(ngf*8, ngf*4),
-                Res_up(ngf*4, ngf*2),
-                Res_up(ngf*2, ngf),
-                Res_up(ngf, ngf//2),
-                nn.Conv3d(ngf//2, nc, 3, 1, 1),
-                nn.Tanh()
-            )
-        elif params.sagan:
-            self.main = nn.Sequential(
-                SpectralNorm(nn.ConvTranspose3d(nz, ngf*16, 4, stride=1)),
-                nn.BatchNorm3d(ngf*16),
-                nn.ReLU(True),
-                SpectralNorm(nn.ConvTranspose3d(ngf*16, ngf*8, 4, stride=2, padding=1)),
-                nn.BatchNorm3d(ngf*8),
-                nn.ReLU(True),
-                SpectralNorm(nn.ConvTranspose3d(ngf*8, ngf*4, 4, stride=2, padding=1)),
-                nn.BatchNorm3d(ngf*4),
-                nn.ReLU(True),
-                SpectralNorm(nn.ConvTranspose3d(ngf*4, ngf*2, 4, stride=2, padding=1)),
-                nn.BatchNorm3d(ngf*2),
-                nn.ReLU(True),
-                SpectralNorm(nn.ConvTranspose3d(ngf*2, ngf, 4, stride=2, padding=1)),
-                nn.BatchNorm3d(ngf),
-                nn.ReLU(True),
-                SpectralNorm(nn.ConvTranspose3d(ngf, 1, 4, stride=2, padding=1)),
-                nn.Tanh()
-            )
-        else:
-            self.main = nn.Sequential(
-                # input is Z, going into a convolution
-                nn.ConvTranspose3d(nz, ngf * 16, 4, 1, 0, bias=False),
-                nn.BatchNorm3d(ngf * 16),
-                nn.ReLU(True),
-                # state size. (ngf*16) x 4 x 4
-                nn.ConvTranspose3d(ngf * 16, ngf * 8, 4, 2, 1, bias=False),
-                nn.BatchNorm3d(ngf * 8),
-                nn.ReLU(True),
-                # state size. (ngf*8) x 8 x 8
-                nn.ConvTranspose3d(ngf * 8, ngf * 4, 4, 2, 1, bias=False),
-                nn.BatchNorm3d(ngf * 4),
-                nn.ReLU(True),
-                # state size. (ngf*4) x 16 x 16 
-                nn.ConvTranspose3d(ngf * 4, ngf * 2, 4, 2, 1, bias=False),
-                nn.BatchNorm3d(ngf * 2),
-                nn.ReLU(True),
-                # state size. (ngf*2) x 32 x 32
-                nn.ConvTranspose3d(ngf * 2,     ngf, 4, 2, 1, bias=False),
-                nn.BatchNorm3d(ngf),
-                nn.ReLU(True),
-                # state size. (ngf) x 64 x 64
-                nn.ConvTranspose3d(    ngf,      nc, 4, 2, 1, bias=False),
-                # state size. (nc) x 128 x 128 x 128
-                nn.Tanh()
-            )
+        
+        self.main = nn.Sequential(
+            # in z x 1 x 1 x 1
+            SpectralNorm(nn.ConvTranspose3d(nz, ngf*16, 4, stride=1)),
+            nn.ReLU(True),
+            # state size (ngf*16) x 4 x 4 x 4
+            SpectralNorm(nn.ConvTranspose3d(ngf*16, ngf*8, 4, stride=2, padding=1)),
+            nn.ReLU(True),
+            # state size (ngf*8) x 8 x 8 x 8
+            SpectralNorm(nn.ConvTranspose3d(ngf*8, ngf*4, 4, stride=2, padding=1)),
+            nn.ReLU(True),
+            # state size (ngf*4) x 16 x 16 x 16
+            SpectralNorm(nn.ConvTranspose3d(ngf*4, ngf*2, 4, stride=2, padding=1)),
+            nn.ReLU(True),
+            # state size (ngf*2) x 32 x 32 x 32
+            SpectralNorm(nn.ConvTranspose3d(ngf*2, ngf, 4, stride=2, padding=1)),
+            nn.ReLU(True),
+            # state size (ngf) x 64 x 64 x 64
+            SpectralNorm(nn.ConvTranspose3d(ngf, nc, 4, stride=2, padding=1)),
+            nn.Tanh()
+            # state size nc x 128 x 128 x 128
+        )
+       
 
     def forward(self, input):
         output = self.main(input)
@@ -112,59 +75,42 @@ class Discriminator(nn.Module):
         
         if params.msl:
             self.main = nn.Sequential(
-                # input is 128 x 128 x 128
+                # input is nc x 128 x 128 x 128
                 RandomCrop3D(device=params.device),
-                nn.Conv3d(nc, ndf, 4, stride=2, padding=1, bias=False), 
+                # input is nc x 64 x 64 x 64
+                SpectralNorm(nn.Conv3d(nc, ndf, 4, stride=2, padding=1, bias=False)), 
                 nn.LeakyReLU(0.2, inplace=True),
-                # state size. (ndf) x 14 x 14
-                nn.Conv3d(ndf, ndf * 2, 4, stride=2, padding=1, bias=False),
-                nn.LayerNorm([ndf * 2, 16, 16, 16]),
+                # state size. (ndf) x 32 x 32 x 32
+                SpectralNorm(nn.Conv3d(ndf, ndf * 2, 4, stride=2, padding=1, bias=False)),
                 nn.LeakyReLU(0.2, inplace=True),
-                # state size. (ndf*4) x 6 x 6 
-                nn.Conv3d(ndf * 2, ndf * 4, 4, stride=2, padding=1, bias=False),
-                nn.LayerNorm([ndf * 4, 8, 8, 8]),
+                # state size. (ndf*2) x 16 x 16 x 16
+                SpectralNorm(nn.Conv3d(ndf * 2, ndf * 4, 4, stride=2, padding=1, bias=False)),
                 nn.LeakyReLU(0.2, inplace=True),
-                # state size. (ndf*8) x 5 x 5
-                nn.Conv3d(ndf * 4, ndf * 8, 4, stride=2, padding=1, bias=False),
-                nn.LayerNorm([ndf * 8, 4, 4, 4]),
+                # state size. (ndf*4) x 8 x 8 x 8
+                SpectralNorm(nn.Conv3d(ndf * 4, ndf * 8, 4, stride=2, padding=1, bias=False)),
                 nn.LeakyReLU(0.2, inplace=True),
-                # state size. (ndf*16) x 4 x 4
-                nn.Conv3d(ndf * 8, 1, (4,4,4), stride=1, padding=0, bias=False),
+                # state size. (ndf*8) x 4 x 4 x 4
+                SpectralNorm(nn.Conv3d(ndf * 8, 1, (4,4,4), stride=1, padding=0, bias=False)),
                 # state size. 1
-            )
-        elif params.sagan:
-            self.main = nn.Sequential(
-                SpectralNorm(nn.Conv3d(1, ndf, 4, stride=1, padding=1)),
-                nn.LeakyReLU(0.2, inplace=True),
-                SpectralNorm(nn.Conv3d(ndf, ndf*2, 4, stride=2, padding=1)),
-                nn.LeakyReLU(0.2, inplace=True),
-                SpectralNorm(nn.Conv3d(ndf*2, ndf*4, 4, stride=2, padding=1)),
-                nn.LeakyReLU(0.2, inplace=True),
-                SelfAttentionBlock(ndf*4),
-                SpectralNorm(nn.Conv3d(ndf*4, ndf*8, 4, stride=2, padding=1)),
-                nn.LeakyReLU(0.2, inplace=True),
-                SpectralNorm(nn.Conv3d(ndf*8, ndf*16, 4, stride=2, padding=1)),
-                nn.LeakyReLU(0.2, inplace=True),
-                SpectralNorm(nn.Conv3d(ndf*16, 1, 3, stride=1, padding=0))
             )
         else:  
             self.main = nn.Sequential(
                 # input is 128 x 128 x 128
                 SpectralNorm(nn.Conv3d(nc, ndf, 4, stride=2, padding=1, bias=False)), 
                 nn.LeakyReLU(0.2, inplace=True),
-                # state size. (ndf) x 14 x 14
+                # state size. (ndf) x 64 x 64 x 64
                 SpectralNorm(nn.Conv3d(ndf, ndf * 2, 4, stride=2, padding=1, bias=False)),
                 nn.LeakyReLU(0.2, inplace=True),
-                # state size. (ndf*2) x 7 x 7
+                # state size. (ndf*2) x 32 x 32 x 32
                 SpectralNorm(nn.Conv3d(ndf * 2, ndf * 4, 4, stride=2, padding=1, bias=False)),
                 nn.LeakyReLU(0.2, inplace=True),
-                # state size. (ndf*4) x 6 x 6 
+                # state size. (ndf*4) x 16 x 16 x 16
                 SpectralNorm(nn.Conv3d(ndf * 4, ndf * 8, 4, stride=2, padding=1, bias=False)),
                 nn.LeakyReLU(0.2, inplace=True),
-                # state size. (ndf*8) x 5 x 5
+                # state size. (ndf*8) x 8 x 8 x 8
                 SpectralNorm(nn.Conv3d(ndf * 8, ndf * 16, 4, stride=2, padding=1, bias=False)),
                 nn.LeakyReLU(0.2, inplace=True),
-                # state size. (ndf*16) x 4 x 4
+                # state size. (ndf*16) x 4 x 4 x 4
                 SpectralNorm(nn.Conv3d(ndf * 16, 1, (4,4,4), stride=1, padding=0, bias=False)),
             )
 
