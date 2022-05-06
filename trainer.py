@@ -1,6 +1,8 @@
 import os
 import numpy as np
 import pytorch_fid_wrapper as FID
+import collections 
+import collections.abc
 
 import torch 
 import torch.optim as optim
