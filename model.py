@@ -30,7 +30,7 @@ class Generator(nn.Module):
             SpectralNorm(nn.ConvTranspose3d(ngf*2, ngf, 4, stride=2, padding=1)),
             nn.ReLU(True),
             # state size (ngf) x 64 x 64 x 64
-            SpectralNorm(nn.ConvTranspose3d(ngf, nc, 4, stride=2, padding=1)),
+            nn.ConvTranspose3d(ngf, nc, 4, stride=2, padding=1),
             nn.Tanh()
             # state size nc x 128 x 128 x 128
         )
