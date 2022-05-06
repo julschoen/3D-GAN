@@ -150,7 +150,7 @@ class Trainer(object):
         self.save_checkpoint(step)
 
     def calc_gradient_penalty(self, real_data, fake_data):
-        with torch autocast():
+        with autocast():
             alpha = torch.rand(real_data.shape[0], 1, 1, 1, 1)
             alpha = alpha.expand_as(real_data)
             alpha = alpha.to(self.device)
