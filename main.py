@@ -26,6 +26,7 @@ def main():
 	parser.add_argument('--hybrid', type=bool, default=False, help='Use BigGAN generator with DCGAN discriminator')
 	parser.add_argument('--hinge', type=bool, default=False, help='Use Hinge Loss or Wasserstein loss')
 	params = parser.parse_args()
+	print(params)
 	dataset_train = DATA(path=params.data_path)
 
 	trainer = Trainer(dataset_train, params=params)
