@@ -47,8 +47,6 @@ class Discriminator(nn.Module):
         ndf = params.filterD
         nc = 1
         self.ngpu=params.ngpu
-        self.sagan = params.sagan
-        self.hybrid = params.hybrid
         
         if params.msl:
             self.main = nn.Sequential(
