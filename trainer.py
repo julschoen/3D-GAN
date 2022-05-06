@@ -174,7 +174,6 @@ class Trainer(object):
                 self.netD.zero_grad()
                 with autocast():
                     if self.p.hinge:
-                        print('Hinge')
                         noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
                                     dtype=torch.float, device=self.device)
                         fake = self.netG(noise)
@@ -182,7 +181,6 @@ class Trainer(object):
                         errD_fake = (nn.ReLU()(1.0 + self.netD(fake))).mean()
                         errD = errD_fake + errD_real
                     else:
-                        print('No HInge')
                         noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
                                     dtype=torch.float, device=self.device)
                         fake = self.netG(noise)
