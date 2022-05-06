@@ -67,7 +67,7 @@ class Discriminator(nn.Module):
                 SpectralNorm(nn.Conv3d(ndf * 4, ndf * 8, 4, stride=2, padding=1, bias=False)),
                 nn.LeakyReLU(0.2, inplace=True),
                 # state size. (ndf*8) x 4 x 4 x 4
-                nn.Conv3d(ndf * 8, 1, (4,4,4), stride=1, padding=0, bias=False),
+                SpectralNorm(nn.Conv3d(ndf * 8, 1, (4,4,4), stride=1, padding=0, bias=False)),
                 # state size. 1
             )
         else:  
@@ -88,7 +88,7 @@ class Discriminator(nn.Module):
                 SpectralNorm(nn.Conv3d(ndf * 8, ndf * 16, 4, stride=2, padding=1, bias=False)),
                 nn.LeakyReLU(0.2, inplace=True),
                 # state size. (ndf*16) x 4 x 4 x 4
-                nn.Conv3d(ndf * 16, 1, (4,4,4), stride=1, padding=0, bias=False),
+                SpectralNorm(nn.Conv3d(ndf * 16, 1, (4,4,4), stride=1, padding=0, bias=False)),
             )
 
     def forward(self, input):
