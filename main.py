@@ -22,7 +22,7 @@ def main():
 	parser.add_argument('--msl', type=bool, default=False, help='Use MSL Module in Discriminator')
 	parser.add_argument('--biggan', type=bool, default=False, help='Use BigGAN')
 	parser.add_argument('--biggan_deep', type=bool, default=False, help='Use BigGAN-deep')
-	parser.add_argument('--att', type=bool, default=True, help='Use Attention in BigGAN')
+	parser.add_argument('--att', type=bool, default=False, help='Use Attention in BigGAN')
 	parser.add_argument('--hybrid', type=bool, default=False, help='Use BigGAN generator with DCGAN discriminator')
 	parser.add_argument('--hinge', type=bool, default=False, help='Use Hinge Loss or Wasserstein loss')
 	params = parser.parse_args()
