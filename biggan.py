@@ -11,7 +11,7 @@ class Generator(nn.Module):
   def __init__(self, params):
     super(Generator, self).__init__()
     self.p = params
-    self.dim_z = p.z_size
+    self.dim_z = self.p.z_size
     self.arch = {'in_channels' :  [item * self.p.filterG for item in [16, 16, 8, 4, 2]],
              'out_channels' : [item * self.p.filterG for item in [16, 8, 4,  2, 1]],
              'upsample' : [True] * 5,
@@ -71,7 +71,7 @@ class Discriminator(nn.Module):
   def __init__(self, params):
     super(Discriminator, self).__init__()
     self.p = params
-    self.dim_z = p.z_size
+    self.dim_z = self.p.z_size
     # Architecture
     self.arch = {'in_channels' :  [item * self.p.filterD for item in [1, 2, 4,  8, 16]],
                'out_channels' : [item * self.p.filterD for item in [2, 4, 8, 16, 16]],
