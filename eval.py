@@ -10,7 +10,8 @@ from biggan import Generator as BigG
 from data_handler import DATA
 
 def load_gen(path):
-	params = pickle.load(os.path.join(path, 'params.pkl'))
+	with open(os.path.join(path, 'params.pkl'), 'rb') as file:
+    		params = pickle.load(file)
 	if params.hybrid or params.biggan:
 		netG = BigG(params)
 	else:
