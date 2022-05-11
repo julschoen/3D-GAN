@@ -1,6 +1,7 @@
 from data_handler import DATA
 from trainer import Trainer
 import argparse
+import pickle
 
 
 def main():
@@ -28,6 +29,7 @@ def main():
 	params = parser.parse_args()
 	print(params)
 	dataset_train = DATA(path=params.data_path)
+
 
 	trainer = Trainer(dataset_train, params=params)
 	trainer.train()

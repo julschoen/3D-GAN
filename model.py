@@ -12,6 +12,7 @@ class Generator(nn.Module):
         ngf = params.filterG
         nc = 1
         self.ngpu = params.ngpu
+        self.dim_z = nz
         
         self.main = nn.Sequential(
             # in z x 1 x 1 x 1
@@ -47,6 +48,7 @@ class Discriminator(nn.Module):
         ndf = params.filterD
         nc = 1
         self.ngpu=params.ngpu
+        self.dim_z = nz
         
         if params.msl:
             self.main = nn.Sequential(
