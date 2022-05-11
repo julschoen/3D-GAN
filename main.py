@@ -32,13 +32,6 @@ def main():
 	print(params)
 	dataset_train = DATA(path=params.data_path)
 
-	if params.load_params:
-		with open(os.path.join(params.log_dir, 'params.pkl'), 'rb') as file:
-			params = pickle.load(file)
-	else:
-		with open(os.path.join(params.log_dir,'params.pkl'), 'wb') as file:
-			pickle.dump(params, file)
-
 	trainer = Trainer(dataset_train, params=params)
 	trainer.train()
 
