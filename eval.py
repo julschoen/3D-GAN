@@ -19,7 +19,7 @@ def load_gen(path):
 		netG = Generator(params)
 	state = torch.load(os.path.join(path, 'models/checkpoint.pt'))['modelG_state_dict']
 	netG.load_state_dict(state)
-    return netG
+	return netG
 
 def eval(params):
 	dataset = DATA(path=params.data_path)
