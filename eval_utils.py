@@ -5,6 +5,7 @@ import torch
 from FID_ResNet import resnet50
 import pytorch_fid_wrapper as FID
 from pytorch_msssim import ms_ssim
+from torch.cuda.amp import autocast
 
 def psnr(real, fake):
     mse = torch.mean(torch.square((real - fake)))
@@ -50,6 +51,7 @@ def get_fid_model(path):
 
 def fid(real, fake):
     with torch.no_grad():
+        with autocast():
             fid_ax = FID.fid(
                     torch.reshape(fake.to(torch.float32), (-1,1,128,128)).expand(-1,3,-1,-1), 
                     real_images=torch.reshape(real.to(torch.float32), (-1,1,128,128)).expand(-1,3,-1,-1)
