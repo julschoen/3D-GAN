@@ -33,9 +33,9 @@ def eval(params):
 		netG = load_gen(model_path).to(params.device)
 		if params.ngpu > 1:
 			netG = nn.DataParallel(netG)
-    	ssims = []
-    	psnrs = []
-    	fids = []
+		ssims = []
+		psnrs = []
+		fids = []
     	for i, data in enumerate(generator):
     		x1 = data.unsqueeze(dim=1)
     		noise = torch.randn(4, netG.dim_z, 1, 1,1,dtype=torch.float, device=params.device)
