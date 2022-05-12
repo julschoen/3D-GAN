@@ -43,8 +43,6 @@ def eval(params):
 		fids_cor = []
 		fids_sag = []
 		for i, data in enumerate(generator):
-			if i%10==0:
-				print(i)
 			x1 = data.unsqueeze(dim=1)
 			if params.ngpu > 1:
 				noise = torch.randn(data.shape[0], netG.module.dim_z,
@@ -54,12 +52,10 @@ def eval(params):
 						1, 1, 1, dtype=torch.float, device=params.device)
 			x2 = netG(noise)
 			s,p,f = ssim(x1,x2), psnr(x1.cpu(),x2.cpu()),fid_3d(fid_model, x1, x2)
-			
-			if i<3:
-				fa, fc, fs = fid(x1, x2, params.device)
-				fids_ax.append(fa)
-				fids_cor.append(fc)
-				fids_sag.append(fs)
+			fa, fc, fs = fid(x1, x2, params.device)
+			fids_ax.append(fa)
+			fids_cor.append(fc)
+			fids_sag.append(fs)
 			ssims.append(s)
 			psnrs.append(p)
 			fids.append(f)
@@ -90,7 +86,6 @@ def main():
 	parser.add_argument('-l', '--model_log', action='append', type=str, required=True, help='Model log directories to evaluate')
 	parser.add_argument('--fid_checkpoint', type=str, default='resnet_50.pth', help='Path to pretrained MedNet')
 	params = parser.parse_args()
-	print(params)
 	eval(params)
 
 if __name__ == '__main__':
