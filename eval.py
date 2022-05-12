@@ -67,13 +67,10 @@ def eval(params):
 					large_data = x1.cpu()
 					large_fake = x2.cpu()
 
-			fa, fc, fs = fid(x1, x2, params.device)
-			fids_ax.append(fa)
-			fids_cor.append(fc)
-			fids_sag.append(fs)
-			ssims.append(s)
-			psnrs.append(p)
-			fids.append(f)
+			#fa, fc, fs = fid(x1, x2, params.device)
+			#fids_ax.append(fa)
+			#fids_cor.append(fc)
+			#fids_sag.append(fs)
 			
 
 		ssims = np.array(ssims)
