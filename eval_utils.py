@@ -19,11 +19,10 @@ def psnr(real, fake):
 
 def ssim(real, fake):
     with torch.no_grad():
-        with autocast():
-            real = (real+1)/2
-            fake = (fake+1)/2
-            ms_ssim_module = MS_SSIM(data_range=1, win_size=7, size_average=True, channel=1, spatial_dims=3)
-            ms_ssim_ = ms_ssim_module(real.cpu(), fake.cpu()).item()
+        real = (real+1)/2
+        fake = (fake+1)/2
+        ms_ssim_module = MS_SSIM(data_range=1, win_size=7, size_average=True, channel=1, spatial_dims=3)
+        ms_ssim_ = ms_ssim_module(real.cpu(), fake.cpu()).item()
     return ms_ssim_
  
 def fid_3d(model, real, fake):
