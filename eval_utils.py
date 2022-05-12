@@ -20,7 +20,7 @@ def ssim(real, fake):
     print(real.dtype, fake.dtype)
     print(real.device, fake.device)
     ms_ssim_module = MS_SSIM(data_range=1, size_average=True, channel=1)
-    #ms_ssim_module(real, fake)
+    ms_ssim_module(real.cpu(), fake.cpu())
     #print(real)
     #print(fake)
     return 1#ms_ssim(real.to(torch.float32), fake.to(torch.float32), data_range=1, size_average=True)
