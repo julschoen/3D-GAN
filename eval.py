@@ -2,6 +2,7 @@ import numpy as np
 import os
 import argparse
 import pickle
+from torch.utils.data import DataLoader
 
 from eval_utils import *
 from model import Discriminator, Generator
@@ -21,15 +22,21 @@ def load_gen(path):
     return netG
 
 def eval(params):
+	dataset = DATA(path=params.data_path)
+	generator = DataLoader(dataset, batch_size=params.batch_size, shuffle=True, num_workers=4)
 	fid_model = get_fid_model(params.fid_checkpoint).to(params.device)
+	if params.ngpu > 1:
+        fid_model = nn.DataParallel(fid_model)
     os.makedirs(params.log_dir, exist_ok=True)
     for model_path in params.models_dir:
     	print(model_path)
     	netG = load_gen(model_path).to(params.device)
+    	if params.ngpu > 1:
+        	netG = nn.DataParallel(netG)
     	ssims = []
 		psnrs = []
 		fids = []
-		for i, data in enumerate(generator_train):
+		for i, data in enumerate(generator):
 		    x1 = data.unsqueeze(dim=1)
 		    noise = torch.randn(4, netG.dim_z, 1, 1,1,dtype=torch.float, device=params.device)
 		    x2 = netG(noise)
