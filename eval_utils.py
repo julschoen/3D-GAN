@@ -8,10 +8,11 @@ from pytorch_msssim import ms_ssim, MS_SSIM
 from torch.cuda.amp import autocast
 
 def psnr(real, fake):
+    real, fake = real+1, fake+1 
     mse = torch.mean(torch.square((real - fake)))
     if(mse == 0):
         return 100
-    return 10 * (torch.log(1/mse)/torch.log(torch.Tensor([10]))).item()
+    return 10 * (torch.log(4/mse)/torch.log(torch.Tensor([10]))).item()
 
 def ssim(real, fake):
     real = (real+1)/2
