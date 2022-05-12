@@ -57,7 +57,7 @@ def eval(params):
 		psnrs = np.array(psnrs)
 		fids = np.array(fids)
 		print(f'SSIM: {ssims.mean():.6f}+-{ssims.std(ddof=1):.6f}'+ 
-			f'PSNR: {psnrs.mean().:6f}+-{psnrs.std(ddof=1):.6f}'+
+			f'PSNR: {psnrs.mean():.6f}+-{psnrs.std(ddof=1):.6f}'+
 			f'FID: {fids.mean():.6f}+-{fids.std(ddof=1):.6f}')
 		np.savez_compressed(f'{model_path}_stats.npz', ssim = ssims, psnr = psnrs, fid = fids)
 
