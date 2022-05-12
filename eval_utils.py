@@ -16,6 +16,7 @@ def psnr(real, fake):
 def ssim(real, fake):
     real = (real+1)/2
     fake = (fake+1)/2
+    print(real.dtype, fake.dtype)
     ms_ssim_module = MS_SSIM(data_range=1, size_average=True, channel=1)
     ms_ssim_module(real, fake)
     #print(real)
