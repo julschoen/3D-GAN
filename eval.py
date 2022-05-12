@@ -58,6 +58,7 @@ def eval(params):
 								1, 1, 1, dtype=torch.float, device=params.device)
 					x2 = netG(noise)
 					if i % 16 == 0 and i>0:
+						print(i)
 						s,p,f = ssim(large_data,large_fake), psnr(large_data,large_fake),fid_3d(fid_model, large_data, large_fake)
 						ssims.append(s)
 						psnrs.append(p)
