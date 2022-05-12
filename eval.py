@@ -62,6 +62,7 @@ def main():
 	parser.add_argument('--model_logs', type=list, default=[], help='List of model log directories to evaluate')
 	parser.add_argument('--fid_checkpoint', type=str, default='resnet_50.pth', help='Path to pretrained MedNet')
 	params = parser.parse_args()
+	print(params)
 
 	eval(params)
 
