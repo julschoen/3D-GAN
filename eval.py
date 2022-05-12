@@ -81,9 +81,9 @@ def eval(params):
 		fids_sag = np.array(fids_sag)
 		print(f'SSIM: {ssims.mean():.6f}+-{ssims.std(ddof=1):.6f}'+ 
 			f'\tPSNR: {psnrs.mean():.6f}+-{psnrs.std(ddof=1):.6f}'+
-			f'\tFID ax: {fids_ax.mean():.6f}+-{fids_ax.std(ddof=1):.6f}'+
-			f'\tFID cor: {fids_cor.mean():.6f}+-{fids_cor.std(ddof=1):.6f}'+
-			f'\tFID sag: {fids_sag.mean():.6f}+-{fids_sag.std(ddof=1):.6f}'+
+			#f'\tFID ax: {fids_ax.mean():.6f}+-{fids_ax.std(ddof=1):.6f}'+
+			#f'\tFID cor: {fids_cor.mean():.6f}+-{fids_cor.std(ddof=1):.6f}'+
+			#f'\tFID sag: {fids_sag.mean():.6f}+-{fids_sag.std(ddof=1):.6f}'+
 			f'\t3d-FID: {fids.mean():.6f}+-{fids.std(ddof=1):.6f}')
 		np.savez_compressed(os.path.join(params.log_dir,f'{model_path}_stats.npz'),
 			ssim = ssims, psnr = psnrs, fid = fids, fid_ax=fids_ax, fid_cor=fids_cor, fid_sag=fids_sag)
