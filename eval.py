@@ -29,7 +29,7 @@ def eval(params):
 	if params.ngpu > 1:
 		fid_model = nn.DataParallel(fid_model)
 	os.makedirs(params.log_dir, exist_ok=True)
-	for model_path in params.model_logs:
+	for model_path in params.model_log:
 		print(model_path)
 		netG = load_gen(model_path).to(params.device)
 		if params.ngpu > 1:
@@ -59,7 +59,7 @@ def main():
 	parser.add_argument('--ngpu', type=int, default=2, help='Number of GPUs')
 	parser.add_argument('--log_dir', type=str, default='log', help='Save Location')
 	parser.add_argument('--device', type=str, default='cuda', help='Torch Device Choice')
-	parser.add_argument('--model_logs', type=list, default=[], help='List of model log directories to evaluate')
+	parser.add_argument('--model_log', nargs='+', type=str, required=True, help='Model log directories to evaluate')
 	parser.add_argument('--fid_checkpoint', type=str, default='resnet_50.pth', help='Path to pretrained MedNet')
 	params = parser.parse_args()
 	print(params)
