@@ -18,7 +18,7 @@ def load_gen(path):
 	else:
 		netG = Generator(params)
 	state = torch.load(os.path.join(path, 'models/checkpoint.pt'))['modelG_state_dict']
-    netG.load_state_dict(state)
+	netG.load_state_dict(state)
     return netG
 
 def eval(params):
