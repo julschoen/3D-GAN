@@ -12,7 +12,7 @@ from data_handler import DATA
 
 def load_gen(path):
 	with open(os.path.join(path, 'params.pkl'), 'rb') as file:
-    		params = pickle.load(file)
+		params = pickle.load(file)
 	if params.hybrid or params.biggan:
 		netG = BigG(params)
 	else:
@@ -39,17 +39,17 @@ def eval(params):
 		for i, data in enumerate(generator):
 			x1 = data.unsqueeze(dim=1)
 			noise = torch.randn(4, netG.dim_z, 1, 1,1,dtype=torch.float, device=params.device)
-    		x2 = netG(noise)
-    		s,p,f = ssim(x1,x2), psnr(x1.cpu(),x2.cpu()),fid_3d(fid_model, x1, x2)
-    		ssims.append(s)
-    		psnrs.append(p)
-    		fids.append(f)
+			x2 = netG(noise)
+			s,p,f = ssim(x1,x2), psnr(x1.cpu(),x2.cpu()),fid_3d(fid_model, x1, x2)
+			ssims.append(s)
+			psnrs.append(p)
+			fids.append(f)
 
-    	ssims = np.array(ssims)
-    	psnrs = np.array(psnrs)
-    	fids = np.array(fids)
-    	print(f'SSIM: {ssims.mean()}+-{ssims.std(ddof=1)}  PSNR: {psnrs.mean()}+-{psnrs.std(ddof=1)}  FID: {fids.mean()}+-{fids.std(ddof=1)}')
-    	np.savez_compressed(f'{model_path}_stats.npz', ssim = ssims, psnr = psnrs, fid = fids)
+		ssims = np.array(ssims)
+		psnrs = np.array(psnrs)
+		fids = np.array(fids)
+		print(f'SSIM: {ssims.mean()}+-{ssims.std(ddof=1)}  PSNR: {psnrs.mean()}+-{psnrs.std(ddof=1)}  FID: {fids.mean()}+-{fids.std(ddof=1)}')
+		np.savez_compressed(f'{model_path}_stats.npz', ssim = ssims, psnr = psnrs, fid = fids)
 
 def main():
 	parser = argparse.ArgumentParser()
