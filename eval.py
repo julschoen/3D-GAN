@@ -35,7 +35,7 @@ def eval(params):
 	os.makedirs(params.log_dir, exist_ok=True)
 	for model_path in params.model_log:
 		print(model_path)
-		netG = load_gen(model_path, params.ngpu).to(params.device)
+		netG = load_gen(model_path, params.ngpu)
 		ssims = []
 		psnrs = []
 		fids = []

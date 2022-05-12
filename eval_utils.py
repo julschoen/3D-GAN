@@ -18,14 +18,10 @@ def ssim(real, fake):
     real = (real+1)/2
     fake = (fake+1)/2
     ms_ssim_module = MS_SSIM(data_range=1, win_size=7, size_average=True, channel=1, spatial_dims=3)
-    ms_ssim = ms_ssim_module(real.cpu(), fake.cpu())
-    print(ms_ssim)
-    return ms_ssim
+    return ms_ssim_module(real.cpu(), fake.cpu()).item()
  
-# calculate frechet inception distance
 def fid_3d(model, real, fake):
     # calculate activations
-    model.cuda()
     act1 = model(real.cuda()).mean(dim=(2,3,4)).detach().cpu().numpy()
     act2 = model(fake.cuda()).mean(dim=(2,3,4)).detach().cpu().numpy() 
     # calculate mean and covariance statistics
