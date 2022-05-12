@@ -29,7 +29,7 @@ def main():
 	parser.add_argument('--load_params', type=bool, default=False, help='Load Parameters form pickle in log dir')
 	params = parser.parse_args()
 	print(params)
-	with open('params.pkl', 'wb') as file:
+	with open(os.path.join(params.log_dir, 'params.pkl'), 'wb') as file:
 		pickle.dump(params, file)
 	
 	#dataset_train = DATA(path=params.data_path)
