@@ -43,7 +43,7 @@ def eval(params):
 		fids_cor = []
 		fids_sag = []
 		for i, data in enumerate(generator):
-			x1 = data.unsqueeze(dim=1)
+			x1 = data.unsqueeze(dim=1).to(device)
 			if params.ngpu > 1:
 				noise = torch.randn(data.shape[0], netG.module.dim_z,
 						1, 1, 1, dtype=torch.float, device=params.device)
