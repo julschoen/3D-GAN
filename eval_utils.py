@@ -4,7 +4,7 @@ from collections import OrderedDict
 import torch
 from FID_ResNet import resnet50
 import pytorch_fid_wrapper as FID
-from pytorch_msssim import ms_ssim
+from pytorch_msssim import ms_ssim, MS_SSIM
 from torch.cuda.amp import autocast
 
 def psnr(real, fake):
