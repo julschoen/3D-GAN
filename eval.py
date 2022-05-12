@@ -27,31 +27,29 @@ def eval(params):
 	fid_model = get_fid_model(params.fid_checkpoint).to(params.device)
 	if params.ngpu > 1:
 		fid_model = nn.DataParallel(fid_model)
-    os.makedirs(params.log_dir, exist_ok=True)
-    for model_path in params.models_dir:
-    	print(model_path)
-    	netG = load_gen(model_path).to(params.device)
-    	if params.ngpu > 1:
+	os.makedirs(params.log_dir, exist_ok=True)
+	for model_path in params.models_dir:
+		print(model_path)
+		netG = load_gen(model_path).to(params.device)
+		if params.ngpu > 1:
     		netG = nn.DataParallel(netG)
     	ssims = []
-		psnrs = []
-		fids = []
-		for i, data in enumerate(generator):
-		    x1 = data.unsqueeze(dim=1)
-		    noise = torch.randn(4, netG.dim_z, 1, 1,1,dtype=torch.float, device=params.device)
-		    x2 = netG(noise)
-		    s,p,f = ssim(x1,x2), psnr(x1.cpu(),x2.cpu()),fid_3d(fid_model, x1, x2)
-		    ssims.append(s)
-		    psnrs.append(p)
-		    fids.append(f)
-		    if i == 1:
-		        break
+    	psnrs = []
+    	fids = []
+    	for i, data in enumerate(generator):
+    		x1 = data.unsqueeze(dim=1)
+    		noise = torch.randn(4, netG.dim_z, 1, 1,1,dtype=torch.float, device=params.device)
+    		x2 = netG(noise)
+    		s,p,f = ssim(x1,x2), psnr(x1.cpu(),x2.cpu()),fid_3d(fid_model, x1, x2)
+    		ssims.append(s)
+    		psnrs.append(p)
+    		fids.append(f)
 
-		ssims = np.array(ssims)
-		psnrs = np.array(psnrs)
-		fids = np.array(fids)
-		print(f'SSIM: {ssims.mean()}+-{ssims.std(ddof=1)}  PSNR: {psnrs.mean()}+-{psnrs.std(ddof=1)}  FID: {fids.mean()}+-{fids.std(ddof=1)}')
-		np.savez_compressed(f'{model_path}_stats.npz', ssim = ssims, psnr = psnrs, fid = fids)
+    	ssims = np.array(ssims)
+    	psnrs = np.array(psnrs)
+    	fids = np.array(fids)
+    	print(f'SSIM: {ssims.mean()}+-{ssims.std(ddof=1)}  PSNR: {psnrs.mean()}+-{psnrs.std(ddof=1)}  FID: {fids.mean()}+-{fids.std(ddof=1)}')
+    	np.savez_compressed(f'{model_path}_stats.npz', ssim = ssims, psnr = psnrs, fid = fids)
 
 def main():
 	parser = argparse.ArgumentParser()
