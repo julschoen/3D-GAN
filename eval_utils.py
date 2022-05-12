@@ -4,6 +4,7 @@ from collections import OrderedDict
 from skimage.metrics import structural_similarity as ssim_
 import torch
 from FID_ResNet import resnet50
+import pytorch_fid_wrapper as FID
 
 def psnr(real, fake):
     mse = torch.mean(torch.square((real - fake)))
@@ -49,3 +50,37 @@ def get_fid_model(path):
         new_state_dict[name] = v
     fid_model.load_state_dict(new_state_dict)
     return fid_model
+
+def fid(real, fake):
+    with torch.no_grad():
+            fid_ax = 
+                FID.fid(
+                    torch.reshape(fake.to(torch.float32), (-1,1,128,128)).expand(-1,3,-1,-1), 
+                    real_images=torch.reshape(real.to(torch.float32), (-1,1,128,128)).expand(-1,3,-1,-1)
+                    )
+
+            fid_cor = 
+                FID.fid(
+                    torch.reshape(fake.to(torch.float32), (-1,128,1,128)).expand(-1,-1,3,-1), 
+                    real_images=torch.reshape(real.to(torch.float32), (-1,128,1,128)).expand(-1,-1,3,-1)
+                    )
+            fid_sag = 
+                FID.fid(
+                    torch.reshape(fake.to(torch.float32), (-1,128,128,1)).expand(-1,-1,-1,3), 
+                    real_images=torch.reshape(real.to(torch.float32), (-1,128,128,1)).expand(-1,-1,-1,3)
+                    )
+    return fid_ax, fid_cor, fid_sag
+
+
+
+
+
+
+
+
+
+
+
+
+
+
