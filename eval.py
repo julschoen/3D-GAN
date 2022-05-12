@@ -84,7 +84,7 @@ def main():
 	parser.add_argument('--ngpu', type=int, default=2, help='Number of GPUs')
 	parser.add_argument('--log_dir', type=str, default='log', help='Save Location')
 	parser.add_argument('--device', type=str, default='cuda', help='Torch Device Choice')
-	parser.add_argument('--model_log', nargs='+', type=str, required=True, help='Model log directories to evaluate')
+	parser.add_argument('--model_log', nargs='+', action='append' type=str, required=True, help='Model log directories to evaluate')
 	parser.add_argument('--fid_checkpoint', type=str, default='resnet_50.pth', help='Path to pretrained MedNet')
 	params = parser.parse_args()
 	eval(params)

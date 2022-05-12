@@ -50,21 +50,24 @@ def get_fid_model(path):
     return fid_model
 
 def fid(real, fake):
+    FID.set_config(device='cuda')
+    real.cuda()
+    fake.cuda()
     indices = torch.randperm(real.shape[0]*real.shape[2])[:128]
     with torch.no_grad():
         with autocast():
             fid_ax = FID.fid(
-                    torch.reshape(fake.to(torch.float32), (-1,1,128,128))[indices].expand(-1,3,-1,-1), 
-                    real_images=torch.reshape(real.to(torch.float32), (-1,1,128,128))[indices].expand(-1,3,-1,-1)
+                    torch.reshape(fake.to(torch.float32), (-1,1,128,128)).expand(-1,3,-1,-1), 
+                    real_images=torch.reshape(real.to(torch.float32), (-1,1,128,128)).expand(-1,3,-1,-1)
                     )
 
             fid_cor = FID.fid(
                     torch.reshape(fake.to(torch.float32).transpose(2,3), (-1,1,128,128))[indices].expand(-1,3,-1,-1), 
-                    real_images=torch.reshape(real.to(torch.float32).transpose(2,3), (-1,1,128,128))[indices].expand(-1,3,-1,-1)
+                    real_images=torch.reshape(real.to(torch.float32).transpose(2,3), (-1,1,128,128)).expand(-1,3,-1,-1)
                     )
             fid_sag = FID.fid(
                     torch.reshape(fake.to(torch.float32).transpose(4,2), (-1,1,128,128))[indices].expand(-1,3,-1,-1), 
-                    real_images=torch.reshape(real.to(torch.float32).transpose(4,2), (-1,1,128,128))[indices].expand(-1,3,-1,-1)
+                    real_images=torch.reshape(real.to(torch.float32).transpose(4,2), (-1,1,128,128)).expand(-1,3,-1,-1)
                     )
     return fid_ax, fid_cor, fid_sag
 
