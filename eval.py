@@ -42,7 +42,10 @@ def eval(params):
 		fids = []
 		for i, data in enumerate(generator):
 			x1 = data.unsqueeze(dim=1)
-			noise = torch.randn(4, netG.dim_z, 1, 1,1,dtype=torch.float, device=params.device)
+			if params.ngpu > 1
+				noise = torch.randn(4, netG.module.dim_z, 1, 1,1,dtype=torch.float, device=params.device)
+			else:
+				noise = torch.randn(4, netG.dim_z, 1, 1,1,dtype=torch.float, device=params.device)
 			x2 = netG(noise)
 			s,p,f = ssim(x1,x2), psnr(x1.cpu(),x2.cpu()),fid_3d(fid_model, x1, x2)
 			ssims.append(s)
