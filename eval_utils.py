@@ -1,10 +1,10 @@
 import numpy as np
 from scipy.linalg import sqrtm
 from collections import OrderedDict
-from skimage.metrics import structural_similarity as ssim_
 import torch
 from FID_ResNet import resnet50
 import pytorch_fid_wrapper as FID
+from pytorch_msssim import ms_ssim
 
 def psnr(real, fake):
     mse = torch.mean(torch.square((real - fake)))
@@ -13,12 +13,9 @@ def psnr(real, fake):
     return 10 * (torch.log(1/mse)/torch.log(torch.Tensor([10]))).item()
 
 def ssim(real, fake):
-    real = real.detach().cpu().numpy().reshape(-1,128,128,128)
-    fake = fake.detach().cpu().numpy().reshape(-1,128,128,128)
-    ssims = []
-    for r,f in zip(real,fake):
-        ssims.append(ssim_(r,f))
-    return np.mean(ssims)
+    real = (real+1)/2
+    fake = (fake+1)/2
+    return ms_ssim(real, fake, data_range=1, size_average=True, channel=1)
  
 # calculate frechet inception distance
 def fid_3d(model, real, fake):
