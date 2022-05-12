@@ -62,6 +62,8 @@ def eval(params):
 						ssims.append(s)
 						psnrs.append(p)
 						fids.append(f)
+						large_data = None
+						large_fake = None
 					else:
 						if large_data is not None and large_fake is not None:
 							large_data = torch.concat((large_data, x1.cpu()))
