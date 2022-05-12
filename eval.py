@@ -32,7 +32,7 @@ def eval(params):
 		print(model_path)
 		netG = load_gen(model_path).to(params.device)
 		if params.ngpu > 1:
-    		netG = nn.DataParallel(netG)
+			netG = nn.DataParallel(netG)
     	ssims = []
     	psnrs = []
     	fids = []
