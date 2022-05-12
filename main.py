@@ -1,8 +1,6 @@
 from data_handler import DATA
 from trainer import Trainer
 import argparse
-import os
-import pickle
 
 def main():
 	parser = argparse.ArgumentParser()
@@ -28,13 +26,12 @@ def main():
 	parser.add_argument('--hinge', type=bool, default=False, help='Use Hinge Loss or Wasserstein loss')
 	parser.add_argument('--load_params', type=bool, default=False, help='Load Parameters form pickle in log dir')
 	params = parser.parse_args()
-	#print(params)
-	with open(os.path.join(params.log_dir,'params.pkl'), 'wb') as file:
-                pickle.dump(params, file)
-	#dataset_train = DATA(path=params.data_path)
+	print(params)
+	
+	dataset_train = DATA(path=params.data_path)
 
-	#trainer = Trainer(dataset_train, params=params)
-	#trainer.train()
+	trainer = Trainer(dataset_train, params=params)
+	trainer.train()
 
 if __name__ == '__main__':
 	main()
