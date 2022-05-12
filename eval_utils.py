@@ -4,7 +4,7 @@ from collections import OrderedDict
 import torch
 from FID_ResNet import resnet50
 import pytorch_fid_wrapper as FID
-from pytorch_msssim import ms_ssim, MS_SSIM
+from pytorch_msssim import MS_SSIM
 from torch.cuda.amp import autocast
 
 def psnr(real, fake):
@@ -18,7 +18,9 @@ def ssim(real, fake):
     real = (real+1)/2
     fake = (fake+1)/2
     ms_ssim_module = MS_SSIM(data_range=1, win_size=7, size_average=True, channel=1, spatial_dims=3)
-    return ms_ssim_module(real.cpu(), fake.cpu())
+    ms_ssim = ms_ssim_module(real.cpu(), fake.cpu())
+    print(ms_ssim)
+    return ms_ssim
  
 # calculate frechet inception distance
 def fid_3d(model, real, fake):
