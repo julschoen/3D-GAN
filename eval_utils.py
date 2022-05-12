@@ -15,9 +15,9 @@ def psnr(real, fake):
     return 10 * (torch.log(4/mse)/torch.log(torch.Tensor([10]))).item()
 
 def ssim(real, fake):
-    real = torch.nn.Upsample((161,161,161))((real+1)/2)
-    fake = torch.nn.Upsample((161,161,161))((fake+1)/2)
-    ms_ssim_module = MS_SSIM(data_range=1, size_average=True, channel=1)
+    real = (real+1)/2
+    fake = (fake+1)/2
+    ms_ssim_module = MS_SSIM(data_range=1, win_size=7, size_average=True, channel=1, spatial_dims=3)
     return ms_ssim_module(real.cpu(), fake.cpu())
  
 # calculate frechet inception distance
