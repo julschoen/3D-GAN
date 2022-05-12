@@ -14,12 +14,14 @@ from data_handler import DATA
 def load_gen(path):
 	with open(os.path.join(path, 'params.pkl'), 'rb') as file:
 		params = pickle.load(file)
+	print(params)
 	if params.hybrid or params.biggan:
 		netG = BigG(params)
 	else:
 		netG = Generator(params)
-	state = torch.load(os.path.join(path, 'models/checkpoint.pt'))['modelG_state_dict']
-	netG.load_state_dict(state)
+	state = torch.load(os.path.join(path, 'models/checkpoint.pt'))
+	netG.load_state_dict(state['modelG_state_dict'])
+
 	return netG
 
 def eval(params):
@@ -62,7 +64,6 @@ def main():
 	parser.add_argument('--model_log', nargs='+', type=str, required=True, help='Model log directories to evaluate')
 	parser.add_argument('--fid_checkpoint', type=str, default='resnet_50.pth', help='Path to pretrained MedNet')
 	params = parser.parse_args()
-	print(params)
 
 	eval(params)
 
