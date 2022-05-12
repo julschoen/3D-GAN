@@ -53,19 +53,16 @@ def get_fid_model(path):
 
 def fid(real, fake):
     with torch.no_grad():
-            fid_ax = 
-                FID.fid(
+            fid_ax = FID.fid(
                     torch.reshape(fake.to(torch.float32), (-1,1,128,128)).expand(-1,3,-1,-1), 
                     real_images=torch.reshape(real.to(torch.float32), (-1,1,128,128)).expand(-1,3,-1,-1)
                     )
 
-            fid_cor = 
-                FID.fid(
+            fid_cor = FID.fid(
                     torch.reshape(fake.to(torch.float32), (-1,128,1,128)).expand(-1,-1,3,-1), 
                     real_images=torch.reshape(real.to(torch.float32), (-1,128,1,128)).expand(-1,-1,3,-1)
                     )
-            fid_sag = 
-                FID.fid(
+            fid_sag = FID.fid(
                     torch.reshape(fake.to(torch.float32), (-1,128,128,1)).expand(-1,-1,-1,3), 
                     real_images=torch.reshape(real.to(torch.float32), (-1,128,128,1)).expand(-1,-1,-1,3)
                     )
