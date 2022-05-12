@@ -11,7 +11,7 @@ from biggan import Discriminator as BigD
 from biggan import Generator as BigG
 from data_handler import DATA
 
-def load_gen(path):
+def load_gen(path, ngpu):
 	with open(os.path.join(path, 'params.pkl'), 'rb') as file:
 		params = pickle.load(file)
 	print(params)
@@ -19,6 +19,9 @@ def load_gen(path):
 		netG = BigG(params)
 	else:
 		netG = Generator(params)
+
+	if ngpu > 1:
+		netG = nn.DataParallel(netG)
 	state = torch.load(os.path.join(path, 'models/checkpoint.pt'))
 	netG.load_state_dict(state['modelG_state_dict'])
 
@@ -33,9 +36,7 @@ def eval(params):
 	os.makedirs(params.log_dir, exist_ok=True)
 	for model_path in params.model_log:
 		print(model_path)
-		netG = load_gen(model_path).to(params.device)
-		if params.ngpu > 1:
-			netG = nn.DataParallel(netG)
+		netG = load_gen(model_path, params.ngpu).to(params.device)
 		ssims = []
 		psnrs = []
 		fids = []
