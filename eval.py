@@ -3,6 +3,7 @@ import os
 import argparse
 import pickle
 from torch.utils.data import DataLoader
+import torch.nn as nn
 
 from eval_utils import *
 from model import Discriminator, Generator
