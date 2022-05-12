@@ -1,6 +1,8 @@
 from data_handler import DATA
 from trainer import Trainer
 import argparse
+import os
+import pickle
 
 def main():
 	parser = argparse.ArgumentParser()
