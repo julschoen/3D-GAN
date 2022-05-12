@@ -16,7 +16,7 @@ def psnr(real, fake):
 def ssim(real, fake):
     real = (real+1)/2
     fake = (fake+1)/2
-    return ms_ssim(real, fake, data_range=1, size_average=True, channel=1)
+    return ms_ssim(real, fake, data_range=1, size_average=True)
  
 # calculate frechet inception distance
 def fid_3d(model, real, fake):
