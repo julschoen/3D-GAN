@@ -59,12 +59,12 @@ def fid(real, fake):
                     )
 
             fid_cor = FID.fid(
-                    torch.reshape(fake.to(torch.float32), (-1,128,1,128)).expand(-1,-1,3,-1), 
-                    real_images=torch.reshape(real.to(torch.float32), (-1,128,1,128)).expand(-1,-1,3,-1)
+                    torch.reshape(fake.to(torch.float32).transpose(2,3), (-1,1,128,128)).expand(-1,3,-1,-1), 
+                    real_images=torch.reshape(real.to(torch.float32).transpose(2,3), (-1,1,128,128)).expand(-1,3,-1,-1)
                     )
             fid_sag = FID.fid(
-                    torch.reshape(fake.to(torch.float32), (-1,128,128,1)).expand(-1,-1,-1,3), 
-                    real_images=torch.reshape(real.to(torch.float32), (-1,128,128,1)).expand(-1,-1,-1,3)
+                    torch.reshape(fake.to(torch.float32).transpose(4,2), (-1,1,128,128)).expand(-1,3,-1,-1), 
+                    real_images=torch.reshape(real.to(torch.float32).transpose(4,2), (-1,1,128,128)).expand(-1,3,-1,-1)
                     )
     return fid_ax, fid_cor, fid_sag
 
