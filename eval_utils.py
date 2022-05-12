@@ -3,7 +3,7 @@ from scipy.linalg import sqrtm
 from collections import OrderedDict
 from skimage.metrics import structural_similarity as ssim_
 import torch
-from 3dFID_ResNet import resnet50
+from FID_ResNet import resnet50
 
 def psnr(real, fake):
     mse = torch.mean(torch.square((real - fake)))
