@@ -26,13 +26,13 @@ def eval(params):
 	generator = DataLoader(dataset, batch_size=params.batch_size, shuffle=True, num_workers=4)
 	fid_model = get_fid_model(params.fid_checkpoint).to(params.device)
 	if params.ngpu > 1:
-        fid_model = nn.DataParallel(fid_model)
+		fid_model = nn.DataParallel(fid_model)
     os.makedirs(params.log_dir, exist_ok=True)
     for model_path in params.models_dir:
     	print(model_path)
     	netG = load_gen(model_path).to(params.device)
     	if params.ngpu > 1:
-        	netG = nn.DataParallel(netG)
+    		netG = nn.DataParallel(netG)
     	ssims = []
 		psnrs = []
 		fids = []
