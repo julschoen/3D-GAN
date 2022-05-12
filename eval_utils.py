@@ -3,7 +3,6 @@ from scipy.linalg import sqrtm
 from collections import OrderedDict
 from skimage.metrics import structural_similarity as ssim_
 import torch
-import torch.nn as nn
 from FID_ResNet import resnet50
 
 def psnr(real, fake):
