@@ -35,7 +35,7 @@ def eval(params):
 	os.makedirs(params.log_dir, exist_ok=True)
 	for model_path in params.model_log:
 		print(model_path)
-		netG = load_gen(model_path, params.ngpu)
+		netG = load_gen(model_path, params.ngpu).to(params.device)
 		ssims = []
 		psnrs = []
 		fids = []
@@ -43,7 +43,7 @@ def eval(params):
 		fids_cor = []
 		fids_sag = []
 		for i, data in enumerate(generator):
-			x1 = data.unsqueeze(dim=1).to(params.device)
+			x1 = data.unsqueeze(dim=1)
 			if params.ngpu > 1:
 				noise = torch.randn(data.shape[0], netG.module.dim_z,
 						1, 1, 1, dtype=torch.float, device=params.device)
