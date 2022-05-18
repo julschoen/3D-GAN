@@ -5,7 +5,7 @@ from torch.utils.data.dataset import Dataset
 
 class DATA(Dataset):
   def __init__(self, path): 
-    self.data = np.load(path)['X']
+    self.data = np.load(path)['x']
     self.len = self.data.shape[0]
 
   def __getitem__(self, index):
