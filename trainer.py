@@ -14,10 +14,11 @@ from torch.cuda.amp import autocast, GradScaler
 import torchvision
 import torchvision.utils as vutils
 
-#from model import Discriminator, Generator
+from model import Discriminator, Generator
 from biggan import Discriminator as BigD
 from biggan import Generator as BigG
-from sagan import Discriminator, Generator
+from sagan import Discriminator as SaD
+from sagan import Generator as SaG
 
 
 class Trainer(object):
@@ -50,6 +51,11 @@ class Trainer(object):
         elif self.p.hybrid:
             self.netG = BigG(self.p).to(self.device)
             self.netD = Discriminator(self.p).to(self.device)
+            self.netD.apply(self.weights_init)
+        elif self.p.sagan:
+            self.netG = SaG(self.p).to(self.device)
+            self.netG.apply(self.weights_init)
+            self.netD = SaD(self.p).to(self.device)
             self.netD.apply(self.weights_init)
         else:
             self.netG = Generator(self.p).to(self.device)

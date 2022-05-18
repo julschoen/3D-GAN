@@ -19,6 +19,7 @@ def main():
 	parser.add_argument('--log_dir', type=str, default='log', help='Save Location')
 	parser.add_argument('--device', type=str, default='cuda', help='Torch Device Choice')
 	parser.add_argument('--msl', type=bool, default=False, help='Use MSL Module in Discriminator')
+	parser.add_argument('--sagan', type=bool, default=False, help='Use SAGAN')
 	parser.add_argument('--biggan', type=bool, default=False, help='Use BigGAN')
 	parser.add_argument('--biggan_deep', type=bool, default=False, help='Use BigGAN-deep')
 	parser.add_argument('--att', type=bool, default=False, help='Use Attention in BigGAN')
