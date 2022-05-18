@@ -55,9 +55,13 @@ class Generator(nn.Module):
 
     def forward(self, z):
         out = self.l1(z)
+        print(out.shape)
         out = self.l2(out)
+        print(out.shape)
         out = self.l3(out)
+        print(out.shape)
         out, p1 = self.attn1(out)
+        print(out.shape)
         if self.im_size == 64:
             out = self.l4(out)
             out, p2 = self.attn2(out)
