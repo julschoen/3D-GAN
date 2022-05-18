@@ -37,16 +37,22 @@ class Generator(nn.Module):
         self.l2 = nn.Sequential(*layer2)
         self.l3 = nn.Sequential(*layer3)
 
-        if self.im_size == 64:
-            layer4 = []
-            curr_dim = int(curr_dim / 2)
-            layer4.append(Normalization(nn.ConvTranspose3d(curr_dim, int(curr_dim / 2), 4, 2, 1)))
-            layer4.append(nn.BatchNorm3d(int(curr_dim / 2)))
-            layer4.append(nn.ReLU())
-            self.l4 = nn.Sequential(*layer4)
+        layer4 = []
+        curr_dim = int(curr_dim / 2)
+        layer4.append(Normalization(nn.ConvTranspose3d(curr_dim, int(curr_dim / 2), 4, 2, 1)))
+        layer4.append(nn.BatchNorm3d(int(curr_dim / 2)))
+        layer4.append(nn.ReLU())
+        self.l4 = nn.Sequential(*layer4)
+
+        layer4 = []
+        curr_dim = int(curr_dim / 2)
+        layer4.append(Normalization(nn.ConvTranspose3d(curr_dim, int(curr_dim / 2), 4, 2, 1)))
+        layer4.append(nn.BatchNorm3d(int(curr_dim / 2)))
+        layer4.append(nn.ReLU())
+        self.l5 = nn.Sequential(*layer4)
 
         curr_dim = int(curr_dim / 2) # 128
-        last.append(nn.ConvTranspose3d(curr_dim, 3, 4, 2, 1))
+        last.append(nn.ConvTranspose3d(curr_dim, 1, 4, 2, 1))
         last.append(nn.Tanh())
         self.last = nn.Sequential(*last)
 
@@ -62,9 +68,12 @@ class Generator(nn.Module):
         print(out.shape)
         out = self.attn1(out)
         print(out.shape)
-        if self.im_size == 64:
-            out = self.l4(out)
-            out = self.attn2(out)
+        out = self.l4(out)
+        print(out.shape)
+        out = self.l5(out)
+        print(out.shape)
+        out = self.attn2(out)
+        print(out.shape)
         out = self.last(out)
         print(out.shape)
         return out
