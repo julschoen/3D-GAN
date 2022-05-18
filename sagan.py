@@ -20,18 +20,18 @@ class Generator(nn.Module):
 
         repeat_num = int(np.log2(self.im_size)) - 2
         mult = 2 ** repeat_num # 8
-        layer1.append(Normalization(nn.ConvTranspose2d(z_dim, conv_dim * mult, 4)))
-        layer1.append(nn.BatchNorm2d(conv_dim * mult))
+        layer1.append(Normalization(nn.ConvTranspose3d(z_dim, conv_dim * mult, 4)))
+        layer1.append(nn.BatchNorm3d(conv_dim * mult))
         layer1.append(nn.ReLU())
 
         curr_dim = conv_dim * mult # 512
-        layer2.append(Normalization(nn.ConvTranspose2d(curr_dim, int(curr_dim / 2), 4, 2, 1)))
-        layer2.append(nn.BatchNorm2d(int(curr_dim / 2)))
+        layer2.append(Normalization(nn.ConvTranspose3d(curr_dim, int(curr_dim / 2), 4, 2, 1)))
+        layer2.append(nn.BatchNorm3d(int(curr_dim / 2)))
         layer2.append(nn.ReLU())
 
         curr_dim = int(curr_dim / 2) # 256
-        layer3.append(Normalization(nn.ConvTranspose2d(curr_dim, int(curr_dim / 2), 4, 2, 1)))
-        layer3.append(nn.BatchNorm2d(int(curr_dim / 2)))
+        layer3.append(Normalization(nn.ConvTranspose3d(curr_dim, int(curr_dim / 2), 4, 2, 1)))
+        layer3.append(nn.BatchNorm3d(int(curr_dim / 2)))
         layer3.append(nn.ReLU())
 
         self.l1 = nn.Sequential(*layer1)
@@ -41,13 +41,13 @@ class Generator(nn.Module):
         if self.im_size == 64:
             layer4 = []
             curr_dim = int(curr_dim / 2)
-            layer4.append(Normalization(nn.ConvTranspose2d(curr_dim, int(curr_dim / 2), 4, 2, 1)))
-            layer4.append(nn.BatchNorm2d(int(curr_dim / 2)))
+            layer4.append(Normalization(nn.ConvTranspose3d(curr_dim, int(curr_dim / 2), 4, 2, 1)))
+            layer4.append(nn.BatchNorm3d(int(curr_dim / 2)))
             layer4.append(nn.ReLU())
             self.l4 = nn.Sequential(*layer4)
 
         curr_dim = int(curr_dim / 2) # 128
-        last.append(nn.ConvTranspose2d(curr_dim, 3, 4, 2, 1))
+        last.append(nn.ConvTranspose3d(curr_dim, 3, 4, 2, 1))
         last.append(nn.Tanh())
         self.last = nn.Sequential(*last)
 
@@ -64,6 +64,7 @@ class Generator(nn.Module):
             out = self.l4(out)
             out, p2 = self.attn2(out)
         out = self.last(out)
+        print(out.shape)
         return out
 
 
@@ -79,15 +80,15 @@ class Discriminator(nn.Module):
         layer3 = []
         last = []
 
-        layer1.append(Normalization(nn.Conv2d(3, conv_dim, 4, 2, 1)))
+        layer1.append(Normalization(nn.Conv3d(3, conv_dim, 4, 2, 1)))
         layer1.append(nn.LeakyReLU(0.1))
         curr_dim = conv_dim
 
-        layer2.append(Normalization(nn.Conv2d(curr_dim, curr_dim * 2, 4, 2, 1)))
+        layer2.append(Normalization(nn.Conv3d(curr_dim, curr_dim * 2, 4, 2, 1)))
         layer2.append(nn.LeakyReLU(0.1))
         curr_dim = curr_dim * 2
 
-        layer3.append(Normalization(nn.Conv2d(curr_dim, curr_dim * 2, 4, 2, 1)))
+        layer3.append(Normalization(nn.Conv3d(curr_dim, curr_dim * 2, 4, 2, 1)))
         layer3.append(nn.LeakyReLU(0.1))
         curr_dim = curr_dim * 2
 
@@ -97,12 +98,12 @@ class Discriminator(nn.Module):
 
         if self.im_size == 64:
             layer4 = []
-            layer4.append(Normalization(nn.Conv2d(curr_dim, curr_dim * 2, 4, 2, 1)))
+            layer4.append(Normalization(nn.Conv3d(curr_dim, curr_dim * 2, 4, 2, 1)))
             layer4.append(nn.LeakyReLU(0.1))
             self.l4 = nn.Sequential(*layer4)
             curr_dim = curr_dim * 2
 
-        last.append(nn.Conv2d(curr_dim, 1, 4))
+        last.append(nn.Conv3d(curr_dim, 1, 4))
         self.last = nn.Sequential(*last)
 
         self.attn1 = Self_Attn(256)
