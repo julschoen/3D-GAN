@@ -14,9 +14,10 @@ from torch.cuda.amp import autocast, GradScaler
 import torchvision
 import torchvision.utils as vutils
 
-from model import Discriminator, Generator
+#from model import Discriminator, Generator
 from biggan import Discriminator as BigD
 from biggan import Generator as BigG
+from sagan import Discriminator, Generator
 
 
 class Trainer(object):
