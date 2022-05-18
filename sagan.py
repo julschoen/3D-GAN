@@ -1,7 +1,6 @@
 import torch
 import numpy as np
 import torch.nn as nn
-from spectral import SpectralNorm
 import torch.nn.utils.spectral_norm as SpectralNorm
 from utils import Attention as Self_Attn
 
