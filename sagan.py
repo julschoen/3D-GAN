@@ -56,26 +56,16 @@ class Generator(nn.Module):
         last.append(nn.Tanh())
         self.last = nn.Sequential(*last)
 
-        self.attn1 = Self_Attn(512)
-        #self.attn2 = Self_Attn(128)
+        self.attn1 = Self_Attn(256)
 
     def forward(self, z):
         out = self.l1(z)
-        print(out.shape)
         out = self.l2(out)
-        print(out.shape)
         out = self.l3(out)
-        print(out.shape)
-        out = self.attn1(out)
-        print(out.shape)
         out = self.l4(out)
-        print(out.shape)
+        out = self.attn1(out)
         out = self.l5(out)
-        print(out.shape)
-        #out = self.attn2(out)
-        #print(out.shape)
         out = self.last(out)
-        print(out.shape)
         return out
 
 
@@ -91,7 +81,7 @@ class Discriminator(nn.Module):
         layer3 = []
         last = []
 
-        layer1.append(Normalization(nn.Conv3d(3, conv_dim, 4, 2, 1)))
+        layer1.append(Normalization(nn.Conv3d(1, conv_dim, 4, 2, 1)))
         layer1.append(nn.LeakyReLU(0.1))
         curr_dim = conv_dim
 
@@ -107,26 +97,37 @@ class Discriminator(nn.Module):
         self.l2 = nn.Sequential(*layer2)
         self.l3 = nn.Sequential(*layer3)
 
-        if self.im_size == 64:
-            layer4 = []
-            layer4.append(Normalization(nn.Conv3d(curr_dim, curr_dim * 2, 4, 2, 1)))
-            layer4.append(nn.LeakyReLU(0.1))
-            self.l4 = nn.Sequential(*layer4)
-            curr_dim = curr_dim * 2
+        
+        layer4 = []
+        layer4.append(Normalization(nn.Conv3d(curr_dim, curr_dim * 2, 4, 2, 1)))
+        layer4.append(nn.LeakyReLU(0.1))
+        self.l4 = nn.Sequential(*layer4)
+        curr_dim = curr_dim * 2
+
+        layer4 = []
+        layer4.append(Normalization(nn.Conv3d(curr_dim, curr_dim * 2, 4, 2, 1)))
+        layer4.append(nn.LeakyReLU(0.1))
+        self.l5 = nn.Sequential(*layer4)
+        curr_dim = curr_dim * 2
 
         last.append(nn.Conv3d(curr_dim, 1, 4))
         self.last = nn.Sequential(*last)
 
         self.attn1 = Self_Attn(256)
-        self.attn2 = Self_Attn(512)
+
 
     def forward(self, x):
         out = self.l1(x)
+        print(out.shape)
         out = self.l2(out)
+        print(out.shape)
         out = self.l3(out)
-        out, p1 = self.attn1(out)
-        if self.im_size == 64:
-            out = self.l4(out)
-            out, p2 = self.attn2(out)
+        print(out.shape)
+        out = self.l4(out)
+        print(out.shape)
+        out = self.attn1(out)
+        print(out.shape)
+        out = self.l5(out)
+        print(out.shape)
         out = self.last(out)
         return out.squeeze()
