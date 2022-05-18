@@ -60,11 +60,11 @@ class Generator(nn.Module):
         print(out.shape)
         out = self.l3(out)
         print(out.shape)
-        out, p1 = self.attn1(out)
+        out = self.attn1(out)
         print(out.shape)
         if self.im_size == 64:
             out = self.l4(out)
-            out, p2 = self.attn2(out)
+            out = self.attn2(out)
         out = self.last(out)
         print(out.shape)
         return out
