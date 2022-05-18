@@ -118,16 +118,10 @@ class Discriminator(nn.Module):
 
     def forward(self, x):
         out = self.l1(x)
-        print(out.shape)
         out = self.l2(out)
-        print(out.shape)
         out = self.l3(out)
-        print(out.shape)
         out = self.attn1(out)
-        print(out.shape)
         out = self.l4(out)
-        print(out.shape)
         out = self.l5(out)
-        print(out.shape)
         out = self.last(out)
         return out.squeeze()
