@@ -50,7 +50,7 @@ class Generator(nn.Module):
         last.append(nn.Tanh())
         self.last = nn.Sequential(*last)
 
-        self.attn1 = Self_Attn(128)
+        self.attn1 = Self_Attn(512)
         self.attn2 = Self_Attn(64)
 
     def forward(self, z):
