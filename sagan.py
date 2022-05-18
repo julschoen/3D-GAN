@@ -54,7 +54,6 @@ class Generator(nn.Module):
         self.attn2 = Self_Attn(64)
 
     def forward(self, z):
-        z = z.view(z.size(0), z.size(1), 1, 1)
         out = self.l1(z)
         out = self.l2(out)
         out = self.l3(out)
