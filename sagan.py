@@ -18,17 +18,17 @@ class Generator(nn.Module):
         last = []
 
         repeat_num = int(np.log2(self.im_size)) - 2
-        mult = 2 ** repeat_num # 8
+        mult = 2 ** repeat_num # 32
         layer1.append(Normalization(nn.ConvTranspose3d(z_dim, conv_dim * mult, 4)))
         layer1.append(nn.BatchNorm3d(conv_dim * mult))
         layer1.append(nn.ReLU())
 
-        curr_dim = conv_dim * mult # 512
+        curr_dim = conv_dim * mult # 2048
         layer2.append(Normalization(nn.ConvTranspose3d(curr_dim, int(curr_dim / 2), 4, 2, 1)))
         layer2.append(nn.BatchNorm3d(int(curr_dim / 2)))
         layer2.append(nn.ReLU())
 
-        curr_dim = int(curr_dim / 2) # 256
+        curr_dim = int(curr_dim / 2) # 1024
         layer3.append(Normalization(nn.ConvTranspose3d(curr_dim, int(curr_dim / 2), 4, 2, 1)))
         layer3.append(nn.BatchNorm3d(int(curr_dim / 2)))
         layer3.append(nn.ReLU())
@@ -38,14 +38,14 @@ class Generator(nn.Module):
         self.l3 = nn.Sequential(*layer3)
 
         layer4 = []
-        curr_dim = int(curr_dim / 2)
+        curr_dim = int(curr_dim / 2) # 512
         layer4.append(Normalization(nn.ConvTranspose3d(curr_dim, int(curr_dim / 2), 4, 2, 1)))
         layer4.append(nn.BatchNorm3d(int(curr_dim / 2)))
         layer4.append(nn.ReLU())
         self.l4 = nn.Sequential(*layer4)
 
         layer4 = []
-        curr_dim = int(curr_dim / 2)
+        curr_dim = int(curr_dim / 2) # 256
         layer4.append(Normalization(nn.ConvTranspose3d(curr_dim, int(curr_dim / 2), 4, 2, 1)))
         layer4.append(nn.BatchNorm3d(int(curr_dim / 2)))
         layer4.append(nn.ReLU())
@@ -56,15 +56,15 @@ class Generator(nn.Module):
         last.append(nn.Tanh())
         self.last = nn.Sequential(*last)
 
-        self.attn1 = Self_Attn(256)
+        self.attn1 = Self_Attn(128)
 
     def forward(self, z):
         out = self.l1(z)
         out = self.l2(out)
         out = self.l3(out)
         out = self.l4(out)
-        out = self.attn1(out)
         out = self.l5(out)
+        out = self.attn1(out)
         out = self.last(out)
         return out
 
