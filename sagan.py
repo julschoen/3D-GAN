@@ -44,6 +44,8 @@ class Generator(nn.Module):
         layer4.append(nn.ReLU())
         self.l4 = nn.Sequential(*layer4)
 
+        self.attn1 = Self_Attn(int(curr_dim / 2))
+
         layer4 = []
         curr_dim = int(curr_dim / 2) # 256
         layer4.append(Normalization(nn.ConvTranspose3d(curr_dim, int(curr_dim / 2), 4, 2, 1)))
@@ -56,7 +58,7 @@ class Generator(nn.Module):
         last.append(nn.Tanh())
         self.last = nn.Sequential(*last)
 
-        self.attn1 = Self_Attn(256)
+        
 
     def forward(self, z):
         out = self.l1(z)
@@ -102,6 +104,7 @@ class Discriminator(nn.Module):
         layer4.append(Normalization(nn.Conv3d(curr_dim, curr_dim * 2, 4, 2, 1)))
         layer4.append(nn.LeakyReLU(0.1))
         self.l4 = nn.Sequential(*layer4)
+        self.attn1 = Self_Attn(curr_dim)
         curr_dim = curr_dim * 2
 
         layer4 = []
@@ -112,8 +115,6 @@ class Discriminator(nn.Module):
 
         last.append(nn.Conv3d(curr_dim, 1, 4))
         self.last = nn.Sequential(*last)
-
-        self.attn1 = Self_Attn(512)
 
 
     def forward(self, x):
