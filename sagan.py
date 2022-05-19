@@ -56,15 +56,15 @@ class Generator(nn.Module):
         last.append(nn.Tanh())
         self.last = nn.Sequential(*last)
 
-        self.attn1 = Self_Attn(128)
+        self.attn1 = Self_Attn(256)
 
     def forward(self, z):
         out = self.l1(z)
         out = self.l2(out)
         out = self.l3(out)
         out = self.l4(out)
-        out = self.l5(out)
         out = self.attn1(out)
+        out = self.l5(out)
         out = self.last(out)
         return out
 
@@ -113,15 +113,15 @@ class Discriminator(nn.Module):
         last.append(nn.Conv3d(curr_dim, 1, 4))
         self.last = nn.Sequential(*last)
 
-        self.attn1 = Self_Attn(256)
+        self.attn1 = Self_Attn(512)
 
 
     def forward(self, x):
         out = self.l1(x)
         out = self.l2(out)
         out = self.l3(out)
-        out = self.attn1(out)
         out = self.l4(out)
+        out = self.attn1(out)
         out = self.l5(out)
         out = self.last(out)
         return out.squeeze()
