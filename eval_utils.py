@@ -76,17 +76,3 @@ def fid(real, fake, device):
                     real_images=torch.reshape(real.to(torch.float32).transpose(4,2), (-1,1,128,128)).expand(-1,3,-1,-1)
                     )
     return fid_ax, fid_cor, fid_sag
-
-
-
-
-
-
-
-
-
-
-
-
-
-
