@@ -20,7 +20,7 @@ class SpatioTemporalConv(nn.Module):
         self.out_channels = out_channels
 
         #Hidden size estimation to get a number of parameter similar to the 3d case
-        self.hidden_size = int((t*d**2*in_channels*out_channels)/(d**2*in_channels+t*out_channels))
+        self.hidden_size = (in_channels+out_channels)//2#int((t*d**2*in_channels*out_channels)/(d**2*in_channels+t*out_channels))
 
         self.conv2d = SpectralNorm(nn.Conv2d(in_channels, self.hidden_size, kernel_size[1:], stride[1:], padding[1:], bias=bias))
         self.conv1d = SpectralNorm(nn.Conv1d(self.hidden_size, out_channels, kernel_size[0], stride[0], padding[0], bias=bias))
