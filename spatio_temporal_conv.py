@@ -9,6 +9,10 @@ class SpatioTemporalConv(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride=(1, 1, 1),
                         padding=(0, 0, 0), dilation=(1, 1, 1), bias=True):
         super().__init__()
+        kernel_size = _triple(kernel_size)
+        stride = _triple(stride)
+        padding = _triple(padding)
+        dilation = _triple(dilation)
         t = kernel_size[0]
         d = (kernel_size[1] + kernel_size[2])//2
         self.in_channels = in_channels
