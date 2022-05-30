@@ -2,22 +2,10 @@ import math
 
 import torch.nn as nn
 from torch.nn.modules.utils import _triple
+import torch.nn.utils.spectral_norm as SpectralNorm
 
 
 class SpatioTemporalConv(nn.Module):
-    r"""Applies a factored 3D convolution over an input signal composed of several input 
-    planes with distinct spatial and time axes, by performing a 2D convolution over the 
-    spatial axes to an intermediate subspace, followed by a 1D convolution over the time 
-    axis to produce the final output.
-    Args:
-        in_channels (int): Number of channels in the input tensor
-        out_channels (int): Number of channels produced by the convolution
-        kernel_size (int or tuple): Size of the convolving kernel
-        stride (int or tuple, optional): Stride of the convolution. Default: 1
-        padding (int or tuple, optional): Zero-padding added to the sides of the input during their respective convolutions. Default: 0
-        bias (bool, optional): If ``True``, adds a learnable bias to the output. Default: ``True``
-    """
-
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, bias=True):
         super(SpatioTemporalConv, self).__init__()
 
@@ -45,8 +33,8 @@ class SpatioTemporalConv(nn.Module):
 
         # the spatial conv is effectively a 2D conv due to the 
         # spatial_kernel_size, followed by batch_norm and ReLU
-        self.spatial_conv = nn.Conv3d(in_channels, intermed_channels, spatial_kernel_size,
-                                    stride=spatial_stride, padding=spatial_padding, bias=bias)
+        self.spatial_conv = SpectralNorm(nn.Conv3d(in_channels, intermed_channels, spatial_kernel_size,
+                                    stride=spatial_stride, padding=spatial_padding, bias=bias))
         self.bn = nn.BatchNorm3d(intermed_channels)
         self.relu = nn.ReLU()
 
@@ -55,8 +43,8 @@ class SpatioTemporalConv(nn.Module):
         # intentional design choice, to allow this module to externally act 
         # identical to a standard Conv3D, so it can be reused easily in any 
         # other codebase
-        self.temporal_conv = nn.Conv3d(intermed_channels, out_channels, temporal_kernel_size, 
-                                    stride=temporal_stride, padding=temporal_padding, bias=bias)
+        self.temporal_conv = SpectralNorm(nn.Conv3d(intermed_channels, out_channels, temporal_kernel_size, 
+                                    stride=temporal_stride, padding=temporal_padding, bias=bias))
 
     def forward(self, x):
         x = self.relu(self.bn(self.spatial_conv(x)))
