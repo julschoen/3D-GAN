@@ -7,8 +7,11 @@ from torch.nn import Parameter as P
 from spatio_temporal_conv import SpatioTemporalConv
 
 def snconv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, bias=True):
-    return SpatioTemporalConv(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
-                                   stride=stride, padding=padding, bias=bias)
+    #return #SpatioTemporalConv(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
+           #                        stride=stride, padding=padding, bias=bias)
+
+    return SpectralNorm(nn.Conv3d(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
+                                   stride=stride, padding=padding, dilation=dilation, bias=bias))
 
 def snlinear(in_features, out_features):
     return SpectralNorm(nn.Linear(in_features=in_features, out_features=out_features))
