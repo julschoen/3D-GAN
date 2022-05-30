@@ -7,9 +7,8 @@ from torch.nn import Parameter as P
 from spatio_temporal_conv import SpatioTemporalConv
 
 def snconv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, bias=True):
-    return SpatioTemporalConv(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
-    #return SpectralNorm(nn.Conv3d(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
-                                   stride=stride, padding=padding, dilation=dilation, bias=bias)
+    return SpectralNorm(nn.Conv3d(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
+                                   stride=stride, padding=padding, dilation=dilation, bias=bias))
 
 def snlinear(in_features, out_features):
     return SpectralNorm(nn.Linear(in_features=in_features, out_features=out_features))
@@ -31,13 +30,13 @@ class Attention(nn.Module):
     phi = F.max_pool3d(self.phi(x), [2,2,2], stride=2)
     g = F.max_pool3d(self.g(x), [2,2,2], stride=2)    
     # Perform reshapes
-    theta = theta.reshape(-1, self. ch // 8, x.shape[2] * x.shape[3] * x.shape[4])
-    phi = phi.reshape(-1, self. ch // 8, x.shape[2] * x.shape[3] * x.shape[4] // 8)
-    g = g.reshape(-1, self. ch // 2, x.shape[2] * x.shape[3] * x.shape[4] // 8)
+    theta = theta.view(-1, self. ch // 8, x.shape[2] * x.shape[3] * x.shape[4])
+    phi = phi.view(-1, self. ch // 8, x.shape[2] * x.shape[3] * x.shape[4] // 8)
+    g = g.view(-1, self. ch // 2, x.shape[2] * x.shape[3] * x.shape[4] // 8)
     # Matmul and softmax to get attention maps
     beta = F.softmax(torch.bmm(theta.permute(0,2,1), phi), -1)
     # Attention map times g path
-    o = self.o(torch.bmm(g, beta.permute(0,2,1)).reshape(-1, self.ch // 2, x.shape[2], x.shape[3], x.shape[4]))
+    o = self.o(torch.bmm(g, beta.permute(0,2,1)).view(-1, self.ch // 2, x.shape[2], x.shape[3], x.shape[4]))
     return self.gamma * o + x
 
 class GBlock(nn.Module):
