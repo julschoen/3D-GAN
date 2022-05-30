@@ -29,18 +29,18 @@ class SpatioTemporalConv(nn.Module):
         #2D convolution
         b, c, t, d1, d2 = x.size()
         x = x.permute(0,2,1,3,4)
-        x = x.view(b*t, c, d1, d2)
+        x = x.reshape(b*t, c, d1, d2)
         x = F.relu(self.conv2d(x))
         
         #1D convolution
         c, dr1, dr2 = x.size(1), x.size(2), x.size(3)
-        x = x.view(b, t, c, dr1, dr2)
+        x = x.reshape(b, t, c, dr1, dr2)
         x = x.permute(0, 3, 4, 2, 1)
-        x = x.view(b*dr1*dr2, c, t)
+        x = x.reshape(b*dr1*dr2, c, t)
         x = self.conv1d(x)
 
         #Final output
         out_c, out_t = x.size(1), x.size(2)
-        x = x.view(b, dr1, dr2, out_c, out_t)
+        x = x.reshape(b, dr1, dr2, out_c, out_t)
         x = x.permute(0, 3, 4, 1, 2)
         return x
