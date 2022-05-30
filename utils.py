@@ -19,10 +19,10 @@ class Attention(nn.Module):
     super(Attention, self).__init__()
     # Channel multiplier
     self.ch = ch
-    self.theta = nn.Conv3d(self.ch, self.ch // 8, kernel_size=1, padding=0, bias=False)
-    self.phi = nn.Conv3d(self.ch, self.ch // 8, kernel_size=1, padding=0, bias=False)
-    self.g = nn.Conv3d(self.ch, self.ch // 2, kernel_size=1, padding=0, bias=False)
-    self.o = nn.Conv3d(self.ch // 2, self.ch, kernel_size=1, padding=0, bias=False)
+    self.theta = snconv3d(self.ch, self.ch // 8, kernel_size=1, padding=0, bias=False)
+    self.phi = snconv3d(self.ch, self.ch // 8, kernel_size=1, padding=0, bias=False)
+    self.g = snconv3d(self.ch, self.ch // 2, kernel_size=1, padding=0, bias=False)
+    self.o = snconv3d(self.ch // 2, self.ch, kernel_size=1, padding=0, bias=False)
     # Learnable gain parameter
     self.gamma = P(torch.tensor(0.), requires_grad=True)
   def forward(self, x, y=None):

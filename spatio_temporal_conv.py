@@ -2,6 +2,7 @@ import math
 
 import torch.nn as nn
 from torch.nn.modules.utils import _triple
+import torch.nn.functional as F
 import torch.nn.utils.spectral_norm as SpectralNorm
 
 
