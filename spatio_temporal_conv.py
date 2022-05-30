@@ -35,12 +35,12 @@ class SpatioTemporalConv(nn.Module):
         #1D convolution
         c, dr1, dr2 = x.size(1), x.size(2), x.size(3)
         x = x.view(b, t, c, dr1, dr2)
-        x = x.permute(0, 3, 4, 2, 1).contiguous()
+        x = x.permute(0, 3, 4, 2, 1)
         x = x.view(b*dr1*dr2, c, t)
         x = self.conv1d(x)
 
         #Final output
         out_c, out_t = x.size(1), x.size(2)
         x = x.view(b, dr1, dr2, out_c, out_t)
-        x = x.permute(0, 3, 4, 1, 2).contiguous()
+        x = x.permute(0, 3, 4, 1, 2)
         return x
