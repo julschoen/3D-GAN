@@ -33,8 +33,8 @@ class SpatioTemporalConv(nn.Module):
 
         # the spatial conv is effectively a 2D conv due to the 
         # spatial_kernel_size, followed by batch_norm and ReLU
-        self.spatial_conv = nn.Conv3d(in_channels, intermed_channels, spatial_kernel_size,
-                                    stride=spatial_stride, padding=spatial_padding, bias=bias)
+        self.spatial_conv = SpectalNorm(nn.Conv3d(in_channels, intermed_channels, spatial_kernel_size,
+                                    stride=spatial_stride, padding=spatial_padding, bias=bias))
         self.bn = nn.BatchNorm3d(intermed_channels)
         self.relu = nn.ReLU()
 
