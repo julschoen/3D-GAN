@@ -49,7 +49,7 @@ class GBlock(nn.Module):
     self.conv1 = snconv3d(self.in_channels, self.hidden_channels, 
                                  kernel_size=1, padding=0)
     self.conv2 = snconv3d(self.hidden_channels, self.hidden_channels)
-    self.conv3 = snconv3d(self.hidden_channels, self.hidden_channels)
+    #self.conv3 = snconv3d(self.hidden_channels, self.hidden_channels)
     self.conv4 = snconv3d(self.hidden_channels, self.out_channels, 
                                  kernel_size=1, padding=0)
     # Batchnorm layers
@@ -74,7 +74,7 @@ class GBlock(nn.Module):
       x = self.upsample(x)
     # 3x3 convs
     h = self.conv2(h)
-    h = self.conv3(self.activation(self.bn3(h)))
+    #h = self.conv3(self.activation(self.bn3(h)))
     # Final 1x1 conv
     h = self.conv4(self.activation(self.bn4(h)))
     return h + x
@@ -95,7 +95,7 @@ class DBlock(nn.Module):
     self.conv1 = snconv3d(self.in_channels, self.hidden_channels, 
                                  kernel_size=1, padding=0)
     self.conv2 = snconv3d(self.hidden_channels, self.hidden_channels)
-    self.conv3 = snconv3d(self.hidden_channels, self.hidden_channels)
+    #self.conv3 = snconv3d(self.hidden_channels, self.hidden_channels)
     self.conv4 = snconv3d(self.hidden_channels, self.out_channels, 
                                  kernel_size=1, padding=0)
                                  
@@ -115,7 +115,7 @@ class DBlock(nn.Module):
     h = self.conv1(F.relu(x))
     # 3x3 convs
     h = self.conv2(self.activation(h))
-    h = self.conv3(self.activation(h))
+    #h = self.conv3(self.activation(h))
     # relu before downsample
     h = self.activation(h)
     # downsample
