@@ -31,13 +31,13 @@ class Attention(nn.Module):
     phi = F.max_pool3d(self.phi(x), [2,2,2], stride=2)
     g = F.max_pool3d(self.g(x), [2,2,2], stride=2)    
     # Perform reshapes
-    theta = theta.view(-1, self. ch // 8, x.shape[2] * x.shape[3] * x.shape[4])
-    phi = phi.view(-1, self. ch // 8, x.shape[2] * x.shape[3] * x.shape[4] // 8)
-    g = g.view(-1, self. ch // 2, x.shape[2] * x.shape[3] * x.shape[4] // 8)
+    theta = theta.reshape(-1, self. ch // 8, x.shape[2] * x.shape[3] * x.shape[4])
+    phi = phi.reshape(-1, self. ch // 8, x.shape[2] * x.shape[3] * x.shape[4] // 8)
+    g = g.reshape(-1, self. ch // 2, x.shape[2] * x.shape[3] * x.shape[4] // 8)
     # Matmul and softmax to get attention maps
     beta = F.softmax(torch.bmm(theta.permute(0,2,1), phi), -1)
     # Attention map times g path
-    o = self.o(torch.bmm(g, beta.permute(0,2,1)).view(-1, self.ch // 2, x.shape[2], x.shape[3], x.shape[4]))
+    o = self.o(torch.bmm(g, beta.permute(0,2,1)).reshape(-1, self.ch // 2, x.shape[2], x.shape[3], x.shape[4]))
     return self.gamma * o + x
 
 class GBlock(nn.Module):
