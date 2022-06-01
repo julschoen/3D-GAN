@@ -74,12 +74,12 @@ class Discriminator(nn.Module):
     self.p = params
     self.dim_z = self.p.z_size
     # Architecture
-    self.arch = {'in_channels' :  [item * self.p.filterD for item in [1, 2, 4,  8, 16]],
-               'out_channels' : [item * self.p.filterD for item in [2, 4, 8, 16, 16]],
-               'downsample' : [True] * 5 + [False],
-               'resolution' : [64, 32, 16, 8, 4, 4],
-               'attention' : {2**i: 2**i in [int(item) for item in '16'.split('_')]
-                              for i in range(2,8)}}
+    #self.arch = {'in_channels' :  [item * self.p.filterD for item in [1, 2, 4,  8, 16]],
+    #           'out_channels' : [item * self.p.filterD for item in [2, 4, 8, 16, 16]],
+    #           'downsample' : [True] * 5 + [False],
+    #           'resolution' : [64, 32, 16, 8, 4, 4],
+    #           'attention' : {2**i: 2**i in [int(item) for item in '16'.split('_')]
+    #                          for i in range(2,8)}}
 
     
     self.arch  = {'in_channels' :  [self.p.filterD*item for item in [1, 2, 4, 8]],
