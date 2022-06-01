@@ -5,6 +5,7 @@ import torch.nn.functional as F
 import torch.nn.utils.spectral_norm as SpectralNorm
 import functools
 from utils import Attention, GBlock, DBlock, snconv3d, snlinear
+from msl import RandomCrop3D
 
 
 class Generator(nn.Module):
@@ -79,8 +80,17 @@ class Discriminator(nn.Module):
                'resolution' : [64, 32, 16, 8, 4, 4],
                'attention' : {2**i: 2**i in [int(item) for item in '16'.split('_')]
                               for i in range(2,8)}}
+
+    
+    self.arch  = {'in_channels' :  [self.p.filterD*item for item in [1, 2, 4, 8]],
+               'out_channels' : [item * self.p.filterD for item in [1, 2, 4, 8, 16]],
+               'downsample' : [True] * 4 + [False],
+               'resolution' : [32, 16, 8, 4, 4],
+               'attention' : {2**i: 2**i in [int(item) for item in '16'.split('_')]
+                              for i in range(2,7)}}
     
     # Prepare model
+    self.msl = RandomCrop3D(device=params.device)
     self.input_conv = snconv3d(1, self.arch['in_channels'][0])
 
     self.blocks = []
@@ -110,6 +120,7 @@ class Discriminator(nn.Module):
 
   def forward(self, x):
     # Run input conv
+    x = self.msl(x)
     h = self.input_conv(x)
     # Loop over blocks
     for index, blocklist in enumerate(self.blocks):
