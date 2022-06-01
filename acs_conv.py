@@ -100,6 +100,12 @@ def _to_ntuple(n):
                 return x
     return parse
 
+_pair_same = _ntuple_same(2)
+_triple_same = _ntuple_same(3)
+
+_to_pair = _to_ntuple(2)
+_to_triple = _to_ntuple(3)
+
 
 class _ACSConv(nn.Module):
     """
