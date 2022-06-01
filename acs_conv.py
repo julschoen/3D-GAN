@@ -107,7 +107,6 @@ _triple_same = _ntuple_same(3)
 _to_pair = _to_ntuple(2)
 _to_triple = _to_ntuple(3)
 
-
 class _ACSConv(nn.Module):
     """
     Base class for ACS Convolution
