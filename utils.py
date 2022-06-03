@@ -4,7 +4,6 @@ import torch.nn.functional as F
 import torch.nn.utils.spectral_norm as SpectralNorm
 import functools
 from torch.nn import Parameter as P
-from acs_conv import ACSConv
 
 def snconv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, bias=True):
     return SpectralNorm(nn.Conv3d(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
