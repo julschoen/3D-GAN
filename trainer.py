@@ -107,7 +107,7 @@ class Trainer(object):
             nn.init.normal_(m.weight.data, 1.0, 0.02)
             nn.init.constant_(m.bias.data, 0)
         
-    def log_train(self, step, fake, real, D_x, D_G_z1, D_G_z2):
+    def log_train(self, step, fake, real, D_x, D_G_z1, D_G_z2, err_rec):
         with torch.no_grad():
             self.fid.append(
                 FID.fid(
@@ -115,10 +115,14 @@ class Trainer(object):
                     real_images=torch.reshape(real.to(torch.float32), (-1,1,128,128)).expand(-1,3,-1,-1)
                     )
                 )
-
-        print('[%d/%d]\tLoss_D: %.4f\tLoss_G: %.4f\tD(x): %.4f\tD(G(z)): %.4f / %.4f\tFID %.4f'
+        if self.p.encode:
+            print('[%d/%d]\tLoss_D: %.4f\tLoss_G: %.4f\tD(x): %.4f\tD(G(z)): %.4f / %.4f\tRec %.4f\tFID %.4f'
                     % (step, self.p.niters,
-                        self.D_losses[-1], self.G_losses[-1], D_x, D_G_z1, D_G_z2, self.fid[-1]))
+                        self.D_losses[-1], self.G_losses[-1], D_x, D_G_z1, D_G_z2, err_rec, self.fid[-1]))
+        else:
+            print('[%d/%d]\tLoss_D: %.4f\tLoss_G: %.4f\tD(x): %.4f\tD(G(z)): %.4f / %.4f\tFID %.4f'
+                        % (step, self.p.niters,
+                            self.D_losses[-1], self.G_losses[-1], D_x, D_G_z1, D_G_z2, self.fid[-1]))
 
     def log_interpolation(self, step):
         noise = torch.randn(self.p.batch_size, self.p.z_size, 1, 1,1,
@@ -185,15 +189,15 @@ class Trainer(object):
             'fid': self.fid_epoch,
             }, os.path.join(self.models_dir, 'checkpoint.pt'))
 
-    def log(self, step, fake, real, D_x, D_G_z1, D_G_z2):
+    def log(self, step, fake, real, D_x, D_G_z1, D_G_z2, err_rec):
         if step % self.p.steps_per_log == 0:
-            self.log_train(step, fake, real, D_x, D_G_z1, D_G_z2)
+            self.log_train(step, fake, real, D_x, D_G_z1, D_G_z2, err_rec)
 
         if step % self.p.steps_per_img_log == 0:
             self.log_interpolation(step)
 
-    def log_final(self, step, fake, real, D_x, D_G_z1, D_G_z2):
-        self.log_train(step, fake, real, D_x, D_G_z1, D_G_z2)
+    def log_final(self, step, fake, real, D_x, D_G_z1, D_G_z2, err_rec):
+        self.log_train(step, fake, real, D_x, D_G_z1, D_G_z2, err_rec)
         self.log_interpolation(step)
         self.save_checkpoint(step)
 
@@ -297,16 +301,17 @@ class Trainer(object):
                     p.requires_grad = False
                 for p in self.enc.parameters():
                     p.requires_grad = False
+            else:
+                err_rec = torch.Tensor([0])
 
             self.G_losses.append(errG.item())
             self.D_losses.append(errD.item())
 
-            self.log(i, fake, real, errD_real.item(), errD_fake.item(), errG.item())
+            self.log(i, fake, real, errD_real.item(), errD_fake.item(), errG.item(), err_rec.item())
             if i%100 == 0 and i>0:
-                print(err_rec)
                 self.fid_epoch.append(np.array(self.fid).mean())
                 self.fid = []
                 self.save_checkpoint(i)
         
-        self.log_final(i, fake, real, errD_real.item(), errD_fake.item(), errG.item())
+        self.log_final(i, fake, real, errD_real.item(), errD_fake.item(), errG.item(), err_rec.item())
         print('...Done')
