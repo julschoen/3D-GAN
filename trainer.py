@@ -143,7 +143,7 @@ class Trainer(object):
             state_dict = torch.load(checkpoint)
             step = state_dict['step']
 
-            if self.encode:
+            if self.p.encode:
                 self.enc.load_state_dict(state_dict['enc'])
                 self.optimizerEnc.load_state_dict(state_dict['optimizerEnc_state_dict'])
 
