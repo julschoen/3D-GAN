@@ -138,6 +138,15 @@ class Trainer(object):
         if os.path.isfile(checkpoint):
             state_dict = torch.load(checkpoint)
             step = state_dict['step']
+
+            if self.encode:
+                self.enc.load_state_dict(state_dict['enc'])
+                self.optimizerEnc.load_state_dict(state_dict['optimizerEnc_state_dict'])
+
+            self.optimizerG.load_state_dict(state_dict['optimizerG_state_dict'])
+            self.optimizerD.load_state_dict(state_dict['optimizerD_state_dict'])
+            
+            
             self.netG.load_state_dict(state_dict['modelG_state_dict'])
             self.netD.load_state_dict(state_dict['modelD_state_dict'])
 
@@ -151,16 +160,30 @@ class Trainer(object):
         return step
 
     def save_checkpoint(self, step):
-        torch.save({
-        'step': step,
-        'modelG_state_dict': self.netG.state_dict(),
-        'modelD_state_dict': self.netD.state_dict(),
-        'optimizerG_state_dict': self.optimizerG.state_dict(),
-        'optimizerD_state_dict': self.optimizerD.state_dict(),
-        'lossG': self.G_losses,
-        'lossD': self.D_losses,
-        'fid': self.fid_epoch,
-        }, os.path.join(self.models_dir, 'checkpoint.pt'))
+        if self.p.encode:
+            torch.save({
+            'step': step,
+            'modelG_state_dict': self.netG.state_dict(),
+            'modelD_state_dict': self.netD.state_dict(),
+            'enc': self.enc.state_dict(),
+            'optimizerG_state_dict': self.optimizerG.state_dict(),
+            'optimizerD_state_dict': self.optimizerD.state_dict(),
+            'optimizerEnc_state_dict': self.optimizerEnc.state_dict(),
+            'lossG': self.G_losses,
+            'lossD': self.D_losses,
+            'fid': self.fid_epoch,
+            }, os.path.join(self.models_dir, 'checkpoint.pt'))
+        else:
+            torch.save({
+            'step': step,
+            'modelG_state_dict': self.netG.state_dict(),
+            'modelD_state_dict': self.netD.state_dict(),
+            'optimizerG_state_dict': self.optimizerG.state_dict(),
+            'optimizerD_state_dict': self.optimizerD.state_dict(),
+            'lossG': self.G_losses,
+            'lossD': self.D_losses,
+            'fid': self.fid_epoch,
+            }, os.path.join(self.models_dir, 'checkpoint.pt'))
 
     def log(self, step, fake, real, D_x, D_G_z1, D_G_z2):
         if step % self.p.steps_per_log == 0:
