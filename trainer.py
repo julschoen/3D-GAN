@@ -66,7 +66,7 @@ class Trainer(object):
 
         if self.p.encode:
             self.enc = Encoder(self.p).to(self.device)
-            if ngpu > 1: self.enc = nn.DataParallel(self.enc)
+            if self.p.ngpu > 1: self.enc = nn.DataParallel(self.enc)
             self.mse = nn.MSELoss()
             self.optimizerEnc = optim.Adam(self.enc.parameters(), lr=self.p.lrG,
                                          betas=(0., 0.9))
