@@ -43,7 +43,7 @@ class Encoder(nn.Module):
     self.activation = nn.ReLU(inplace=True)
     self.init_weights()
 
-    self.prior = Independent(Normal(loc=torch.zeros((1,params.z_size)),scale=torch.ones((1,params.z_size))),1)
+    self.prior = Independent(Normal(loc=torch.zeros((1,params.z_size)),scale=torch.ones((1,params.z_size))),1).to(params.device)
 
   def init_weights(self):
     self.param_count = 0
@@ -79,5 +79,5 @@ class Encoder(nn.Module):
     z = posterior.rsample()
     print(posterior)
     # Estimate the KLD between q(z|x)|| p(z)
-    kl = KLD(posterior,self.prior).mean()
+    kl = KLD(posterior,self.prior.to(torch.cuda.current_device())).mean()
     return z, kl
