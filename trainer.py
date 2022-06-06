@@ -291,6 +291,8 @@ class Trainer(object):
                     z, kl = self.enc(real)
                     fake = self.netG(noise)
                     err_rec = -self.netD(fake).mean() + torch.log(self.mse(fake, real)) + kl.mean()
+                    if i % 10 == 0:
+                        print(z.mean(), z.std())
                     
                 self.scalerG.scale(err_rec).backward()
                 self.scalerG.step(self.optimizerG)
