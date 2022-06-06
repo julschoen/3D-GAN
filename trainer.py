@@ -99,7 +99,6 @@ class Trainer(object):
             for data in self.generator_train:
                 yield data
 
-
     def weights_init(self, m):
         classname = m.__class__.__name__
         if classname.find('Conv') != -1:
@@ -264,6 +263,7 @@ class Trainer(object):
                 with autocast():
                     z, kl = self.enc(real)
                     fake = self.netG(noise)
+                    print(kl.shape)
                     err_rec = -self.netD(fake).mean() + torch.log(self.mse(fake, real)) + kl
                     
                 self.scalerG.scale(err_rec).backward()
