@@ -43,7 +43,9 @@ class Encoder(nn.Module):
     self.activation = nn.ReLU(inplace=True)
     self.init_weights()
 
-    self.prior = Independent(Normal(loc=torch.zeros((1,params.z_size)),scale=torch.ones((1,params.z_size))),1).to(params.device)
+    self.mu_0 = torch.zeros((1,params.z_size))
+    self.sigma_1 = torch.ones((1,params.z_size))
+
 
   def init_weights(self):
     self.param_count = 0
@@ -77,7 +79,11 @@ class Encoder(nn.Module):
     
     posterior = Independent(Normal(loc=mu,scale=sigma),1)
     z = posterior.rsample()
-    print(posterior)
+
+    # Instantiate a standard Gaussian with mean=mu_0, std=sigma_0
+    # This is the prior distribution p(z)
+    prior = Independent(Normal(loc=self.mu_0.to('cuda:'+torch.cuda.current_device()),scale=self.sigma_1.to('cuda:'+torch.cuda.current_device())),1)
+
     # Estimate the KLD between q(z|x)|| p(z)
-    kl = KLD(posterior,self.prior.to(torch.cuda.current_device())).mean()
+    kl = KLD(posterior,prior).mean()
     return z, kl
