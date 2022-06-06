@@ -43,8 +43,8 @@ class Encoder(nn.Module):
     self.activation = nn.ReLU(inplace=True)
     self.init_weights()
 
-    self.mu_0 = torch.zeros((1,params.z_size)).to(params.device)
-    self.sigma_1 = torch.ones((1,params.z_size)).to(params.device)
+    self.mu_0 = torch.zeros((1,params.z_size))
+    self.sigma_1 = torch.ones((1,params.z_size))
 
   def init_weights(self):
     self.param_count = 0
