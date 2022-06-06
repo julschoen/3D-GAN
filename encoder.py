@@ -5,6 +5,11 @@ import torch.nn.functional as F
 import torch.nn.utils.spectral_norm as SpectralNorm
 import functools
 from utils import Attention, DBlock, snconv3d, snlinear
+from torch.distributions import Normal, Independent
+from torch.distributions import kl_divergence as KLD
+import numpy as np
+from torch.nn.functional import softplus, sigmoid, softmax
+
 
 class Encoder(nn.Module):
   def __init__(self, params):
@@ -64,6 +69,17 @@ class Encoder(nn.Module):
 
     mu = self.mu(h)
     log_var = self.logvar(h)
-    z = self.sample(mu, log_var)
-    kl = torch.mean(-0.5*torch.sum(1+log_var-mu**2-log_var.exp(),dim=1), dim = 0)
+
+    log_var = softplus(log_var)
+    sigma = torch.exp(log_var / 2)
+    
+    posterior = Independent(Normal(loc=mu,scale=sigma),1)
+    z = posterior.rsample()
+
+    # Instantiate a standard Gaussian with mean=mu_0, std=sigma_0
+    # This is the prior distribution p(z)
+    prior = Independent(Normal(loc=0,scale=1),1)
+
+    # Estimate the KLD between q(z|x)|| p(z)
+    kl = KLD(posterior,prior).mean()
     return z, kl
