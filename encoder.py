@@ -65,6 +65,5 @@ class Encoder(nn.Module):
     mu = self.mu(h)
     log_var = self.logvar(h)
     z = self.sample(mu, log_var)
-    # z shape:
     kl = torch.mean(-0.5*torch.sum(1+log_var-mu**2-log_var.exp(),dim=1), dim = 0)
     return z, kl
