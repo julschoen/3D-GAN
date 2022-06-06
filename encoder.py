@@ -77,7 +77,7 @@ class Encoder(nn.Module):
     
     posterior = Independent(Normal(loc=mu,scale=sigma),1)
     z = posterior.rsample()
-
+    print(posterior)
     # Estimate the KLD between q(z|x)|| p(z)
     kl = KLD(posterior,self.prior).mean()
     return z, kl
