@@ -51,8 +51,9 @@ class Encoder(nn.Module):
   def init_weights(self):
     self.param_count = 0
     for module in self.modules():
-      if isinstance(module, nn.Conv3d):
-        init.orthogonal_(module.weight)
+      if (isinstance(module, nn.Conv3d)
+          or isinstance(module, nn.Linear)):
+        nn.init.normal_(m.weight.data, 0.0, 0.02)
         self.param_count += sum([p.data.nelement() for p in module.parameters()])
     print('Param count for D''s initialized parameters: %d' % self.param_count)
 
