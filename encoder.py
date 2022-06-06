@@ -45,6 +45,7 @@ class Encoder(nn.Module):
 
     self.mu_0 = torch.zeros((1,params.z_size))
     self.sigma_1 = torch.ones((1,params.z_size))
+    self.cuda = (params.device == 'cuda')
 
 
   def init_weights(self):
@@ -82,8 +83,11 @@ class Encoder(nn.Module):
 
     # Instantiate a standard Gaussian with mean=mu_0, std=sigma_0
     # This is the prior distribution p(z)
-    prior = Independent(Normal(loc=self.mu_0.to('cuda:'+str(torch.cuda.current_device())),
-              scale=self.sigma_1.to('cuda:'+str(torch.cuda.current_device()))),1)
+    if self.cuda:
+      prior = Independent(Normal(loc=self.mu_0.to('cuda:'+str(torch.cuda.current_device())),
+                scale=self.sigma_1.to('cuda:'+str(torch.cuda.current_device()))),1)
+    else:
+      prior = Independent(Normal(loc=self.mu_0, scale=self.sigma_1),1)
 
     # Estimate the KLD between q(z|x)|| p(z)
     kl = KLD(posterior,prior).mean()
