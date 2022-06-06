@@ -81,7 +81,7 @@ class Encoder(nn.Module):
 
     # Instantiate a standard Gaussian with mean=mu_0, std=sigma_0
     # This is the prior distribution p(z)
-    prior = Independent(Normal(loc=0,scale=1),1)
+    prior = Independent(Normal(loc=self.mu_0,scale=self.sigma_1),1)
 
     # Estimate the KLD between q(z|x)|| p(z)
     kl = KLD(posterior,prior).mean()
