@@ -66,14 +66,14 @@ class Trainer(object):
 
         if self.p.encode:
             self.enc = Encoder(self.p).to(self.device)
-            if self.p.ngpu > 1: self.enc = nn.DataParallel(self.enc)
+            if self.p.ngpu > 1: self.enc = nn.DataParallel(self.enc,device_ids=list(range(self.p.ngpu)))
             self.mse = nn.MSELoss()
             self.optimizerEnc = optim.Adam(self.enc.parameters(), lr=self.p.lrG,
                                          betas=(0., 0.9))
 
         if self.p.ngpu > 1:
-            self.netD = nn.DataParallel(self.netD)
-            self.netG = nn.DataParallel(self.netG)
+            self.netD = nn.DataParallel(self.netD,device_ids=list(range(self.p.ngpu)))
+            self.netG = nn.DataParallel(self.netG,device_ids=list(range(self.p.ngpu)))
 
         self.optimizerD = optim.Adam(self.netD.parameters(), lr=self.p.lrD,
                                          betas=(0., 0.9))
@@ -290,7 +290,7 @@ class Trainer(object):
                 with autocast():
                     z, kl = self.enc(real)
                     fake = self.netG(noise)
-                    err_rec = -self.netD(fake).mean() + torch.log(self.mse(fake, real)) + kl.mean()
+                    err_rec = -self.netD(fake).mean() + torch.log(self.mse(fake, real)) + kl.mean()*0.1
                     if i % 10 == 0:
                         print(z.mean(), z.std())
                     
