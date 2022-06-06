@@ -26,6 +26,7 @@ def main():
 	parser.add_argument('--hybrid', type=bool, default=False, help='Use BigGAN generator with DCGAN discriminator')
 	parser.add_argument('--hinge', type=bool, default=False, help='Use Hinge Loss or Wasserstein loss')
 	parser.add_argument('--load_params', type=bool, default=False, help='Load Parameters form pickle in log dir')
+	parser.add_argument('--encode', type=bool, default=False, help='Use VAE-GAN')
 	params = parser.parse_args()
 	print(params)
 	

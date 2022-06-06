@@ -19,6 +19,7 @@ from biggan import Discriminator as BigD
 from biggan import Generator as BigG
 from sagan import Discriminator as SaD
 from sagan import Generator as SaG
+from encoder import Encoder
 
 
 class Trainer(object):
@@ -62,6 +63,13 @@ class Trainer(object):
             self.netG.apply(self.weights_init)
             self.netD = Discriminator(self.p).to(self.device)
             self.netD.apply(self.weights_init)
+
+        if self.p.encode:
+            self.enc = Encoder(self.p).to(self.device)
+            if ngpu > 1: self.enc = nn.DataParallel(self.enc)
+            self.mse = nn.MSELoss()
+            self.optimizerEnc = optim.Adam(self.enc.parameters(), lr=self.p.lrG,
+                                         betas=(0., 0.9))
 
         if self.p.ngpu > 1:
             self.netD = nn.DataParallel(self.netD)
@@ -229,6 +237,9 @@ class Trainer(object):
             for p in self.netD.parameters():
                 p.requires_grad = False
 
+            for p in self.netG.parameters():
+                p.requires_grad = True
+
             self.netG.zero_grad()
             with autocast():
                 noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
@@ -240,11 +251,37 @@ class Trainer(object):
             self.scalerG.step(self.optimizerG)
             self.scalerG.update()
 
+            for p in self.netG.parameters():
+                p.requires_grad = False
+            if self.p.encode:
+                for p in self.netG.parameters():
+                    p.requires_grad = True
+                for p in self.enc.parameters():
+                    p.requires_grad = True
+                    
+                self.netG.zero_grad()
+                self.enc.zero_grad()
+                with autocast():
+                    z, kl = self.enc(real)
+                    fake = self.netG(noise)
+                    err_rec = -self.netD(fake).mean() + torch.log(self.mse(fake, real)) + kl
+                    
+                self.scalerG.scale(err_rec).backward()
+                self.scalerG.step(self.optimizerG)
+                self.scalerG.step(self.optimizerEnc)
+                self.scalerG.update()
+
+                for p in self.netG.parameters():
+                    p.requires_grad = False
+                for p in self.enc.parameters():
+                    p.requires_grad = False
+
             self.G_losses.append(errG.item())
             self.D_losses.append(errD.item())
 
             self.log(i, fake, real, errD_real.item(), errD_fake.item(), errG.item())
             if i%100 == 0 and i>0:
+                print(err_rec)
                 self.fid_epoch.append(np.array(self.fid).mean())
                 self.fid = []
                 self.save_checkpoint(i)
