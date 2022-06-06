@@ -90,5 +90,5 @@ class Encoder(nn.Module):
       prior = Independent(Normal(loc=self.mu_0, scale=self.sigma_1),1)
 
     # Estimate the KLD between q(z|x)|| p(z)
-    kl = KLD(posterior,prior).mean()
+    kl = KLD(posterior,prior).sum()/(x.shape[0]*x.shape[1]*x.shape[2]*x.shape[3])
     return z, kl
