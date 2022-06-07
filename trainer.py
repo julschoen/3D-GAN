@@ -290,7 +290,7 @@ class Trainer(object):
                 with autocast():
                     z, kl = self.enc(real)
                     fake = self.netG(noise)
-                    err_rec = -self.netD(fake).mean() + torch.log(self.mse(fake, real)) + kl.mean()*0.1
+                    err_rec = -self.netD(fake).mean() + torch.log(self.mse(fake, real)) + kl.mean()*0.01
                     if i % 10 == 0:
                         print(z.mean(), z.std())
                     
