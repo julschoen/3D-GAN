@@ -72,17 +72,17 @@ class Discriminator(nn.Module):
   def __init__(self, params):
     super(Discriminator, self).__init__()
     self.p = params
-    self.dim_z = self.p.z_size
     # Architecture
-    self.arch = {'in_channels' : [1]+[item * self.p.filterD for item in [1, 2, 4,  8, 16]],
-               'out_channels' : [item * self.p.filterD for item in [1,2, 4, 8, 16, 16]],
+    self.arch = {'in_channels' :  [item * self.p.filterD for item in [1, 2, 4,  8, 16]],
+               'out_channels' : [item * self.p.filterD for item in [2, 4, 8, 16, 16]],
                'downsample' : [True] * 5 + [False],
                'resolution' : [64, 32, 16, 8, 4, 4],
                'attention' : {2**i: 2**i in [int(item) for item in '16'.split('_')]
                               for i in range(2,8)}}
-
     
     # Prepare model
+    self.input_conv = snconv3d(1, self.arch['in_channels'][0])
+
     self.blocks = []
     for index in range(len(self.arch['out_channels'])):
       self.blocks += [[DBlock(in_channels=self.arch['in_channels'][index] if d_index==0 else self.arch['out_channels'][index],
@@ -96,6 +96,7 @@ class Discriminator(nn.Module):
 
     self.blocks = nn.ModuleList([nn.ModuleList(block) for block in self.blocks])
     self.linear = snlinear(self.arch['out_channels'][-1], 1)
+
     self.activation = nn.ReLU(inplace=True)
     self.init_weights()
 
@@ -110,7 +111,7 @@ class Discriminator(nn.Module):
 
   def forward(self, x):
     # Run input conv
-    h = x
+    h = self.input_conv(x)
     # Loop over blocks
     for index, blocklist in enumerate(self.blocks):
       for block in blocklist:
