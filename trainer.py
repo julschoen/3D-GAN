@@ -160,7 +160,7 @@ class Trainer(object):
 
     def log(self, step, fake, real):
         if step % self.p.steps_per_log == 0:
-            self.log_train(step, fake, real, D_x, D_G_z1, D_G_z2)
+            self.log_train(step, fake, real)
 
         if step % self.p.steps_per_img_log == 0:
             self.log_interpolation(step)
