@@ -17,7 +17,7 @@ class Generator(nn.Module):
         self.main = nn.Sequential(
             # in z x 1 x 1 x 1
             nn.ConvTranspose3d(nz, ngf*16, 4, stride=1),
-            nn.BatchNorm3d(ngf * 164),
+            nn.BatchNorm3d(ngf * 16),
             nn.ReLU(True),
             # state size (ngf*16) x 4 x 4 x 4
             nn.ConvTranspose3d(ngf*16, ngf*8, 4, stride=2, padding=1),
