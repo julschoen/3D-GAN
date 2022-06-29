@@ -19,7 +19,6 @@ from biggan import Discriminator as BigD
 from biggan import Generator as BigG
 from sagan import Discriminator as SaD
 from sagan import Generator as SaG
-from encoder import Encoder
 
 
 class Trainer(object):
@@ -64,13 +63,6 @@ class Trainer(object):
             self.netD = Discriminator(self.p).to(self.device)
             self.netD.apply(self.weights_init)
 
-        if self.p.encode:
-            self.enc = Encoder(self.p).to(self.device)
-            if self.p.ngpu > 1: self.enc = nn.DataParallel(self.enc,device_ids=list(range(self.p.ngpu)))
-            self.mse = nn.MSELoss()
-            self.optimizerEnc = optim.Adam(self.enc.parameters(), lr=self.p.lrG,
-                                         betas=(0., 0.9))
-
         if self.p.ngpu > 1:
             self.netD = nn.DataParallel(self.netD,device_ids=list(range(self.p.ngpu)))
             self.netG = nn.DataParallel(self.netG,device_ids=list(range(self.p.ngpu)))
@@ -107,7 +99,7 @@ class Trainer(object):
             nn.init.normal_(m.weight.data, 1.0, 0.02)
             nn.init.constant_(m.bias.data, 0)
         
-    def log_train(self, step, fake, real, D_x, D_G_z1, D_G_z2, err_rec):
+    def log_train(self, step, fake, real):
         with torch.no_grad():
             self.fid.append(
                 FID.fid(
@@ -115,14 +107,9 @@ class Trainer(object):
                     real_images=torch.reshape(real.to(torch.float32), (-1,1,128,128)).expand(-1,3,-1,-1)
                     )
                 )
-        if self.p.encode:
-            print('[%d/%d]\tLoss_D: %.4f\tLoss_G: %.4f\tD(x): %.4f\tD(G(z)): %.4f / %.4f\tRec %.4f\tFID %.4f'
-                    % (step, self.p.niters,
-                        self.D_losses[-1], self.G_losses[-1], D_x, D_G_z1, D_G_z2, err_rec, self.fid[-1]))
-        else:
-            print('[%d/%d]\tLoss_D: %.4f\tLoss_G: %.4f\tD(x): %.4f\tD(G(z)): %.4f / %.4f\tFID %.4f'
-                        % (step, self.p.niters,
-                            self.D_losses[-1], self.G_losses[-1], D_x, D_G_z1, D_G_z2, self.fid[-1]))
+        d_real, d_fake = self.D_losses[-1]
+        print('[%d|%d]\tD(x): %.4f\tD(G(z)): %.4f|%.4f\tFID %.4f'
+                    % (step, self.p.niters, d_real, d_fake, self.G_losses[-1], self.fid[-1]))
 
     def log_interpolation(self, step):
         noise = torch.randn(self.p.batch_size, self.p.z_size, 1, 1,1,
@@ -143,10 +130,6 @@ class Trainer(object):
             state_dict = torch.load(checkpoint)
             step = state_dict['step']
 
-            if self.p.encode:
-                self.enc.load_state_dict(state_dict['enc'])
-                self.optimizerEnc.load_state_dict(state_dict['optimizerEnc_state_dict'])
-
             self.optimizerG.load_state_dict(state_dict['optimizerG_state_dict'])
             self.optimizerD.load_state_dict(state_dict['optimizerD_state_dict'])
             
@@ -164,40 +147,26 @@ class Trainer(object):
         return step
 
     def save_checkpoint(self, step):
-        if self.p.encode:
-            torch.save({
-            'step': step,
-            'modelG_state_dict': self.netG.state_dict(),
-            'modelD_state_dict': self.netD.state_dict(),
-            'enc': self.enc.state_dict(),
-            'optimizerG_state_dict': self.optimizerG.state_dict(),
-            'optimizerD_state_dict': self.optimizerD.state_dict(),
-            'optimizerEnc_state_dict': self.optimizerEnc.state_dict(),
-            'lossG': self.G_losses,
-            'lossD': self.D_losses,
-            'fid': self.fid_epoch,
-            }, os.path.join(self.models_dir, 'checkpoint.pt'))
-        else:
-            torch.save({
-            'step': step,
-            'modelG_state_dict': self.netG.state_dict(),
-            'modelD_state_dict': self.netD.state_dict(),
-            'optimizerG_state_dict': self.optimizerG.state_dict(),
-            'optimizerD_state_dict': self.optimizerD.state_dict(),
-            'lossG': self.G_losses,
-            'lossD': self.D_losses,
-            'fid': self.fid_epoch,
-            }, os.path.join(self.models_dir, 'checkpoint.pt'))
+        torch.save({
+        'step': step,
+        'modelG_state_dict': self.netG.state_dict(),
+        'modelD_state_dict': self.netD.state_dict(),
+        'optimizerG_state_dict': self.optimizerG.state_dict(),
+        'optimizerD_state_dict': self.optimizerD.state_dict(),
+        'lossG': self.G_losses,
+        'lossD': self.D_losses,
+        'fid': self.fid_epoch,
+        }, os.path.join(self.models_dir, 'checkpoint.pt'))
 
-    def log(self, step, fake, real, D_x, D_G_z1, D_G_z2, err_rec):
+    def log(self, step, fake, real):
         if step % self.p.steps_per_log == 0:
-            self.log_train(step, fake, real, D_x, D_G_z1, D_G_z2, err_rec)
+            self.log_train(step, fake, real, D_x, D_G_z1, D_G_z2)
 
         if step % self.p.steps_per_img_log == 0:
             self.log_interpolation(step)
 
-    def log_final(self, step, fake, real, D_x, D_G_z1, D_G_z2, err_rec):
-        self.log_train(step, fake, real, D_x, D_G_z1, D_G_z2, err_rec)
+    def log_final(self, step, fake, real):
+        self.log_train(step, fake, real)
         self.log_interpolation(step)
         self.save_checkpoint(step)
 
@@ -279,41 +248,15 @@ class Trainer(object):
 
             for p in self.netG.parameters():
                 p.requires_grad = False
-            if self.p.encode:
-                for p in self.netG.parameters():
-                    p.requires_grad = True
-                for p in self.enc.parameters():
-                    p.requires_grad = True
-                    
-                self.netG.zero_grad()
-                self.enc.zero_grad()
-                with autocast():
-                    z, kl = self.enc(real)
-                    fake = self.netG(noise)
-                    err_rec = -self.netD(fake).mean() + torch.log(self.mse(fake, real)) + kl.mean()*0.01
-                    if i % 10 == 0:
-                        print(z.mean(), z.std())
-                    
-                self.scalerG.scale(err_rec).backward()
-                self.scalerG.step(self.optimizerG)
-                self.scalerG.step(self.optimizerEnc)
-                self.scalerG.update()
-
-                for p in self.netG.parameters():
-                    p.requires_grad = False
-                for p in self.enc.parameters():
-                    p.requires_grad = False
-            else:
-                err_rec = torch.Tensor([0])
 
             self.G_losses.append(errG.item())
-            self.D_losses.append(errD.item())
+            self.D_losses.append((errD_real.item(), errD_fake.item()))
 
-            self.log(i, fake, real, errD_real.item(), errD_fake.item(), errG.item(), err_rec.item())
+            self.log(i, fake, real)
             if i%100 == 0 and i>0:
                 self.fid_epoch.append(np.array(self.fid).mean())
                 self.fid = []
                 self.save_checkpoint(i)
         
-        self.log_final(i, fake, real, errD_real.item(), errD_fake.item(), errG.item(), err_rec.item())
+        self.log_final(i, fake, real)
         print('...Done')

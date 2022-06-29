@@ -6,7 +6,7 @@ def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--niters', type=int, default=5000, help='Number of training iterations')
 	parser.add_argument('--batch_size', type=int, default=16, help='Batch size')
-	parser.add_argument('--z_size', type=int, default=512, help='Latent space dimension')
+	parser.add_argument('--z_size', type=int, default=100, help='Latent space dimension')
 	parser.add_argument('--filterG', type=int, default=128, help='Number of filters G')
 	parser.add_argument('--filterD', type=int, default=128, help='Number of filters D')
 	parser.add_argument('--iterD', type=int, default=2, help='Number of D iters per iter')
@@ -26,7 +26,6 @@ def main():
 	parser.add_argument('--hybrid', type=bool, default=False, help='Use BigGAN generator with DCGAN discriminator')
 	parser.add_argument('--hinge', type=bool, default=False, help='Use Hinge Loss or Wasserstein loss')
 	parser.add_argument('--load_params', type=bool, default=False, help='Load Parameters form pickle in log dir')
-	parser.add_argument('--encode', type=bool, default=False, help='Use VAE-GAN')
 	params = parser.parse_args()
 	print(params)
 	
