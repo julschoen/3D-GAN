@@ -31,10 +31,10 @@ class Attention(nn.Module):
     f = f.view(-1, self.ch // self.red, x.shape[2] * x.shape[3] * x.shape[4])
     g = g.view(-1, self.ch // self.red, x.shape[2] * x.shape[3] * x.shape[4])
     beta = F.softmax(torch.bmm(f.permute(0,2,1), g), -1)
-    
+
     h = F.max_pool3d(self.h(x), [2,2,2], stride=2) 
     #h = self.h(x)    
-    h = h.view(-1, self.ch // 2, x.shape[2] * x.shape[3] * x.shape[4]//8)1
+    h = h.view(-1, self.ch // 2, x.shape[2] * x.shape[3] * x.shape[4]//8)
     o = self.o(torch.bmm(h, beta.permute(0,2,1)).view(-1, self.ch // 2, x.shape[2], x.shape[3], x.shape[4]))
     return self.gamma * o + x
 
