@@ -20,8 +20,8 @@ class Attention(nn.Module):
     self.red = 16
     self.f = snconv3d(self.ch, self.ch // self.red, kernel_size=1, padding=0, bias=False)
     self.g = snconv3d(self.ch, self.ch // self.red, kernel_size=1, padding=0, bias=False)
-    self.h = snconv3d(self.ch, self.ch // 2, kernel_size=1, padding=0, bias=False)
-    self.o = snconv3d(self.ch // 2, self.ch, kernel_size=1, padding=0, bias=False)
+    self.h = snconv3d(self.ch, self.ch // self.red, kernel_size=1, padding=0, bias=False)
+    self.o = snconv3d(self.ch // self.red, self.ch, kernel_size=1, padding=0, bias=False)
     self.gamma = P(torch.tensor(0.), requires_grad=True)
   def forward(self, x, y=None):
     # Apply convs
@@ -33,7 +33,7 @@ class Attention(nn.Module):
     # Perform reshapes
     f = f.view(-1, self.ch // self.red, x.shape[2] * x.shape[3] * x.shape[4])
     g = g.view(-1, self.ch // self.red, x.shape[2] * x.shape[3] * x.shape[4])
-    h = h.view(-1, self.ch // 2, x.shape[2] * x.shape[3] * x.shape[4])
+    h = h.view(-1, self.ch // self.red, x.shape[2] * x.shape[3] * x.shape[4])
     # Matmul and softmax to get attention maps
     beta = F.softmax(torch.bmm(f.permute(0,2,1), g), -1)
     # Attention map times h path
