@@ -27,8 +27,7 @@ class Attention(nn.Module):
   def forward(self, x, y=None):
     # Apply convs
     f = self.f(x)
-    #g = F.max_pool3d(self.g(x), [2,2,2], stride=2)
-    g = self.g(x)
+    g = F.max_pool3d(self.g(x), [2,2,2], stride=2)
     f = f.view(-1, self.ch_, x.shape[2] * x.shape[3] * x.shape[4])
     g = g.view(-1, self.ch_, x.shape[2] * x.shape[3] * x.shape[4])
     beta = F.softmax(torch.bmm(f.permute(0,2,1), g), -1)
