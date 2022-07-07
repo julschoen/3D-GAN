@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from msl import RandomCrop3D
 from self_attention import SelfAttentionBlock
-import torch.nn.utils.parametrizations.spectral_norm as SpectralNorm
+from torch.nn.utils.parametrizations import spectral_norm as SpectralNorm
 #import torch.nn.utils.spectral_norm as SpectralNorm
 
 class Generator(nn.Module):
