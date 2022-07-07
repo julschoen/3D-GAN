@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 from torch.nn import init
 import torch.nn.functional as F
-from torch.nn.utils.parametrizations import spectral_norm as SpectralNorm
 import functools
 from utils import Attention, GBlock, DBlock, snconv3d, snlinear
 from msl import RandomCrop3D
