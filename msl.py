@@ -112,17 +112,24 @@ def grid_sample(image, optical):
     return out_val
 
 class RandomCrop3D(torch.nn.Module):
-    def __init__(self, img_sz=128, device='cuda'):
+    def __init__(self, img_sz=128, n_crops=32, device='cuda'):
         super().__init__()
         self.img_sz  = tuple((img_sz, img_sz, img_sz))
         self.device=device
+        self.n_crops = n_crops
         
     def __call__(self, x):
-        if torch.rand(1) < 0.5:
+        crop_size = int(torch.rand(1) * self.img_sz[0])
+        while crop_size < 30:
             crop_size = int(torch.rand(1) * self.img_sz[0])
-            if crop_size < 30: crop_size = 30
-        else:
-            crop_size = 128
+        x_ = self.crop(x, crop_size).unsqueeze(1)
+        for _ in range(self.n_crops-1):
+            xi = self.crop(x, crop_size).unsqueeze(1)
+            x_ = torch.concat((x_, xi))
+        return x_
+
+    def crop(self, x, size):
+        crop_size = int(torch.rand(1) * self.img_sz[0])
         slice_hwd = [self._get_slice(i, k) for i, k in zip(self.img_sz, (crop_size, crop_size, crop_size))]
         x_ = self._crop(x, *slice_hwd)
         d = torch.linspace(-1,1,64)
@@ -130,11 +137,7 @@ class RandomCrop3D(torch.nn.Module):
         grid = torch.stack((meshx, meshy, meshz), 3).unsqueeze(0).to(self.device)
         x_ = grid_sample(x[0].unsqueeze(0), grid).squeeze(0)
         for xi in x[1:]:
-            if torch.rand(1) < 0.5:
-                crop_size = int(torch.rand(1) * self.img_sz[0])
-                if crop_size < 30: crop_size = 30
-            else:
-                crop_size = 128
+            crop_size = int(torch.rand(1) * self.img_sz[0]) 
             slice_hwd = [self._get_slice(i, k) for i, k in zip(self.img_sz, (crop_size, crop_size, crop_size))]
             xi = self._crop(xi, *slice_hwd)
             d = torch.linspace(-1,1,64)
@@ -142,7 +145,7 @@ class RandomCrop3D(torch.nn.Module):
             grid = torch.stack((meshx, meshy, meshz), 3).unsqueeze(0).to(self.device)
             xi = grid_sample(xi.unsqueeze(0), grid).squeeze(0)
             x_ = torch.cat((x_, xi))
-        return x_.unsqueeze(1)
+        return x_
         
         
     @staticmethod
