@@ -68,9 +68,9 @@ class Trainer(object):
             self.netG = nn.DataParallel(self.netG,device_ids=list(range(self.p.ngpu)))
 
         self.optimizerD = optim.Adam(self.netD.parameters(), lr=self.p.lrD,
-                                         betas=(0., 0.9))
+                                         betas=(0.5, 0.9))
         self.optimizerG = optim.Adam(self.netG.parameters(), lr=self.p.lrG,
-                                         betas=(0., 0.9))
+                                         betas=(0.5, 0.9))
 
         self.scalerD = GradScaler()
         self.scalerG = GradScaler()
