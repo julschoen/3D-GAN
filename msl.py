@@ -119,13 +119,10 @@ class RandomCrop3D(torch.nn.Module):
         self.n_crops = n_crops
         
     def __call__(self, x):
-        crop_size = int(torch.rand(1) * self.img_sz[0])
-        while crop_size < 30:
-            crop_size = int(torch.rand(1) * self.img_sz[0])
-        x_ = self.crop(x, crop_size).unsqueeze(1)
-        for _ in range(self.n_crops-1):
-            xi = self.crop(x, crop_size).unsqueeze(1)
-            x_ = torch.concat((x_, xi))
+        x_ = self.crop(x[0]).unsqueeze(1)
+        for xi in x[1:]:
+            xi_ = self.crop(xi).unsqueeze(1)
+            x_ = torch.concat((x_, xi_))
         return x_
 
     def crop(self, x, size):
@@ -136,10 +133,10 @@ class RandomCrop3D(torch.nn.Module):
         meshz, meshy, meshx = torch.meshgrid((d, d, d))
         grid = torch.stack((meshx, meshy, meshz), 3).unsqueeze(0).to(self.device)
         x_ = grid_sample(x[0].unsqueeze(0), grid).squeeze(0)
-        for xi in x[1:]:
+        for _ in range(self.n_crops-1):
             crop_size = int(torch.rand(1) * self.img_sz[0]) 
             slice_hwd = [self._get_slice(i, k) for i, k in zip(self.img_sz, (crop_size, crop_size, crop_size))]
-            xi = self._crop(xi, *slice_hwd)
+            xi = self._crop(x, *slice_hwd)
             d = torch.linspace(-1,1,64)
             meshz, meshy, meshx = torch.meshgrid((d, d, d))
             grid = torch.stack((meshx, meshy, meshz), 3).unsqueeze(0).to(self.device)
