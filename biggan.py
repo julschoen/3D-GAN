@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.nn import init
 import torch.nn.functional as F
 import functools
-from utils import Attention, GBlock, GBlockDeep DBlock, DBlockDeep, snconv3d, snlinear
+from utils import Attention, GBlock, GBlockDeep, DBlock, DBlockDeep, snconv3d, snlinear
 from msl import RandomCrop3D
 
 class Generator(nn.Module):
