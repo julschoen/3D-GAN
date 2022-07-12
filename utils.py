@@ -37,9 +37,9 @@ class Attention(nn.Module):
     o = self.v(torch.bmm(h, beta.permute(0,2,1)).view(-1, self.ch_, x.shape[2], x.shape[3], x.shape[4]))
     return self.gamma * o + x
 
-class GBlock(nn.Module):
+class GBlockDeep(nn.Module):
   def __init__(self, in_channels, out_channels, upsample=None, channel_ratio=4):
-    super(GBlock, self).__init__()
+    super(GBlockDeep, self).__init__()
     
     self.in_channels, self.out_channels = in_channels, out_channels
     self.hidden_channels = self.in_channels // channel_ratio
@@ -78,10 +78,10 @@ class GBlock(nn.Module):
     h = self.conv4(self.activation(self.bn4(h)))
     return h + x
 
-class DBlock(nn.Module):
+class DBlockDeep(nn.Module):
   def __init__(self, in_channels, out_channels, wide=True, preactivation=True,
                downsample=None, channel_ratio=4):
-    super(DBlock, self).__init__()
+    super(DBlockDeep, self).__init__()
     self.in_channels, self.out_channels = in_channels, out_channels
     # If using wide D (as in SA-GAN and BigGAN), change the channel pattern
     self.hidden_channels = self.out_channels // channel_ratio
@@ -122,4 +122,77 @@ class DBlock(nn.Module):
       h = self.downsample(h)     
     # final 1x1 conv
     h = self.conv4(h)
+    return h + self.shortcut(x)
+
+class GBlock(nn.Module):
+  def __init__(self, in_channels, out_channels, upsample=None):
+    super(GBlock, self).__init__()
+    
+    self.in_channels, self.out_channels = in_channels, out_channels
+    self.activation = nn.ReLU(inplace=True)
+    # Conv layers
+    self.conv1 = snconv3d(self.in_channels, self.out_channels)
+    self.conv2 = snconv3d(self.out_channels, self.out_channels)
+    self.learnable_sc = in_channels != out_channels or upsample
+    if self.learnable_sc:
+      self.conv_sc = snconv3d(in_channels, out_channels, 
+                                     kernel_size=1, padding=0)
+    # Batchnorm layers
+    self.bn1 = nn.BatchNorm3d(in_channels)
+    self.bn2 = nn.BatchNorm3d(out_channels)
+    # upsample layers
+    self.upsample = upsample
+
+  def forward(self, x):
+    h = self.activation(self.bn1(x))
+    if self.upsample:
+      h = self.upsample(h)
+      x = self.upsample(x)
+    h = self.conv1(h)
+    h = self.activation(self.bn2(h))
+    h = self.conv2(h)
+    if self.learnable_sc:       
+      x = self.conv_sc(x)
+    return h + x
+
+class DBlock(nn.Module):
+  def __init__(self, in_channels, out_channels, wide=True,
+               preactivation=False, downsample=None,):
+    super(DBlock, self).__init__()
+    self.in_channels, self.out_channels = in_channels, out_channels
+    # If using wide D (as in SA-GAN and BigGAN), change the channel pattern
+    self.hidden_channels = self.out_channels if wide else self.in_channels
+    self.preactivation = preactivation
+    self.activation = nn.ReLU(inplace=True)
+    self.downsample = downsample
+        
+    # Conv layers
+    self.conv1 = snconv3d(self.in_channels, self.hidden_channels)
+    self.conv2 = snconv3d(self.hidden_channels, self.out_channels)
+    self.learnable_sc = True if (in_channels != out_channels) or downsample else False
+    if self.learnable_sc:
+      self.conv_sc = snconv3d(in_channels, out_channels, 
+                                     kernel_size=1, padding=0)
+  def shortcut(self, x):
+    if self.preactivation:
+      if self.learnable_sc:
+        x = self.conv_sc(x)
+      if self.downsample:
+        x = self.downsample(x)
+    else:
+      if self.downsample:
+        x = self.downsample(x)
+      if self.learnable_sc:
+        x = self.conv_sc(x)
+    return x
+    
+  def forward(self, x):
+    if self.preactivation:
+      h = F.relu(x)
+    else:
+      h = x    
+    h = self.conv1(h)
+    h = self.conv2(self.activation(h))
+    if self.downsample:
+      h = self.downsample(h)     
     return h + self.shortcut(x)

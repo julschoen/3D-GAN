@@ -3,9 +3,8 @@ import torch.nn as nn
 from torch.nn import init
 import torch.nn.functional as F
 import functools
-from utils import Attention, GBlock, DBlock, snconv3d, snlinear
+from utils import Attention, GBlock, GBlockDeep DBlock, DBlockDeep, snconv3d, snlinear
 from msl import RandomCrop3D
-
 
 class Generator(nn.Module):
   def __init__(self, params):
@@ -18,11 +17,12 @@ class Generator(nn.Module):
              'resolution' : [8, 16, 32, 64, 128],
              'attention' : {2**i: (2**i in [int(item) for item in '32'.split('_')]) for i in range(3,8)}}
 
+
     self.linear = snlinear(self.p.z_size, self.arch['in_channels'][0] * (4**3))
     self.blocks = []
     for index in range(len(self.arch['out_channels'])):
       if self.p.biggan_deep:
-        self.blocks += [[GBlock(in_channels=self.arch['in_channels'][index],
+        self.blocks += [[GBlockDeep(in_channels=self.arch['in_channels'][index],
                                out_channels=self.arch['in_channels'][index] if g_index==0 else self.arch['out_channels'][index],
                                upsample=(functools.partial(F.interpolate, scale_factor=2)
                                          if self.arch['upsample'][index] and g_index == 1 else None))]
@@ -65,8 +65,6 @@ class Generator(nn.Module):
         h = block(h)
     return torch.tanh(self.output_layer(h))
 
-
-
 class Discriminator(nn.Module):
   def __init__(self, params):
     super(Discriminator, self).__init__()
@@ -84,11 +82,17 @@ class Discriminator(nn.Module):
 
     self.blocks = []
     for index in range(len(self.arch['out_channels'])):
-      self.blocks += [[DBlock(in_channels=self.arch['in_channels'][index] if d_index==0 else self.arch['out_channels'][index],
-                       out_channels=self.arch['out_channels'][index],
-                       preactivation=True,
-                       downsample=(nn.AvgPool3d(2) if self.arch['downsample'][index] and d_index==0 else None))
-                       for d_index in range(1)]]
+      if self.p.biggan_deep:
+        self.blocks += [[DBlockDeep(in_channels=self.arch['in_channels'][index] if d_index==0 else self.arch['out_channels'][index],
+                         out_channels=self.arch['out_channels'][index],
+                         preactivation=True,
+                         downsample=(nn.AvgPool3d(2) if self.arch['downsample'][index] and d_index==0 else None))
+                         for d_index in range(2)]]
+      else:
+        self.blocks += [[DBlock(in_channels=self.arch['in_channels'][index],
+                         out_channels=self.arch['out_channels'][index],
+                         preactivation=True,
+                         downsample=(nn.AvgPool3d(2) if self.arch['downsample'][index] else None))]]
       if self.p.att:
         if self.arch['attention'][self.arch['resolution'][index]]:
           self.blocks[-1] += [Attention(self.arch['out_channels'][index])]
