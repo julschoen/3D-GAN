@@ -104,7 +104,7 @@ class Discriminator(nn.Module):
         self.dim_z = nz
         
         if params.msl:
-            nc = 16
+            nc = 1
             self.main = nn.Sequential(
                 # input is nc x 128 x 128 x 128
                 RandomCrop3D(device=params.device, n_crops=nc),
