@@ -13,10 +13,8 @@ class Generator(nn.Module):
     self.dim_z = self.p.z_size
     self.arch = {'in_channels' :  [item * self.p.filterG for item in [16, 16, 8, 4, 2]],
              'out_channels' : [item * self.p.filterG for item in [16, 8, 4,  2, 1]],
-             'upsample' : [True] * 5,
              'resolution' : [8, 16, 32, 64, 128],
              'attention' : {2**i: (2**i in [int(item) for item in '32'.split('_')]) for i in range(3,8)}}
-
     
     self.linear = snlinear(self.p.z_size, self.arch['in_channels'][0] * (4**3), sngan=self.p.sngan)
       
@@ -25,14 +23,12 @@ class Generator(nn.Module):
       if self.p.biggan:
         self.blocks += [[GBlockDeep(in_channels=self.arch['in_channels'][index],
                                out_channels=self.arch['in_channels'][index] if g_index==0 else self.arch['out_channels'][index],
-                               upsample=(functools.partial(F.interpolate, scale_factor=2)
-                                         if self.arch['upsample'][index] and g_index == 1 else None))]
+                               upsample=(functools.partial(F.interpolate, scale_factor=2)if g_index == 1 else None))]
                          for g_index in range(2)]
       else:
         self.blocks += [[GBlock(in_channels=self.arch['in_channels'][index],
                              out_channels=self.arch['out_channels'][index],
-                             upsample=(functools.partial(F.interpolate, scale_factor=2)
-                                       if self.arch['upsample'][index] else None),
+                             upsample=functools.partial(F.interpolate, scale_factor=2),
                              sngan=self.p.sngan)]]
       if self.p.sagan:
         if self.arch['attention'][self.arch['resolution'][index]]:
