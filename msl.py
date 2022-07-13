@@ -129,8 +129,8 @@ class RandomCrop3D(torch.nn.Module):
     def crop(self, x):
         crop_size = int(torch.rand(1) * self.img_sz[0])
         slice_hwd = [self._get_slice(i, k) for i, k in zip(self.img_sz, (crop_size, crop_size, crop_size))]
-        x_ = self._crop(x, *slice_hwd)
-        print(x_.shape)
+        x_ = self._crop(x.clone(), *slice_hwd)
+        print(x_.shape, crop_size)
         d = torch.linspace(-1,1,64)
         meshz, meshy, meshx = torch.meshgrid((d, d, d))
         grid = torch.stack((meshx, meshy, meshz), 3).unsqueeze(0).to(self.device)
@@ -139,7 +139,7 @@ class RandomCrop3D(torch.nn.Module):
         for _ in range(self.n_crops-1):
             crop_size = int(torch.rand(1) * self.img_sz[0]) 
             slice_hwd = [self._get_slice(i, k) for i, k in zip(self.img_sz, (crop_size, crop_size, crop_size))]
-            xi = self._crop(x, *slice_hwd)
+            xi = self._crop(x.clone(), *slice_hwd)
             d = torch.linspace(-1,1,64)
             meshz, meshy, meshx = torch.meshgrid((d, d, d))
             grid = torch.stack((meshx, meshy, meshz), 3).unsqueeze(0).to(self.device)
