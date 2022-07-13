@@ -128,6 +128,7 @@ class RandomCrop3D(torch.nn.Module):
 
     def crop(self, x):
         crop_size = int(torch.rand(1) * self.img_sz[0])
+        print(zip((self.img_sz, self.img_sz, self.img_sz), (crop_size, crop_size, crop_size)))
         slice_hwd = [self._get_slice(i, k) for i, k in zip((self.img_sz, self.img_sz, self.img_sz), (crop_size, crop_size, crop_size))]
         x_ = self._crop(x.clone().squeeze(), *slice_hwd)
         print(slice_hwd)
