@@ -61,8 +61,8 @@ class Trainer(object):
         summary(self.netD, input_size=(1, 128, 128, 128))
 
         if self.p.ngpu > 1:
-            self.netD = nn.DataParallel(self.netD,device_ids=list(range(self.p.ngpu)))
-            self.netG = nn.DataParallel(self.netG,device_ids=list(range(self.p.ngpu)))
+            self.netD = nn.DataParallel(self.netD)
+            self.netG = nn.DataParallel(self.netG)
 
         self.optimizerD = optim.Adam(self.netD.parameters(), lr=self.p.lrD,
                                          betas=(0., 0.9))
