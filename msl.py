@@ -1,6 +1,8 @@
 import torch
 from torch.nn.functional import grid_sample
 
+from torch.nn.functional import interpolate
+
 def grid_sample_(image, optical):
     N, C, ID, IH, IW = image.shape
     _, D, H, W, _ = optical.shape
@@ -128,6 +130,7 @@ class RandomCrop3D(torch.nn.Module):
 
     def crop(self, x):
         crop_size = int(torch.rand(1) * self.img_sz[0])
+        if crop_size<15: crop_size = 15
         slice_hwd = [self._get_slice(i, k) for i, k in zip(self.img_sz, (crop_size, crop_size, crop_size))]
         x_ = self._crop(x.squeeze(), *slice_hwd)
         d = torch.linspace(-1,1,64)
@@ -136,7 +139,8 @@ class RandomCrop3D(torch.nn.Module):
         print(grid.shape)
         x_ = grid_sample(x_.unsqueeze(0).unsqueeze(0), grid).squeeze(0)
         for _ in range(self.n_crops-1):
-            crop_size = int(torch.rand(1) * self.img_sz[0]) 
+            crop_size = int(torch.rand(1) * self.img_sz[0])
+            if crop_size<15: crop_size = 15
             slice_hwd = [self._get_slice(i, k) for i, k in zip(self.img_sz, (crop_size, crop_size, crop_size))]
             xi = self._crop(x.squeeze(), *slice_hwd)
             d = torch.linspace(-1,1,64)
