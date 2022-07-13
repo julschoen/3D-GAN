@@ -9,9 +9,9 @@ class RandomCrop3D(torch.nn.Module):
         self.n_crops = n_crops
         
     def __call__(self, x):
-        x_ = self.crop(x[0].clone()).unsqueeze(1)
+        x_ = self.crop(x[0].clone()).unsqueeze(0)
         for xi in x[1:]:
-            xi_ = self.crop(xi.clone()).unsqueeze(1)
+            xi_ = self.crop(xi.clone()).unsqueeze(0)
             x_ = torch.concat((x_, xi_))
         return x_
 
