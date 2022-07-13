@@ -13,6 +13,7 @@ from torch.cuda.amp import autocast, GradScaler
 
 import torchvision
 import torchvision.utils as vutils
+from torchsummary import summary
 
 from dcgan import Discriminator, Generator
 from biggan import Discriminator as BigD #Hihi
@@ -52,6 +53,12 @@ class Trainer(object):
         else:
             self.netD = BigD(self.p).to(self.device)
             self.netG = BigG(self.p).to(self.device)
+
+        print('Summary G')
+        summary(self.netG, input_size=(256, 1, 1, 1))
+
+        print('Summary D')
+        summary(self.netD, input_size=(1, 128, 128, 128))
 
         if self.p.ngpu > 1:
             self.netD = nn.DataParallel(self.netD,device_ids=list(range(self.p.ngpu)))

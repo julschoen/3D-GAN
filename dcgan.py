@@ -4,7 +4,6 @@ import torch.nn.functional as F
 from msl import RandomCrop3D
 from utils import Attention as SelfAttention
 from torch.nn.utils.parametrizations import spectral_norm as SpectralNorm
-from torchsummary import summary
 
 class Generator(nn.Module):
     def __init__(self, params):
@@ -81,8 +80,6 @@ class Generator(nn.Module):
             )
 
         self.apply(self.weights_init)
-        print('Summary G')
-        summary(self, input_size=(256, 1, 1, 1))
 
     def weights_init(self, m):
         classname = m.__class__.__name__
@@ -193,8 +190,6 @@ class Discriminator(nn.Module):
                 nn.Conv3d(ndf * 16, 1, (4,4,4), stride=1, padding=0, bias=False),
             )
         self.apply(self.weights_init)
-        print('Summary D')
-        summary(self, input_size=(1, 128, 128, 128))
 
     def weights_init(self, m):
         classname = m.__class__.__name__
