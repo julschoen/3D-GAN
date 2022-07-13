@@ -104,9 +104,10 @@ class Discriminator(nn.Module):
         self.dim_z = nz
         
         if params.msl:
+            nc = 64
             self.main = nn.Sequential(
                 # input is nc x 128 x 128 x 128
-                RandomCrop3D(device=params.device),
+                RandomCrop3D(device=params.device, n_crops=nc),
                 # input is nc x 64 x 64 x 64
                 SpectralNorm(nn.Conv3d(nc, ndf, 4, stride=2, padding=1, bias=False)), 
                 nn.LeakyReLU(0.1, inplace=True),
