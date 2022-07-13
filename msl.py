@@ -128,15 +128,13 @@ class RandomCrop3D(torch.nn.Module):
 
     def crop(self, x):
         crop_size = int(torch.rand(1) * self.img_sz[0])
-        slice_hwd = [self._get_slice(i, k), (i,k) for i, k in zip(self.img_sz, (crop_size, crop_size, crop_size))]
-        print(slice_hwd)
+        slice_hwd = [self._get_slice(i, k) for i, k in zip(self.img_sz, (crop_size, crop_size, crop_size))]
         x_ = self._crop(x.clone().squeeze(), *slice_hwd)
-        print(slice_hwd)
-        print(x_.shape, crop_size)
         d = torch.linspace(-1,1,64)
         meshz, meshy, meshx = torch.meshgrid((d, d, d))
         grid = torch.stack((meshx, meshy, meshz), 3).unsqueeze(0).to(self.device)
-        x_ = grid_sample(x.unsqueeze(0), grid).squeeze(0)
+        x_ = grid_sample(x_.unsqueeze(0), grid).squeeze(0)
+        print(x_.shape)
         for _ in range(self.n_crops-1):
             crop_size = int(torch.rand(1) * self.img_sz[0]) 
             slice_hwd = [self._get_slice(i, k) for i, k in zip(self.img_sz, (crop_size, crop_size, crop_size))]
