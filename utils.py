@@ -8,7 +8,7 @@ from torch.nn import Parameter as P
 def snconv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, bias=True, sngan=False):
   if sngan:
     return nn.Conv3d(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
-                                   stride=stride, padding=padding, dilation=dilation, bias=bias)
+                               stride=stride, padding=padding, dilation=dilation, bias=bias)
   else:
     return SpectralNorm(nn.Conv3d(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
                                    stride=stride, padding=padding, dilation=dilation, bias=bias))
@@ -153,7 +153,7 @@ class GBlock(nn.Module):
   def forward(self, x):
     h = self.activation(self.bn1(x))
     if self.upsample:
-      print(self.upsample)
+      print(h.max(), h.min())
       h = self.upsample(h)
       x = self.upsample(x)
     h = self.conv1(h)
