@@ -156,4 +156,3 @@ class RandomCrop3D(torch.nn.Module):
     @staticmethod
     def _crop(x, slice_h, slice_w, slice_d):
         return x[slice_h[0]:slice_h[1], slice_w[0]:slice_w[1], slice_d[0]:slice_d[1]]
-

@@ -132,7 +132,7 @@ class DBlockDeep(nn.Module):
     return h + self.shortcut(x)
 
 class GBlock(nn.Module):
-  def __init__(self, in_channels, out_channels, upsample=None, sngan):
+  def __init__(self, in_channels, out_channels, upsample=None, sngan=False):
     super(GBlock, self).__init__()
     
     self.in_channels, self.out_channels = in_channels, out_channels
