@@ -1,6 +1,7 @@
 import torch
+from torch.nn.functional import grid_sample
 
-def grid_sample(image, optical):
+def grid_sample_(image, optical):
     N, C, ID, IH, IW = image.shape
     _, D, H, W, _ = optical.shape
 
