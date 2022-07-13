@@ -3,8 +3,6 @@ from torch.nn.functional import grid_sample
 
 from torch.nn.functional import interpolate
 
-if crop_size<15: crop_size = 15
-
 class RandomCrop3D(torch.nn.Module):
     def __init__(self, img_sz=128, n_crops=64, device='cuda'):
         super().__init__()
