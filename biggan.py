@@ -91,9 +91,8 @@ class Discriminator(nn.Module):
                          out_channels=self.arch['out_channels'][index],
                          preactivation=True,
                          downsample=(nn.AvgPool3d(2) if self.arch['downsample'][index] else None))]]
-      if self.p.sagan:
-        if self.arch['attention'][self.arch['resolution'][index]]:
-          self.blocks[-1] += [Attention(self.arch['out_channels'][index])]
+      if self.p.sagan and self.arch['attention'][self.arch['resolution'][index]]:
+        self.blocks[-1] += [Attention(self.arch['out_channels'][index])]
 
     self.blocks = nn.ModuleList([nn.ModuleList(block) for block in self.blocks])
     self.linear = snlinear(self.arch['out_channels'][-1], 1)
