@@ -83,6 +83,7 @@ class Generator(nn.Module):
         self.param_count = 0
         self.apply(self.weights_init)
         print('Param count for G''s initialized parameters: %d' % self.param_count)
+        print(self)
 
     def weights_init(self, m):
         classname = m.__class__.__name__
