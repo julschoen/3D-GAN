@@ -45,7 +45,18 @@ class Generator(nn.Module):
             nn.Tanh()
             # state size nc x 128 x 128 x 128
         )
-       
+        self.apply(self.weights_init)
+
+    def weights_init(self, m):
+        classname = m.__class__.__name__
+        self.param_count = 0
+        if classname.find('Conv') != -1:
+            nn.init.normal_(m.weight.data, 0.0, 0.02)
+            self.param_count += sum([p.data.nelement() for p in m.parameters()])
+        elif classname.find('BatchNorm') != -1:
+            nn.init.normal_(m.weight.data, 1.0, 0.02)
+            nn.init.constant_(m.bias.data, 0)
+        print('Param count for G''s initialized parameters: %d' % self.param_count)
 
     def forward(self, input):
         output = self.main(input)
@@ -100,6 +111,19 @@ class Discriminator(nn.Module):
                 # state size. (ndf*16) x 4 x 4 x 4
                 SpectralNorm(nn.Conv3d(ndf * 16, 1, (4,4,4), stride=1, padding=0, bias=False)),
             )
+
+        self.apply(self.weights_init)
+
+    def weights_init(self, m):
+        classname = m.__class__.__name__
+        self.param_count = 0
+        if classname.find('Conv') != -1:
+            nn.init.normal_(m.weight.data, 0.0, 0.02)
+            self.param_count += sum([p.data.nelement() for p in m.parameters()])
+        elif classname.find('BatchNorm') != -1:
+            nn.init.normal_(m.weight.data, 1.0, 0.02)
+            nn.init.constant_(m.bias.data, 0)
+        print('Param count for G''s initialized parameters: %d' % self.param_count)
 
     def forward(self, input):
         output = self.main(input)        
