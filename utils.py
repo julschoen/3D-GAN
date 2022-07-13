@@ -160,8 +160,6 @@ class GBlock(nn.Module):
     h = self.conv2(h)
     if self.learnable_sc:       
       x = self.conv_sc(x)
-    print(h.max(), h.min(), h.shape)
-    print(x.max(), x.min(), x.shape)
     return h + x
 
 class DBlock(nn.Module):
