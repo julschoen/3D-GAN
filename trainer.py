@@ -181,6 +181,10 @@ class Trainer(object):
         one = torch.FloatTensor([1]).to(self.device)
         mone = one * -1
         gen = self.inf_train_gen()
+        for p in self.netD.parameters():
+                p.requires_grad = False
+        for p in self.netG.parameters():
+            p.requires_grad = False
 
         print("Starting Training...")
         for i in range(step_done, self.p.niters):
