@@ -48,37 +48,36 @@ def eval(params):
 		large_data = None
 		large_fake = None
 		with torch.no_grad():
-			with autocast():
-				for i, data in enumerate(generator):
-					x1 = data.unsqueeze(dim=1)
-					if params.ngpu > 1:
-						noise = torch.randn(data.shape[0], netG.module.dim_z,
-								1, 1, 1, dtype=torch.float, device=params.device)
+			for i, data in enumerate(generator):
+				x1 = data.unsqueeze(dim=1)
+				if params.ngpu > 1:
+					noise = torch.randn(data.shape[0], netG.module.dim_z,
+							1, 1, 1, dtype=torch.float, device=params.device)
+				else:
+					noise = torch.randn(data.shape[0], netG.dim_z,
+							1, 1, 1, dtype=torch.float, device=params.device)
+				x2 = netG(noise)
+				if i % 16 == 0 and i>0:
+					s,p,f = ssim(large_data,large_fake), psnr(large_data,large_fake),fid_3d(fid_model, large_data, large_fake)
+					m = 0#mmd(large_data, large_fake)
+					ssims.append(s)
+					psnrs.append(p)
+					fids.append(f)
+					mmds.append(m)
+					large_data = None
+					large_fake = None
+				else:
+					if large_data is not None and large_fake is not None:
+						large_data = torch.concat((large_data, x1.cpu()))
+						large_fake = torch.concat((large_fake, x2.cpu()))
 					else:
-						noise = torch.randn(data.shape[0], netG.dim_z,
-								1, 1, 1, dtype=torch.float, device=params.device)
-					x2 = netG(noise)
-					if i % 16 == 0 and i>0:
-						s,p,f = ssim(large_data,large_fake), psnr(large_data,large_fake),fid_3d(fid_model, large_data, large_fake)
-						m = 0#mmd(large_data, large_fake)
-						ssims.append(s)
-						psnrs.append(p)
-						fids.append(f)
-						mmds.append(m)
-						large_data = None
-						large_fake = None
-					else:
-						if large_data is not None and large_fake is not None:
-							large_data = torch.concat((large_data, x1.cpu()))
-							large_fake = torch.concat((large_fake, x2.cpu()))
-						else:
-							large_data = x1.cpu()
-							large_fake = x2.cpu()
-					if i%5 == 0:
-						fa, fc, fs = fid(x1, x2, params.device)
-						fids_ax.append(fa)
-						fids_cor.append(fc)
-						fids_sag.append(fs)
+						large_data = x1.cpu()
+						large_fake = x2.cpu()
+				if i%5 == 0:
+					fa, fc, fs = fid(x1, x2, params.device)
+					fids_ax.append(fa)
+					fids_cor.append(fc)
+					fids_sag.append(fs)
 			
 
 		ssims = np.array(ssims)
