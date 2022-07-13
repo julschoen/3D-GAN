@@ -123,6 +123,7 @@ class RandomCrop3D(torch.nn.Module):
         for xi in x[1:]:
             xi_ = self.crop(xi).unsqueeze(1)
             x_ = torch.concat((x_, xi_))
+        print(x_.shape)
         return x_
 
     def crop(self, x):
