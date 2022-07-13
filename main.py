@@ -22,7 +22,7 @@ def main():
 	parser.add_argument('--load_params', type=bool, default=False, help='Load Parameters form pickle in log dir')
 
 	## Base Model Type
-	parser.add_argument('--dcgan', type=bool, default=True, help='Use DCGAN Base Model else Residual')
+	parser.add_argument('--dcgan', type=bool, default=False, help='Use DCGAN Base Model else Residual')
 	parser.add_argument('--hybrid', type=bool, default=False, help='Res G with DCGAN D (Overwrites --dcgan)')
 
 	## Specific Model Type
