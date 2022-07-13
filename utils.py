@@ -154,7 +154,6 @@ class GBlock(nn.Module):
   def forward(self, x):
     h = self.activation(self.bn1(x))
     if self.upsample:
-      print(h.max(), h.min(), h.shape)
       h = self.upsample(h)
       x = self.upsample(x)
     h = self.conv1(h)
@@ -162,6 +161,7 @@ class GBlock(nn.Module):
     h = self.conv2(h)
     if self.learnable_sc:       
       x = self.conv_sc(x)
+    print(h.max(), h.min(), h.shape)
     return h + x
 
 class DBlock(nn.Module):
