@@ -112,7 +112,7 @@ def grid_sample(image, optical):
     return out_val
 
 class RandomCrop3D(torch.nn.Module):
-    def __init__(self, img_sz=128, n_crops=32, device='cuda'):
+    def __init__(self, img_sz=128, n_crops=64, device='cuda'):
         super().__init__()
         self.img_sz  = tuple((img_sz, img_sz, img_sz))
         self.device=device
