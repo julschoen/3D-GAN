@@ -51,17 +51,12 @@ class Trainer(object):
         elif self.p.hybrid:
             self.netG = BigG(self.p).to(self.device)
             self.netD = Discriminator(self.p).to(self.device)
-            self.netD.apply(self.weights_init)
         elif self.p.sagan:
             self.netG = SaG(self.p).to(self.device)
-            self.netG.apply(self.weights_init)
             self.netD = SaD(self.p).to(self.device)
-            self.netD.apply(self.weights_init)
         else:
             self.netG = Generator(self.p).to(self.device)
-            self.netG.apply(self.weights_init)
             self.netD = Discriminator(self.p).to(self.device)
-            self.netD.apply(self.weights_init)
 
         if self.p.ngpu > 1:
             self.netD = nn.DataParallel(self.netD,device_ids=list(range(self.p.ngpu)))
@@ -90,14 +85,6 @@ class Trainer(object):
         while True:
             for data in self.generator_train:
                 yield data
-
-    def weights_init(self, m):
-        classname = m.__class__.__name__
-        if classname.find('Conv') != -1:
-            nn.init.normal_(m.weight.data, 0.0, 0.02)
-        elif classname.find('BatchNorm') != -1:
-            nn.init.normal_(m.weight.data, 1.0, 0.02)
-            nn.init.constant_(m.bias.data, 0)
         
     def log_train(self, step, fake, real):
         with torch.no_grad():
