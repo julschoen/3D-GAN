@@ -153,7 +153,7 @@ class GBlock(nn.Module):
   def forward(self, x):
     h = self.activation(self.bn1(x))
     if self.upsample:
-      print(h.max(), h.min())
+      print(h.max(), h.min(), h.shape)
       h = self.upsample(h)
       x = self.upsample(x)
     h = self.conv1(h)
