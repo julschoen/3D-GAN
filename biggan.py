@@ -19,7 +19,7 @@ class Generator(nn.Module):
              'out_channels' : [item * self.p.filterG for item in [16, 8, 4,  2, 1]],
              'resolution' : [8, 16, 32, 64, 128],
              'attention' : {2**i: (2**i in [int(item) for item in att.split('_')]) for i in range(3,8)}}
-    print(arch)
+    print(self.arch)
     self.linear = snlinear(self.p.z_size, self.arch['in_channels'][0] * (4**3), sngan=self.p.sngan)
       
     self.blocks = []
