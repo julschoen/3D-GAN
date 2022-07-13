@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from msl import RandomCrop3D
 from utils import Attention as SelfAttention
 from torch.nn.utils.parametrizations import spectral_norm as SpectralNorm
- 
+from torchsummary import summary
 
 class Generator(nn.Module):
     def __init__(self, params):
@@ -80,17 +80,15 @@ class Generator(nn.Module):
                 # state size nc x 128 x 128 x 128
             )
 
-        self.param_count = 0
         self.apply(self.weights_init)
-        print('Param count for G''s initialized parameters: %d' % self.param_count)
-        print(self)
+        print('Summary G')
+        summary(self, input_size=(256))
 
     def weights_init(self, m):
         classname = m.__class__.__name__
         
         if classname.find('Conv') != -1:
             nn.init.normal_(m.weight.data, 0.0, 0.02)
-            self.param_count += sum([p.data.nelement() for p in m.parameters()])
         elif classname.find('BatchNorm') != -1:
             nn.init.normal_(m.weight.data, 1.0, 0.02)
             nn.init.constant_(m.bias.data, 0)
@@ -194,15 +192,14 @@ class Discriminator(nn.Module):
                 # state size. (ndf*16) x 4 x 4 x 4
                 nn.Conv3d(ndf * 16, 1, (4,4,4), stride=1, padding=0, bias=False),
             )
-        self.param_count = 0
         self.apply(self.weights_init)
-        print('Param count for D''s initialized parameters: %d' % self.param_count)
+        print('Summary D')
+        summary(self, input_size=(128, 128, 128))
 
     def weights_init(self, m):
         classname = m.__class__.__name__
         if classname.find('Conv') != -1:
             nn.init.normal_(m.weight.data, 0.0, 0.02)
-            self.param_count += sum([p.data.nelement() for p in m.parameters()])
         elif classname.find('BatchNorm') != -1:
             nn.init.normal_(m.weight.data, 1.0, 0.02)
             nn.init.constant_(m.bias.data, 0)
