@@ -17,11 +17,12 @@ class Generator(nn.Module):
              'resolution' : [8, 16, 32, 64, 128],
              'attention' : {2**i: (2**i in [int(item) for item in '32'.split('_')]) for i in range(3,8)}}
 
-
-    self.linear = snlinear(self.p.z_size, self.arch['in_channels'][0] * (4**3))
+    
+    self.linear = snlinear(self.p.z_size, self.arch['in_channels'][0] * (4**3), sngan=self.p.sngan)
+      
     self.blocks = []
     for index in range(len(self.arch['out_channels'])):
-      if self.p.biggan_deep:
+      if self.p.biggan:
         self.blocks += [[GBlockDeep(in_channels=self.arch['in_channels'][index],
                                out_channels=self.arch['in_channels'][index] if g_index==0 else self.arch['out_channels'][index],
                                upsample=(functools.partial(F.interpolate, scale_factor=2)
@@ -31,17 +32,19 @@ class Generator(nn.Module):
         self.blocks += [[GBlock(in_channels=self.arch['in_channels'][index],
                              out_channels=self.arch['out_channels'][index],
                              upsample=(functools.partial(F.interpolate, scale_factor=2)
-                                       if self.arch['upsample'][index] else None))]]
-      if self.p.att:
+                                       if self.arch['upsample'][index] else None),
+                             sngan=self.p.sngan)]]
+      if self.p.sagan:
         if self.arch['attention'][self.arch['resolution'][index]]:
           self.blocks[-1] += [Attention(self.arch['out_channels'][index])]
 
     # Turn self.blocks into a ModuleList so that it's all properly registered.
     self.blocks = nn.ModuleList([nn.ModuleList(block) for block in self.blocks])
 
+   
     self.output_layer = nn.Sequential(nn.BatchNorm3d(self.arch['out_channels'][-1]),
                                     nn.ReLU(inplace=True),
-                                    snconv3d(self.arch['out_channels'][-1], 1))
+                                    snconv3d(self.arch['out_channels'][-1], 1, sngan=self.p.sngan))
 
     self.init_weights()
 
@@ -82,7 +85,7 @@ class Discriminator(nn.Module):
 
     self.blocks = []
     for index in range(len(self.arch['out_channels'])):
-      if self.p.biggan_deep:
+      if self.p.biggan:
         self.blocks += [[DBlockDeep(in_channels=self.arch['in_channels'][index] if d_index==0 else self.arch['out_channels'][index],
                          out_channels=self.arch['out_channels'][index],
                          preactivation=True,
@@ -93,7 +96,7 @@ class Discriminator(nn.Module):
                          out_channels=self.arch['out_channels'][index],
                          preactivation=True,
                          downsample=(nn.AvgPool3d(2) if self.arch['downsample'][index] else None))]]
-      if self.p.att:
+      if self.p.sagan:
         if self.arch['attention'][self.arch['resolution'][index]]:
           self.blocks[-1] += [Attention(self.arch['out_channels'][index])]
 

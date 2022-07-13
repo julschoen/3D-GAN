@@ -45,18 +45,15 @@ class Trainer(object):
         self.p = params
 
         ### Make Models ###
-        if  self.p.biggan:
+        if self.p.hybrid:
+            self.netG = BigG(self.p).to(self.device)
+            self.netD = Discriminator(self.p).to(self.device)
+        elif self.p.dcgan:
+            self.netD = Discriminator(self.p).to(self.device)
+            self.netG = Generator(self.p).to(self.device)
+        else
             self.netD = BigD(self.p).to(self.device)
             self.netG = BigG(self.p).to(self.device)
-        elif self.p.hybrid:
-            self.netG = BigG(self.p).to(self.device)
-            self.netD = Discriminator(self.p).to(self.device)
-        elif self.p.sagan:
-            self.netG = SaG(self.p).to(self.device)
-            self.netD = SaD(self.p).to(self.device)
-        else:
-            self.netG = Generator(self.p).to(self.device)
-            self.netD = Discriminator(self.p).to(self.device)
 
         if self.p.ngpu > 1:
             self.netD = nn.DataParallel(self.netD,device_ids=list(range(self.p.ngpu)))

@@ -58,6 +58,19 @@ class Generator(nn.Module):
         last.append(nn.Tanh())
         self.last = nn.Sequential(*last)
 
+        self.apply(self.weights_init)
+
+    def weights_init(self, m):
+        classname = m.__class__.__name__
+        self.param_count = 0
+        if classname.find('Conv') != -1:
+            nn.init.normal_(m.weight.data, 0.0, 0.02)
+            self.param_count += sum([p.data.nelement() for p in m.parameters()])
+        elif classname.find('BatchNorm') != -1:
+            nn.init.normal_(m.weight.data, 1.0, 0.02)
+            nn.init.constant_(m.bias.data, 0)
+        print('Param count for G''s initialized parameters: %d' % self.param_count)
+
         
 
     def forward(self, z):
@@ -115,6 +128,19 @@ class Discriminator(nn.Module):
 
         last.append(nn.Conv3d(curr_dim, 1, 4))
         self.last = nn.Sequential(*last)
+
+        self.apply(self.weights_init)
+
+    def weights_init(self, m):
+        classname = m.__class__.__name__
+        self.param_count = 0
+        if classname.find('Conv') != -1:
+            nn.init.normal_(m.weight.data, 0.0, 0.02)
+            self.param_count += sum([p.data.nelement() for p in m.parameters()])
+        elif classname.find('BatchNorm') != -1:
+            nn.init.normal_(m.weight.data, 1.0, 0.02)
+            nn.init.constant_(m.bias.data, 0)
+        print('Param count for G''s initialized parameters: %d' % self.param_count)
 
 
     def forward(self, x):

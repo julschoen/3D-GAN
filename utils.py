@@ -5,11 +5,18 @@ from torch.nn.utils.parametrizations import spectral_norm as SpectralNorm
 import functools
 from torch.nn import Parameter as P
 
-def snconv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, bias=True):
+def snconv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, bias=True, sngan=False):
+  if sngan:
+    return nn.Conv3d(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
+                                   stride=stride, padding=padding, dilation=dilation, bias=bias)
+  else:
     return SpectralNorm(nn.Conv3d(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
                                    stride=stride, padding=padding, dilation=dilation, bias=bias))
 
-def snlinear(in_features, out_features):
+def snlinear(in_features, out_features, sngan=False):
+  if sngan:
+    return nn.Linear(in_features=in_features, out_features=out_features)
+  else:
     return SpectralNorm(nn.Linear(in_features=in_features, out_features=out_features))
 
 class Attention(nn.Module):
@@ -125,18 +132,18 @@ class DBlockDeep(nn.Module):
     return h + self.shortcut(x)
 
 class GBlock(nn.Module):
-  def __init__(self, in_channels, out_channels, upsample=None):
+  def __init__(self, in_channels, out_channels, upsample=None, sngan):
     super(GBlock, self).__init__()
     
     self.in_channels, self.out_channels = in_channels, out_channels
     self.activation = nn.ReLU(inplace=True)
     # Conv layers
-    self.conv1 = snconv3d(self.in_channels, self.out_channels)
-    self.conv2 = snconv3d(self.out_channels, self.out_channels)
+    self.conv1 = snconv3d(self.in_channels, self.out_channels, sngan=sngan)
+    self.conv2 = snconv3d(self.out_channels, self.out_channels, sngan=sngan)
     self.learnable_sc = in_channels != out_channels or upsample
     if self.learnable_sc:
       self.conv_sc = snconv3d(in_channels, out_channels, 
-                                     kernel_size=1, padding=0)
+                                     kernel_size=1, padding=0, sngan=sngan)
     # Batchnorm layers
     self.bn1 = nn.BatchNorm3d(in_channels)
     self.bn2 = nn.BatchNorm3d(out_channels)
