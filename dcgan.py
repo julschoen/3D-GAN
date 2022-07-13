@@ -151,13 +151,13 @@ class Discriminator(nn.Module):
                 # state size. (ndf) x 64 x 64 x 64
                 SpectralNorm(nn.Conv3d(ndf, ndf * 2, 4, stride=2, padding=1, bias=False)),
                 nn.LeakyReLU(0.1, inplace=True),
-                SelfAttention(ndf*2),
                 # state size. (ndf*2) x 32 x 32 x 32
                 SpectralNorm(nn.Conv3d(ndf * 2, ndf * 4, 4, stride=2, padding=1, bias=False)),
                 nn.LeakyReLU(0.1, inplace=True),
                 # state size. (ndf*4) x 16 x 16 x 16
                 SpectralNorm(nn.Conv3d(ndf * 4, ndf * 8, 4, stride=2, padding=1, bias=False)),
                 nn.LeakyReLU(0.1, inplace=True),
+                SelfAttention(ndf*8),
                 # state size. (ndf*8) x 8 x 8 x 8
                 SpectralNorm(nn.Conv3d(ndf * 8, ndf * 16, 4, stride=2, padding=1, bias=False)),
                 nn.LeakyReLU(0.1, inplace=True),
