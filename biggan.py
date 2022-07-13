@@ -12,7 +12,7 @@ class Generator(nn.Module):
     self.p = params
     self.dim_z = self.p.z_size
     self.arch = {'in_channels' :  [item * self.p.filterG for item in [16, 16, 8, 4, 2]],
-             'out_channels' : [item * self.p.filterG for item in [16, 8, 4,  2, 1]],
+             'out_channels' : [item * self.p.filterG for item in [16, 8, 4,  1, 1]],
              'resolution' : [8, 16, 32, 64, 128],
              'attention' : {2**i: (2**i in [int(item) for item in '32'.split('_')]) for i in range(3,8)}}
     
@@ -30,8 +30,7 @@ class Generator(nn.Module):
                              out_channels=self.arch['out_channels'][index],
                              upsample=functools.partial(F.interpolate, scale_factor=2),
                              sngan=self.p.sngan)]]
-      if self.p.sagan:
-        if self.arch['attention'][self.arch['resolution'][index]]:
+      if self.p.sagan and self.arch['attention'][self.arch['resolution'][index]]:
           self.blocks[-1] += [Attention(self.arch['out_channels'][index])]
 
     # Turn self.blocks into a ModuleList so that it's all properly registered.

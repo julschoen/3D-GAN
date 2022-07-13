@@ -76,7 +76,6 @@ class GBlockDeep(nn.Module):
       x = x[:, :self.out_channels]   
     # Upsample both h and x at this point
     if self.upsample:
-      print(h.max(), h.min(), h.shape)
       h = self.upsample(h)
       x = self.upsample(x)
     # 3x3 convs
@@ -162,6 +161,7 @@ class GBlock(nn.Module):
     if self.learnable_sc:       
       x = self.conv_sc(x)
     print(h.max(), h.min(), h.shape)
+    print(x.max(), x.min(), x.shape)
     return h + x
 
 class DBlock(nn.Module):
