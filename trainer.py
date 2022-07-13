@@ -49,7 +49,7 @@ class Trainer(object):
         elif self.p.dcgan:
             self.netD = Discriminator(self.p).to(self.device)
             self.netG = Generator(self.p).to(self.device)
-        else
+        else:
             self.netD = BigD(self.p).to(self.device)
             self.netG = BigG(self.p).to(self.device)
 
