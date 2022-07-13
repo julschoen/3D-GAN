@@ -12,7 +12,7 @@ def main():
 	parser.add_argument('--filterD', type=int, default=128, help='Number of filters D')
 	parser.add_argument('--iterD', type=int, default=2, help='Number of D iters per iter')
 	parser.add_argument('--lrG', type=float, default=5e-5, help='Learning rate G')
-	parser.add_argument('--lrD', type=float, default=1e-4, help='Learning rate D')
+	parser.add_argument('--lrD', type=float, default=2e-4, help='Learning rate D')
 	parser.add_argument('--data_path', type=str, default='train_lidc_128.npz',help='Path to data.')
 	parser.add_argument('--ngpu', type=int, default=2, help='Number of GPUs')
 	parser.add_argument('--steps_per_log', type=int, default=10, help='Output Iterations')
