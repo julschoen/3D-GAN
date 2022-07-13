@@ -36,7 +36,7 @@ class Generator(nn.Module):
                 nn.LayerNorm([ngf * 2, 32, 32, 32]),
                 #nn.BatchNorm3d(ngf * 2),
                 nn.ReLU(True),
-                SelfAttention(ngf*2)
+                SelfAttention(ngf*2),
                 # state size (ngf*2) x 32 x 32 x 32
                 SpectralNorm(nn.ConvTranspose3d(ngf*2, ngf, 4, stride=2, padding=1)),
                 nn.LayerNorm([ngf, 64, 64, 64]),
