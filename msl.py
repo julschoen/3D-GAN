@@ -1,6 +1,4 @@
 import torch
-from torch.nn.functional import grid_sample
-
 from torch.nn.functional import interpolate
 
 class RandomCrop3D(torch.nn.Module):
@@ -21,17 +19,9 @@ class RandomCrop3D(torch.nn.Module):
         crop_size = int(torch.rand(1) * (self.img_sz[0]-15))+15
         slice_hwd = [self._get_slice(i, k) for i, k in zip(self.img_sz, (crop_size, crop_size, crop_size))]
         x_ = self._crop(x.squeeze(), *slice_hwd)
-
-
-        #d = torch.linspace(-1,1,64)
-        #meshz, meshy, meshx = torch.meshgrid((d, d, d), indexing='xy')
-        #grid = torch.stack((meshx, meshy, meshz), 3).unsqueeze(0).to(self.device)
-        #x_ = grid_sample(x_.unsqueeze(0).unsqueeze(0), grid).squeeze(0)
-
         x_ = interpolate(
                 x_.unsqueeze(0).unsqueeze(0),
-                size=(64,64,64),
-                mode='trilinear'
+                size=(64,64,64)
         ).squeeze(0)
         for _ in range(self.n_crops-1):
             int(torch.rand(1) * (self.img_sz[0]-15))+15
@@ -40,17 +30,10 @@ class RandomCrop3D(torch.nn.Module):
 
             xi = interpolate(
                 xi.unsqueeze(0).unsqueeze(0),
-                size=(64,64,64),
-                mode='trilinear'
+                size=(64,64,64)
             ).squeeze(0)
-
-            #d = torch.linspace(-1,1,64)
-            #meshz, meshy, meshx = torch.meshgrid((d, d, d), indexing='xy')
-            #grid = torch.stack((meshx, meshy, meshz), 3).unsqueeze(0).to(self.device)
-            #xi = grid_sample(xi.unsqueeze(0).unsqueeze(0), grid).squeeze(0)
             x_ = torch.cat((x_, xi))
         return x_
-        
         
     @staticmethod
     def _get_slice(sz, crop_sz):
