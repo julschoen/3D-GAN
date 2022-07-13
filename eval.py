@@ -7,7 +7,7 @@ import torch.nn as nn
 from torch.cuda.amp import autocast
 
 from eval_utils import *
-from model import Discriminator, Generator
+from dcgan import Discriminator, Generator
 from biggan import Discriminator as BigD
 from biggan import Generator as BigG
 from data_handler import DATA
