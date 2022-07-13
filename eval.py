@@ -40,6 +40,7 @@ def eval(params):
 		netG = load_gen(model_path, params.ngpu).to(params.device)
 		ssims = []
 		psnrs = []
+		mmds = []
 		fids = []
 		fids_ax = []
 		fids_cor = []
@@ -59,9 +60,11 @@ def eval(params):
 					x2 = netG(noise)
 					if i % 16 == 0 and i>0:
 						s,p,f = ssim(large_data,large_fake), psnr(large_data,large_fake),fid_3d(fid_model, large_data, large_fake)
+						mmd = mmd(large_data, large_fake)
 						ssims.append(s)
 						psnrs.append(p)
 						fids.append(f)
+						mmds.append(mmd)
 						large_data = None
 						large_fake = None
 					else:
@@ -80,12 +83,14 @@ def eval(params):
 
 		ssims = np.array(ssims)
 		psnrs = np.array(psnrs)
+		mmds = np.array(mmds)
 		fids = np.array(fids)
 		fids_ax = np.array(fids_ax)
 		fids_cor = np.array(fids_cor)
 		fids_sag = np.array(fids_sag)
 		print(f'SSIM: {ssims.mean():.4f}+-{ssims.std():.4f}'+ 
 			f'\tPSNR: {psnrs.mean():.4f}+-{psnrs.std():.4f}'+
+			f'\tMMD: {mmds.mean():.4f}+-{mmds.std():.4f}'+
 			f'\tFID ax: {fids_ax.mean():.4f}+-{fids_ax.std():.4f}'+
 			f'\tFID cor: {fids_cor.mean():.4f}+-{fids_cor.std():.4f}'+
 			f'\tFID sag: {fids_sag.mean():.4f}+-{fids_sag.std():.4f}'+
