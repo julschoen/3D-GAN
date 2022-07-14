@@ -27,9 +27,9 @@ def mmd(real, fake):
     dyy = ry.t() + ry - 2. * yy
     dxy = rx.t() + ry - 2. * zz
 
-    XX, YY, XY = (torch.zeros(xx.shape).to(device),
-                  torch.zeros(xx.shape).to(device),
-                  torch.zeros(xx.shape).to(device))
+    XX, YY, XY = (torch.zeros(xx.shape),
+                  torch.zeros(xx.shape),
+                  torch.zeros(xx.shape))
 
     bandwidth_range = [10, 15, 20, 50]
     for a in bandwidth_range:
