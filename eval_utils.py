@@ -11,7 +11,7 @@ from torch.cuda.amp import autocast
 def mmd(real, fake):
     x,y = real.squeeze(), fake.squeeze()
     b, h, w, d = x.shape
-    x,y = x.reshape(b,1048, -1), y.reshape(b,1048, -1)
+    x,y = x.reshape(b,1024, -1), y.reshape(b,1024, -1)
     xx = torch.matmul(x, x.t())
     yy = torch.matmul(y, y.t())
     zz = torch.matmul(x, y.t())
