@@ -10,11 +10,16 @@ from torch.cuda.amp import autocast
 
 def mmd(real, fake):
     x,y = real.squeeze(), fake.squeeze()
-    b, h, w, d = x.shape
-    x,y = x.reshape(b,h*w, -1), y.reshape(b,h*w, -1)
-    xx = torch.bmm(x, x.transpose(1,2))
-    yy = torch.bmm(y, y.transpose(1,2))
-    zz = torch.bmm(x, y.transpose(1,2))
+    x = x.view(x.size(0), x.size(1) * x.size(2) * x.size(3))
+    y = y.view(y.size(0), y.size(1) * y.size(2) * y.size(3))
+
+    xx = torch.mm(x, x.t())
+    yy = torch.mm(y, y.t())
+    zz = torch.mm(x, y.t())
+
+    #xx = torch.bmm(x, x.transpose(1,2))
+    #yy = torch.bmm(y, y.transpose(1,2))
+    #zz = torch.bmm(x, y.transpose(1,2))
     rx = (xx.diag().unsqueeze(0).expand_as(xx))
     ry = (yy.diag().unsqueeze(0).expand_as(yy))
 
