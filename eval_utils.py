@@ -12,9 +12,9 @@ def mmd(real, fake):
     x,y = real.squeeze(), fake.squeeze()
     b, h, w, d = x.shape
     x,y = x.reshape(b,h*w, -1), y.reshape(b,h*w, -1)
-    xx = torch.mm(x, x.transpose(1,2))
-    yy = torch.mm(y, y.transpose(1,2))
-    zz = torch.mm(x, y.transpose(1,2))
+    xx = torch.bmm(x, x.transpose(1,2))
+    yy = torch.bmm(y, y.transpose(1,2))
+    zz = torch.bmm(x, y.transpose(1,2))
     rx = (xx.diag().unsqueeze(0).expand_as(xx))
     ry = (yy.diag().unsqueeze(0).expand_as(yy))
 
