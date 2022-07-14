@@ -58,8 +58,8 @@ def eval(params):
 							1, 1, 1, dtype=torch.float, device=params.device)
 				x2 = netG(noise)
 				
-				s,p,f = ssim(x1.cpu(),x2.cpu()), psnr(x1,x2),fid_3d(fid_model, x1, x2)
-				m = mmd(large_data, large_fake)
+				s,p,f = ssim(x1.cpu(),x2.cpu()), psnr(x1.cpu(),x2.cpu()),fid_3d(fid_model, x1, x2)
+				m = mmd(x1.cpu(), x2.cpu())
 				ssims.append(s)
 				psnrs.append(p)
 				fids.append(f)
