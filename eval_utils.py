@@ -9,7 +9,8 @@ from torch.cuda.amp import autocast
 
 def mmd(real, fake):
     x,y = real.squeeze(), fake.squeeze()
-    xx = torch.mm(x, torch.permute(x,(0, 3, 2, 1)))
+    xt = torch.permute(x,(0, 3, 2, 1))
+    xx = torch.mm(x, xt)
     yy = torch.mm(y, torch.permute(y,(0, 3, 2, 1)))
     zz = torch.mm(x, torch.permute(y,(0, 3, 2, 1)))
     rx = (xx.diag().unsqueeze(0).expand_as(xx))
