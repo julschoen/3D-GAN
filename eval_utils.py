@@ -7,8 +7,7 @@ import pytorch_fid_wrapper as FID
 from pytorch_msssim import MS_SSIM
 from torch.cuda.amp import autocast
 
-
-def mmd(real, fake, kernel='multiscale'):
+def mmd(real, fake):
     x,y = real.squeeze(), fake.squeeze()
     xx, yy, zz = torch.mm(x, x.t()), torch.mm(y, y.t()), torch.mm(x, y.t())
     rx = (xx.diag().unsqueeze(0).expand_as(xx))
@@ -22,32 +21,21 @@ def mmd(real, fake, kernel='multiscale'):
                   torch.zeros(xx.shape).to(device),
                   torch.zeros(xx.shape).to(device))
 
-    if kernel == "multiscale":
-
-        bandwidth_range = [0.2, 0.5, 0.9, 1.3]
-        for a in bandwidth_range:
-            XX += a**2 * (a**2 + dxx)**-1
-            YY += a**2 * (a**2 + dyy)**-1
-            XY += a**2 * (a**2 + dxy)**-1
-
-    if kernel == "rbf":
-
-        bandwidth_range = [10, 15, 20, 50]
-        for a in bandwidth_range:
-            XX += torch.exp(-0.5*dxx/a)
-            YY += torch.exp(-0.5*dyy/a)
-            XY += torch.exp(-0.5*dxy/a)
+    bandwidth_range = [10, 15, 20, 50]
+    for a in bandwidth_range:
+        XX += torch.exp(-0.5*dxx/a)
+        YY += torch.exp(-0.5*dyy/a)
+        XY += torch.exp(-0.5*dxy/a)
 
     return torch.mean(XX+YY-2.*XY)
 
 def psnr(real, fake):
     with torch.no_grad():
-        with autocast():
-            real, fake = real+1, fake+1 
-            mse = torch.mean(torch.square((real - fake)))
-            if(mse == 0):
-                return 100
-            psnr_ = 10 * (torch.log(4/mse)/torch.log(torch.Tensor([10]))).item()
+        real, fake = real+1, fake+1 
+        mse = torch.mean(torch.square((real - fake)))
+        if(mse == 0):
+            return 100
+        psnr_ = 10 * (torch.log(4/mse)/torch.log(torch.Tensor([10]))).item()
     return psnr_
 
 def ssim(real, fake):
@@ -59,23 +47,16 @@ def ssim(real, fake):
     return ms_ssim_
  
 def fid_3d(model, real, fake):
-    # calculate activations
     with torch.no_grad():
-        with autocast():
-            act1 = model(real.cuda()).mean(dim=(2,3,4)).detach().cpu().numpy()
-            act2 = model(fake.cuda()).mean(dim=(2,3,4)).detach().cpu().numpy() 
-            # calculate mean and covariance statistics
-            mu1, sigma1 = act1.mean(axis=0), np.cov(act1, rowvar=False)
-            mu2, sigma2 = act2.mean(axis=0), np.cov(act2, rowvar=False)
-            # calculate sum squared difference between means
-            ssdiff = np.sum((mu1 - mu2)**2.0)
-            # calculate sqrt of product between cov
-            covmean = sqrtm(sigma1.dot(sigma2))
-            # check and correct imaginary numbers from sqrt
-            if np.iscomplexobj(covmean):
-                covmean = covmean.real
-            # calculate score
-            fid_ = ssdiff + np.trace(sigma1 + sigma2 - 2.0 * covmean)
+        act1 = model(real.cuda()).mean(dim=(2,3,4)).detach().cpu().numpy()
+        act2 = model(fake.cuda()).mean(dim=(2,3,4)).detach().cpu().numpy() 
+        mu1, sigma1 = act1.mean(axis=0), np.cov(act1, rowvar=False)
+        mu2, sigma2 = act2.mean(axis=0), np.cov(act2, rowvar=False)
+        ssdiff = np.sum((mu1 - mu2)**2.0)
+        covmean = sqrtm(sigma1.dot(sigma2))
+        if np.iscomplexobj(covmean):
+            covmean = covmean.real
+        fid_ = ssdiff + np.trace(sigma1 + sigma2 - 2.0 * covmean)
     return fid_
 
 def get_fid_model(path):
@@ -94,18 +75,17 @@ def fid(real, fake, device):
     real.to(device)
     fake.to(device)
     with torch.no_grad():
-        with autocast():
-            fid_ax = FID.fid(
-                    torch.reshape(fake.to(torch.float32), (-1,1,128,128)).expand(-1,3,-1,-1), 
-                    real_images=torch.reshape(real.to(torch.float32), (-1,1,128,128)).expand(-1,3,-1,-1)
-                    )
+        fid_ax = FID.fid(
+                torch.reshape(fake.to(torch.float32), (-1,1,128,128)).expand(-1,3,-1,-1), 
+                real_images=torch.reshape(real.to(torch.float32), (-1,1,128,128)).expand(-1,3,-1,-1)
+                )
 
-            fid_cor = FID.fid(
-                    torch.reshape(fake.to(torch.float32).transpose(2,3), (-1,1,128,128)).expand(-1,3,-1,-1), 
-                    real_images=torch.reshape(real.to(torch.float32).transpose(2,3), (-1,1,128,128)).expand(-1,3,-1,-1)
-                    )
-            fid_sag = FID.fid(
-                    torch.reshape(fake.to(torch.float32).transpose(4,2), (-1,1,128,128)).expand(-1,3,-1,-1), 
-                    real_images=torch.reshape(real.to(torch.float32).transpose(4,2), (-1,1,128,128)).expand(-1,3,-1,-1)
-                    )
+        fid_cor = FID.fid(
+                torch.reshape(fake.to(torch.float32).transpose(2,3), (-1,1,128,128)).expand(-1,3,-1,-1), 
+                real_images=torch.reshape(real.to(torch.float32).transpose(2,3), (-1,1,128,128)).expand(-1,3,-1,-1)
+                )
+        fid_sag = FID.fid(
+                torch.reshape(fake.to(torch.float32).transpose(4,2), (-1,1,128,128)).expand(-1,3,-1,-1), 
+                real_images=torch.reshape(real.to(torch.float32).transpose(4,2), (-1,1,128,128)).expand(-1,3,-1,-1)
+                )
     return fid_ax, fid_cor, fid_sag
