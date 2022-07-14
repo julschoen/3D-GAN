@@ -17,9 +17,6 @@ def mmd(real, fake):
     yy = torch.mm(y, y.t())
     zz = torch.mm(x, y.t())
 
-    #xx = torch.bmm(x, x.transpose(1,2))
-    #yy = torch.bmm(y, y.transpose(1,2))
-    #zz = torch.bmm(x, y.transpose(1,2))
     rx = (xx.diag().unsqueeze(0).expand_as(xx))
     ry = (yy.diag().unsqueeze(0).expand_as(yy))
 
