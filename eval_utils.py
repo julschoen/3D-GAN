@@ -28,7 +28,7 @@ def guassian_kernel(source, target, kernel_mul=2.0, kernel_num=5, fix_sigma=None
                   for bandwidth_temp in bandwidth_list]
     return sum(kernel_val)
 
-def mmd(self, source, target):
+def mmd(source, target):
     batch_size = int(source.size()[0])
     kernels = self.guassian_kernel(
         source, target, kernel_mul=self.kernel_mul, kernel_num=self.kernel_num, fix_sigma=self.fix_sigma)
