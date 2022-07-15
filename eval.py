@@ -39,7 +39,6 @@ def eval(params):
 		print(model_path)
 		netG = load_gen(model_path, params.ngpu).to(params.device)
 		ssims = []
-		psnrs = []
 		mmds = []
 		fids = []
 		fids_ax = []
@@ -68,10 +67,9 @@ def eval(params):
 					x2_ = x2[:,:,s:-s,s:-s,s:-s]
 				x1_ = x1
 				x2_ = x2
-				s,p,f = ssim(x1.cpu(),x2.cpu()), psnr(x1_.cpu(),x2_.cpu()),fid_3d(fid_model, x1_, x2_)
+				s,p,f = ssim(x1.cpu(),x2.cpu()) ,fid_3d(fid_model, x1_, x2_)
 				m = mmd(fid_model, x1_.cpu(), x2_.cpu())
 				ssims.append(s)
-				psnrs.append(p)
 				fids.append(f)
 				mmds.append(m)
 
@@ -88,13 +86,12 @@ def eval(params):
 		fids_ax = np.array(fids_ax)
 		fids_cor = np.array(fids_cor)
 		fids_sag = np.array(fids_sag)
-		print(f'SSIM: {ssims.mean():.4f}+-{ssims.std():.4f}'+ 
-			f'\tPSNR: {psnrs.mean():.4f}+-{psnrs.std():.4f}'+
-			f'\tMMD: {mmds.mean():.4f}+-{mmds.std():.4f}'+
-			f'\tFID ax: {fids_ax.mean():.4f}+-{fids_ax.std():.4f}'+
-			f'\tFID cor: {fids_cor.mean():.4f}+-{fids_cor.std():.4f}'+
-			f'\tFID sag: {fids_sag.mean():.4f}+-{fids_sag.std():.4f}'+
-			f'\t3d-FID: {fids.mean():.4f}+-{fids.std():.4f}')
+		print(f'SSIM: {ssims.mean():.2f}+-{ssims.std():.2f}'+ 
+			f'\tMMD: {mmds.mean():.2f}+-{mmds.std():.2f}'+
+			f'\tFID ax: {fids_ax.mean():.1f}+-{fids_ax.std():.1f}'+
+			f'\tFID cor: {fids_cor.mean():.1f}+-{fids_cor.std():.1f}'+
+			f'\tFID sag: {fids_sag.mean():.1f}+-{fids_sag.std():.1f}'+
+			f'\t3d-FID: {fids.mean():.2f}+-{fids.std():.2f}')
 		np.savez_compressed(os.path.join(params.log_dir,f'{model_path}_stats.npz'),
 			ssim = ssims, psnr = psnrs, fid = fids, fid_ax=fids_ax, fid_cor=fids_cor, fid_sag=fids_sag)
 
