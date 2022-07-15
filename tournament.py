@@ -23,7 +23,7 @@ def load_model(path, ngpu):
         netG = Generator(params)
         netD = Discriminator(params)
     elif params.hybrid:
-    	netG = BigG(params)
+        netG = BigG(params)
         netD = Discriminator(params)
     else:
         netG = BigG(params)
@@ -51,7 +51,6 @@ def round(disc, gen, x, params):
 
 	dist = f-r
 	return dist < 0
-
 
 def tournament(discs, gens, data, params):
 	names = params.model_log
