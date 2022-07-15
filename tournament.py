@@ -40,29 +40,7 @@ def load_model(path, ngpu):
 
     return netD, netG
 
-def round(disc, gen, x, bound, params):
-	disc = disc.to(params.device)
-	gen = gen.to(params.device)
-	with torch.no_grad():
-		#r = disc(x)
-		if params.ngpu > 1:
-			noise = torch.randn(x.shape[0], gen.module.dim_z,
-					1, 1, 1, dtype=torch.float, device=params.device)
-		else:
-			noise = torch.randn(x.shape[0], gen.dim_z,
-					1, 1, 1, dtype=torch.float, device=params.device)
-		f = disc(gen(noise))
-
-	disc, gen = disc.cpu(), gen.cpu()
-
-	wrg = (f > bound).sum()#(r < bound).sum() + (f > bound).sum()
-	wrg = wrg/(x.shape[0])  
-
-	return wrg.item()
-
-def tournament(discs, gens, data, params):
-	names = params.model_log
-	res = {}
+def get_decision_bound(discs, gens, data, params):
 	decision_boundaries = []
 	for i, disc in enumerate(discs):
 		x = next(data).unsqueeze(1)
@@ -82,14 +60,37 @@ def tournament(discs, gens, data, params):
 
 		decision_boundaries.append((f+r)/2)
 
+	return decision_boundaries
+
+def round(disc, gen, bound, params):
+	disc = disc.to(params.device)
+	gen = gen.to(params.device)
+	with torch.no_grad():
+		if params.ngpu > 1:
+			noise = torch.randn(x.shape[0], gen.module.dim_z,
+					1, 1, 1, dtype=torch.float, device=params.device)
+		else:
+			noise = torch.randn(x.shape[0], gen.dim_z,
+					1, 1, 1, dtype=torch.float, device=params.device)
+		f = disc(gen(noise))
+
+	disc, gen = disc.cpu(), gen.cpu()
+
+	wrg = (f > bound).sum()/(x.shape[0])  
+	return wrg.item()
+
+def tournament(discs, gens, data, params):
+	names = params.model_log
+	res = {}
+	bounds = get_decision_bound(discs, gens, data, params)
+
 	for n in names:
 		res[n] = []
 	for i, d in enumerate(discs):
 		for j, g in enumerate(gens):
 			if i == j:
 				continue
-			x = next(data).unsqueeze(1)
-			wr = round(d,g,x, decision_boundaries[i], params)
+			wr = round(d, g, bounds[i], params)
 			res[names[j]].append(wr)
 
 	print('------------- Tournament Results -------------')
