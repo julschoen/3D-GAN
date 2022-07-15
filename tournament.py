@@ -40,7 +40,7 @@ def load_model(path, ngpu):
 
     return netD, netG
 
-def round(disc, gen, x, params):
+def round(disc, gen, x, bound, params):
 	disc = disc.to(params.device)
 	gen = gen.to(params.device)
 	r = disc(x)
@@ -51,32 +51,45 @@ def round(disc, gen, x, params):
 		noise = torch.randn(x.shape[0], gen.dim_z,
 				1, 1, 1, dtype=torch.float, device=params.device)
 	f = disc(gen(noise))
-	dist = f-r
-	wd = (dist < 0).sum()
-	wg = x.shape[0]-wd
+	wrg = (r < bound).sum() + (f > bound).sum()
+	wrg = wrg/(x.shape[0]*2)  
 
-	return wd,wg
+	return wrg
 
 def tournament(discs, gens, data, params):
 	names = params.model_log
 	res = {}
+	decision_boundaries = []
+	for i, d in enumerate(discs):
+		x = next(data).unsqueeze(1)
+		disc = disc.to(params.device)
+		gen = gens[i].to(params.device)
+		r = disc(x).mean()
+		if params.ngpu > 1:
+			noise = torch.randn(x.shape[0], gen.module.dim_z,
+					1, 1, 1, dtype=torch.float, device=params.device)
+		else:
+			noise = torch.randn(x.shape[0], gen.dim_z,
+					1, 1, 1, dtype=torch.float, device=params.device)
+		f = disc(gen(noise)).mean()
+
+		decision_boundaries.append((f+r)/2)
+
 	for n in names:
-		res[n] = [0,0]
+		res[n] = []
 	for i, d in enumerate(discs):
 		for j, g in enumerate(gens):
 			if i == j:
 				continue
 			x = next(data).unsqueeze(1)
-			win_d, win_g = round(d,g,x,params)
-			
-			res[names[i]][0] = res[names[i]][0]+win_d
-			res[names[j]][1] = res[names[j]][1]+win_g
+			wr = round(d,g,x, decision_boundaries[i], params)
+			res[names[j]].append(wr)
 
 	print('------------- Tournament Results -------------')
 	for n in names:
-		d = res[n][0]/((len(names)-1)*params.batch_size)
-		g = res[n][1]/((len(names)-1)*params.batch_size)
-		print(f'Model {n} with D {d:.4f} and G {g:.4f}')
+		g = res[n]
+		wr = np.mean(g)
+		print(f'G of {n} with Mean Win Rate of {wr:.4f}')
 
 def main():
 	parser = argparse.ArgumentParser()
