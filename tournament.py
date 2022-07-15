@@ -51,6 +51,9 @@ def round(disc, gen, x, bound, params):
 		noise = torch.randn(x.shape[0], gen.dim_z,
 				1, 1, 1, dtype=torch.float, device=params.device)
 	f = disc(gen(noise))
+
+	disc, gen = disc.cpu(), gen.cpu()
+
 	wrg = (r < bound).sum() + (f > bound).sum()
 	wrg = wrg/(x.shape[0]*2)  
 
