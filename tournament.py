@@ -64,8 +64,8 @@ def tournament(discs, gens, data, params):
 	names = params.model_log
 	res = {}
 	decision_boundaries = []
-	x = next(data).unsqueeze(1)
 	for i, disc in enumerate(discs):
+		x = next(data).unsqueeze(1)
 		with torch.no_grad():
 			disc = disc.to(params.device)
 			gen = gens[i].to(params.device)
