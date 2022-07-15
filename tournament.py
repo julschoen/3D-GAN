@@ -60,7 +60,7 @@ def tournament(discs, gens, data, params):
 	names = params.model_log
 	res = {}
 	decision_boundaries = []
-	for i, d in enumerate(discs):
+	for i, disc in enumerate(discs):
 		x = next(data).unsqueeze(1)
 		disc = disc.to(params.device)
 		gen = gens[i].to(params.device)
