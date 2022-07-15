@@ -215,8 +215,8 @@ class Trainer(object):
                         fake = self.netG(noise)
                         errD_real = self.netD(real).mean()
                         errD_fake = self.netD(fake).mean()
-                        #gradient_penalty = self.calc_gradient_penalty(real.data, fake.data)
-                        errD =  errD_fake-errD_real# + gradient_penalty
+                        gradient_penalty = self.calc_gradient_penalty(real.data, fake.data)
+                        errD =  errD_fake-errD_real + gradient_penalty
 
                 self.scalerD.scale(errD).backward()
                 self.scalerD.step(self.optimizerD)
