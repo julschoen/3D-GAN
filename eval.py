@@ -82,7 +82,6 @@ def eval(params):
 			
 
 		ssims = np.array(ssims)
-		psnrs = np.array(psnrs)
 		mmds = np.array(mmds)
 		fids = np.array(fids)
 		fids_ax = np.array(fids_ax)
@@ -95,7 +94,7 @@ def eval(params):
 			f'\tFID sag: {fids_sag.mean():.1f}+-{fids_sag.std():.1f}'+
 			f'\t3d-FID: {fids.mean():.2f}+-{fids.std():.2f}')
 		np.savez_compressed(os.path.join(params.log_dir,f'{model_path}_stats.npz'),
-			ssim = ssims, psnr = psnrs, fid = fids, fid_ax=fids_ax, fid_cor=fids_cor, fid_sag=fids_sag)
+			ssim = ssims, mmds=mmds, fid = fids, fid_ax=fids_ax, fid_cor=fids_cor, fid_sag=fids_sag)
 
 def main():
 	parser = argparse.ArgumentParser()
