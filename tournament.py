@@ -67,16 +67,16 @@ def round(disc, gen, bound, params):
 	gen = gen.to(params.device)
 	with torch.no_grad():
 		if params.ngpu > 1:
-			noise = torch.randn(x.shape[0], gen.module.dim_z,
+			noise = torch.randn(params.batch_size, gen.module.dim_z,
 					1, 1, 1, dtype=torch.float, device=params.device)
 		else:
-			noise = torch.randn(x.shape[0], gen.dim_z,
+			noise = torch.randn(params.batch_size, gen.dim_z,
 					1, 1, 1, dtype=torch.float, device=params.device)
 		f = disc(gen(noise))
 
 	disc, gen = disc.cpu(), gen.cpu()
 
-	wrg = (f > bound).sum()/(x.shape[0])  
+	wrg = (f > bound).sum()/params.batch_size 
 	return wrg.item()
 
 def tournament(discs, gens, data, params):
