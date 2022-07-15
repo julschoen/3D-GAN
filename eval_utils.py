@@ -80,18 +80,19 @@ def fid(real, fake, device):
     FID.set_config(device=device)
     real.to(device)
     fake.to(device)
+    im_size = 128
     with torch.no_grad():
         fid_ax = FID.fid(
-                torch.reshape(fake.to(torch.float32), (-1,1,64,64)).expand(-1,3,-1,-1), 
-                real_images=torch.reshape(real.to(torch.float32), (-1,1,64,64)).expand(-1,3,-1,-1)
+                torch.reshape(fake.to(torch.float32), (-1,1,im_size,im_size)).expand(-1,3,-1,-1), 
+                real_images=torch.reshape(real.to(torch.float32), (-1,1,im_size,im_size)).expand(-1,3,-1,-1)
                 )
 
         fid_cor = FID.fid(
-                torch.reshape(fake.to(torch.float32).transpose(2,3), (-1,1,64,64)).expand(-1,3,-1,-1), 
-                real_images=torch.reshape(real.to(torch.float32).transpose(2,3), (-1,1,64,64)).expand(-1,3,-1,-1)
+                torch.reshape(fake.to(torch.float32).transpose(2,3), (-1,1,im_size,im_size)).expand(-1,3,-1,-1), 
+                real_images=torch.reshape(real.to(torch.float32).transpose(2,3), (-1,1,im_size,im_size)).expand(-1,3,-1,-1)
                 )
         fid_sag = FID.fid(
-                torch.reshape(fake.to(torch.float32).transpose(4,2), (-1,1,64,64)).expand(-1,3,-1,-1), 
-                real_images=torch.reshape(real.to(torch.float32).transpose(4,2), (-1,1,64,64)).expand(-1,3,-1,-1)
+                torch.reshape(fake.to(torch.float32).transpose(4,2), (-1,1,im_size,im_size)).expand(-1,3,-1,-1), 
+                real_images=torch.reshape(real.to(torch.float32).transpose(4,2), (-1,1,im_size,im_size)).expand(-1,3,-1,-1)
                 )
     return fid_ax, fid_cor, fid_sag
