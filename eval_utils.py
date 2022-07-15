@@ -8,10 +8,11 @@ from pytorch_msssim import MS_SSIM
 from torch.cuda.amp import autocast
 
 
-def mmd(real, fake):
-    x,y = real.squeeze(), fake.squeeze()
-    x = x.reshape(x.size(0), x.size(1) * x.size(2) * x.size(3))
-    y = y.reshape(y.size(0), y.size(1) * y.size(2) * y.size(3))
+def mmd(model, real, fake):
+    x = model(real.cuda()).mean(dim=(2,3,4)).detach().cpu().numpy()
+    y = model(fake.cuda()).mean(dim=(2,3,4)).detach().cpu().numpy() 
+    x = x.reshape(x.size(0),-1)
+    y = y.reshape(y.size(0), -1)
 
     xx = torch.mm(x, x.t())
     yy = torch.mm(y, y.t())
