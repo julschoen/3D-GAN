@@ -13,7 +13,6 @@ def eval(params):
 	fid_model = get_fid_model(params.fid_checkpoint).to(params.device)
 	if params.ngpu > 1:
 		fid_model = nn.DataParallel(fid_model)
-	os.makedirs(params.log_dir, exist_ok=True)
 
 	for i, data in enumerate(generator):
 		if i == 0:
