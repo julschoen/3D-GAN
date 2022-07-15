@@ -9,6 +9,7 @@ from data_handler import DATA
 
 def eval(params):
 	dataset = DATA(path=params.data_path)
+	generator = DataLoader(dataset, batch_size=params.batch_size, shuffle=True, num_workers=4)
 	print(dataset.__len__())
 	fid_model = get_fid_model(params.fid_checkpoint).to(params.device)
 	if params.ngpu > 1:
@@ -52,7 +53,7 @@ def eval(params):
 
 def main():
 	parser = argparse.ArgumentParser()
-	parser.add_argument('--batch_size', type=int, default=16, help='Batch size')
+	parser.add_argument('--batch_size', type=int, default=32, help='Batch size')
 	parser.add_argument('--data_path', type=str, default='test_lidc_128.npz',help='Path to data.')
 	parser.add_argument('--ngpu', type=int, default=2, help='Number of GPUs')
 	parser.add_argument('--device', type=str, default='cuda', help='Torch Device Choice')
