@@ -43,14 +43,14 @@ def load_model(path, ngpu):
 def round(disc, gen, x, params):
 	disc = disct.to(params.device)
 	gen = gen.to(params.device)
-	r = disc(x)
+	r = disc(x).mean()
 	if params.ngpu > 1:
 		noise = torch.randn(data.shape[0], netG.module.dim_z,
 				1, 1, 1, dtype=torch.float, device=params.device)
 	else:
 		noise = torch.randn(data.shape[0], netG.dim_z,
 				1, 1, 1, dtype=torch.float, device=params.device)
-	f = disc(gen(noise))
+	f = disc(gen(noise)).mean()
 
 	dist = f-r
 	return dist < 0
