@@ -73,6 +73,8 @@ def tournament(discs, gens, data, params):
 					1, 1, 1, dtype=torch.float, device=params.device)
 		f = disc(gen(noise)).mean()
 
+		disc, gen = disc.cpu(), gen.cpu()
+
 		decision_boundaries.append((f+r)/2)
 
 	for n in names:
