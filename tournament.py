@@ -90,7 +90,7 @@ def main():
 	for model in params.model_log:
 		d,g = load_model(model, params.ngpu)
 		discs.append(d)
-		gens.append(gens)
+		gens.append(g)
 
 	dataset = DATA(path=params.data_path)
 	print(dataset.__len__())
