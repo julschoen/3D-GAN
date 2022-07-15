@@ -11,8 +11,6 @@ from torch.cuda.amp import autocast
 def mmd(model, real, fake):
     x = model(real.cuda()).mean(dim=(2,3,4)).detach().cpu().numpy()
     y = model(fake.cuda()).mean(dim=(2,3,4)).detach().cpu().numpy() 
-    x = x.reshape(x.size(0),-1)
-    y = y.reshape(y.size(0), -1)
 
     xx = torch.mm(x, x.t())
     yy = torch.mm(y, y.t())
