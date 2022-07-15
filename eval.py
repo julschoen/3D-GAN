@@ -67,7 +67,7 @@ def eval(params):
 					x1_ = x1[:,:,s:-s,s:-s,s:-s]
 					x2_ = x2[:,:,s:-s,s:-s,s:-s]
 				s,p,f = ssim(x1.cpu(),x2.cpu()), psnr(x1_.cpu(),x2_.cpu()),fid_3d(fid_model, x1_, x2_)
-				m = mmd(x1_.cpu(), x2_.cpu())
+				m = mmd(fid_model, x1_.cpu(), x2_.cpu())
 				ssims.append(s)
 				psnrs.append(p)
 				fids.append(f)
