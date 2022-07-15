@@ -44,7 +44,7 @@ def round(disc, gen, x, bound, params):
 	disc = disc.to(params.device)
 	gen = gen.to(params.device)
 	with torch.no_grad():
-		r = disc(x)
+		#r = disc(x)
 		if params.ngpu > 1:
 			noise = torch.randn(x.shape[0], gen.module.dim_z,
 					1, 1, 1, dtype=torch.float, device=params.device)
@@ -55,8 +55,8 @@ def round(disc, gen, x, bound, params):
 
 	disc, gen = disc.cpu(), gen.cpu()
 
-	wrg = (r < bound).sum() + (f > bound).sum()
-	wrg = wrg/(x.shape[0]*2)  
+	wrg = (f > bound).sum()#(r < bound).sum() + (f > bound).sum()
+	wrg = wrg/(x.shape[0])  
 
 	return wrg.item()
 
