@@ -64,7 +64,7 @@ def tournament(discs, gens, data, params):
 		for j, g in enumerate(gens):
 			if i == j:
 				continue
-			x = next(data)
+			x = next(data).unsqueeze(1)
 			d_win = round(d,g,x,params)
 			if d_win:
 				res[names[i]][0] = res[names[i]][0]+1
