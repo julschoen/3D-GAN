@@ -60,20 +60,20 @@ def eval(params):
 				
 				if len(x2.shape) < 5:
 					s = x2.shape[1]//4
-					x1 = x1[:,s:-s,s:-s,s:-s]
-					x2 = x2[:,s:-s,s:-s,s:-s]
+					x1_ = x1[:,s:-s,s:-s,s:-s]
+					x2_ = x2[:,s:-s,s:-s,s:-s]
 				else:
 					s = x2.shape[2]//4
-					x1 = x1[:,:,s:-s,s:-s,s:-s]
-					x2 = x2[:,:,s:-s,s:-s,s:-s]
-				s,p,f = ssim(x1.cpu(),x2.cpu()), psnr(x1.cpu(),x2.cpu()),fid_3d(fid_model, x1, x2)
+					x1_ = x1[:,:,s:-s,s:-s,s:-s]
+					x2_ = x2[:,:,s:-s,s:-s,s:-s]
+				s,p,f = ssim(x1.cpu(),x2.cpu()), psnr(x1_.cpu(),x2_.cpu()),fid_3d(fid_model, x1_, x2_)
 				m = mmd(x1.cpu(), x2.cpu())
 				ssims.append(s)
 				psnrs.append(p)
 				fids.append(f)
 				mmds.append(m)
 
-				fa, fc, fs = fid(x1, x2, params.device)
+				fa, fc, fs = fid(x1_, x2_, params.device)
 				fids_ax.append(fa)
 				fids_cor.append(fc)
 				fids_sag.append(fs)
