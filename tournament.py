@@ -45,10 +45,10 @@ def round(disc, gen, x, params):
 	gen = gen.to(params.device)
 	r = disc(x).mean()
 	if params.ngpu > 1:
-		noise = torch.randn(x.shape[0], netG.module.dim_z,
+		noise = torch.randn(x.shape[0], gen.module.dim_z,
 				1, 1, 1, dtype=torch.float, device=params.device)
 	else:
-		noise = torch.randn(x.shape[0], netG.dim_z,
+		noise = torch.randn(x.shape[0], gen.dim_z,
 				1, 1, 1, dtype=torch.float, device=params.device)
 	f = disc(gen(noise)).mean()
 
