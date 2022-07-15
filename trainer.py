@@ -55,7 +55,7 @@ class Trainer(object):
             self.netG = BigG(self.p).to(self.device)
 
         print('Summary G')
-        summary(self.netG, input_size=(256, 1, 1, 1))
+        summary(self.netG, input_size=(params.z_size, 1, 1, 1))
 
         print('Summary D')
         summary(self.netD, input_size=(1, 128, 128, 128))
