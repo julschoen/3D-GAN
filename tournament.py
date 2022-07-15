@@ -41,7 +41,7 @@ def load_model(path, ngpu):
     return netD, netG
 
 def round(disc, gen, x, params):
-	disc = disct.to(params.device)
+	disc = disc.to(params.device)
 	gen = gen.to(params.device)
 	r = disc(x).mean()
 	if params.ngpu > 1:
