@@ -58,7 +58,7 @@ def round(disc, gen, x, bound, params):
 	wrg = (r < bound).sum() + (f > bound).sum()
 	wrg = wrg/(x.shape[0]*2)  
 
-	return wrg
+	return wrg.item()
 
 def tournament(discs, gens, data, params):
 	names = params.model_log
