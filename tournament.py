@@ -85,7 +85,7 @@ def main():
 
 	discs, gens = [], []
 	for model in params.model_log:
-		d,g = load_model(model, params)
+		d,g = load_model(model, params.ngpu)
 		discs.append(d)
 		gens.append(gens)
 
