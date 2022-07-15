@@ -43,17 +43,20 @@ def load_model(path, ngpu):
 def round(disc, gen, x, params):
 	disc = disc.to(params.device)
 	gen = gen.to(params.device)
-	r = disc(x).mean()
+	r = disc(x)
 	if params.ngpu > 1:
 		noise = torch.randn(x.shape[0], gen.module.dim_z,
 				1, 1, 1, dtype=torch.float, device=params.device)
 	else:
 		noise = torch.randn(x.shape[0], gen.dim_z,
 				1, 1, 1, dtype=torch.float, device=params.device)
-	f = disc(gen(noise)).mean()
+	f = disc(gen(noise))
 	print(f,r)
 	dist = f-r
-	return dist < 0
+	wd = (dist < 0).sum()
+	wg = x.shape[0]-wd
+
+	return wd,wg
 
 def tournament(discs, gens, data, params):
 	names = params.model_log
@@ -65,16 +68,15 @@ def tournament(discs, gens, data, params):
 			if i == j:
 				continue
 			x = next(data).unsqueeze(1)
-			d_win = round(d,g,x,params)
-			if d_win:
-				res[names[i]][0] = res[names[i]][0]+1
-			else:
-				res[names[j]][1] = res[names[j]][1]+1
+			win_d, win_g = round(d,g,x,params)
+			
+			res[names[i]][0] = res[names[i]][0]+win_d
+			res[names[j]][1] = res[names[j]][1]+win_g
 
 	print('------------- Tournament Results -------------')
 	for n in names:
-		d = res[n][0]/(len(names)-1)
-		g = res[n][1]/(len(names)-1)
+		d = res[n][0]/((len(names)-1)*params.batch_size)
+		g = res[n][1]/((len(names)-1)*params.batch_size)
 		print(f'Model {n} with D {d:.4f} and G {g:.4f}')
 
 def main():
