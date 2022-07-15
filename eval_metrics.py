@@ -26,7 +26,7 @@ def eval(params):
 
 	s,p,f = ssim(x1.cpu(),x2.cpu()), psnr(x1.cpu(),x2.cpu()),fid_3d(fid_model, x1, x2)
 	m = mmd(fid_model, x1.cpu(), x2.cpu())
-	fa, fc, fs = fid(x1_, x2_, params.device)
+	fa, fc, fs = fid(x1, x2, params.device)
 		
 	print('Metrics vs 2 Data Batches')
 	print(f'SSIM: {s:.4f} PSNR: {p:.4f} MMD: {m:.4f} FID ax: {fa:.4f} cor: {fc:.4f} sag: {fs:.4f} 3D: {f:.4f}')
@@ -36,7 +36,7 @@ def eval(params):
 
 	s,p,f = ssim(x1.cpu(),x2.cpu()), psnr(x1.cpu(),x2.cpu()),fid_3d(fid_model, x1, x2)
 	m = mmd(fid_model, x1.cpu(), x2.cpu())
-	fa, fc, fs = fid(x1_, x2_, params.device)
+	fa, fc, fs = fid(x1, x2, params.device)
 		
 	print('Metrics vs 2 RandN')
 	print(f'SSIM: {s:.4f} PSNR: {p:.4f} MMD: {m:.4f} FID ax: {fa:.4f} cor: {fc:.4f} sag: {fs:.4f} 3D: {f:.4f}')
@@ -46,7 +46,7 @@ def eval(params):
 
 	s,p,f = ssim(x1.cpu(),x2.cpu()), psnr(x1.cpu(),x2.cpu()),fid_3d(fid_model, x1, x2)
 	m = mmd(fid_model, x1.cpu(), x2.cpu())
-	fa, fc, fs = fid(x1_, x2_, params.device)
+	fa, fc, fs = fid(x1, x2, params.device)
 		
 	print('Metrics vs RandN/RandU')
 	print(f'SSIM: {s:.4f} PSNR: {p:.4f} MMD: {m:.4f} FID ax: {fa:.4f} cor: {fc:.4f} sag: {fs:.4f} 3D: {f:.4f}')
