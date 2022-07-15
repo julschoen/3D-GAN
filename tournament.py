@@ -70,6 +70,8 @@ def tournament(discs, gens, data, params):
 				res[names[i]][0] = res[names[i]][0]+1
 			else:
 				res[names[j]][1] = res[names[j]][1]+1
+			break
+		break
 	print('------------- Tournament Results -------------')
 	for n in names:
 		d = res[n][0]/(len(names)-1)
