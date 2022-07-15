@@ -77,6 +77,8 @@ def eval(params):
 				fids_ax.append(fa)
 				fids_cor.append(fc)
 				fids_sag.append(fs)
+
+				np.savez_compressed(os.path.join(params.log_dir,f'{model_path}_ims.npz'), x2[:6].cpu().numpy())
 			
 
 		ssims = np.array(ssims)
