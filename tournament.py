@@ -59,7 +59,7 @@ def tournament(discs, gens, data, params):
 	names = params.model_log
 	res = {}
 	for n in names:
-		res[n] = (0,0)
+		res[n] = [0,0]
 	for i, d in enumerate(discs):
 		for j, g in enumerate(gens):
 			if i == j:
