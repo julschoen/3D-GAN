@@ -54,11 +54,11 @@ class Trainer(object):
             self.netD = BigD(self.p).to(self.device)
             self.netG = BigG(self.p).to(self.device)
 
-        print('Summary G')
-        summary(self.netG, input_size=(params.z_size, 1, 1, 1))
+        #print('Summary G')
+        #summary(self.netG, input_size=(params.z_size, 1, 1, 1))
 
-        print('Summary D')
-        summary(self.netD, input_size=(1, 128, 128, 128))
+        #print('Summary D')
+        #summary(self.netD, input_size=(1, 128, 128, 128))
 
         if self.p.ngpu > 1:
             self.netD = nn.DataParallel(self.netD)
