@@ -35,10 +35,11 @@ def mmd(model, real, fake):
 
     #return torch.mean(XX+YY-2.*XY)
 
-    beta = (1./(B*B))
-    gamma = (2./(B*B)) 
-
     batch_size = real.shape[0]
+
+    beta = (1./(batch_size*batch_size))
+    gamma = (2./(batch_size*batch_size)) 
+
     x = real.reshape(batch_size,-1)
     y = fake.reshape(batch_size, -1)
 
