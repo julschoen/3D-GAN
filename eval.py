@@ -57,23 +57,13 @@ def eval(params):
 							1, 1, 1, dtype=torch.float, device=params.device)
 				x2 = netG(noise)
 				
-				if len(x2.shape) < 5:
-					s = x2.shape[1]//4
-					x1_ = x1[:,s:-s,s:-s,s:-s]
-					x2_ = x2[:,s:-s,s:-s,s:-s]
-				else:
-					s = x2.shape[2]//4
-					x1_ = x1[:,:,s:-s,s:-s,s:-s]
-					x2_ = x2[:,:,s:-s,s:-s,s:-s]
-				x1_ = x1
-				x2_ = x2
-				s,f = ssim(x1.cpu(),x2.cpu()) ,fid_3d(fid_model, x1_, x2_)
-				m = mmd(fid_model, x1_.cpu(), x2_.cpu())
+				s,f = ssim(x1.cpu(),x2.cpu()) ,fid_3d(fid_model, x1, x2)
+				m = mmd(x1.cpu(), x2.cpu())
 				ssims.append(s)
 				fids.append(f)
 				mmds.append(m)
 
-				fa, fc, fs = fid(x1_, x2_, params.device)
+				fa, fc, fs = fid(x1, x2, params.device)
 				fids_ax.append(fa)
 				fids_cor.append(fc)
 				fids_sag.append(fs)
