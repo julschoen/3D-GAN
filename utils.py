@@ -45,7 +45,7 @@ class Attention(nn.Module):
     return self.gamma * o + x
 
 class GBlockDeep(nn.Module):
-  def __init__(self, in_channels, out_channels, upsample=None, channel_ratio=4):
+  def __init__(self, in_channels, out_channels, upsample=None, sngan=False, channel_ratio=4):
     super(GBlockDeep, self).__init__()
     
     self.in_channels, self.out_channels = in_channels, out_channels
@@ -53,11 +53,11 @@ class GBlockDeep(nn.Module):
     
     # Conv layers
     self.conv1 = snconv3d(self.in_channels, self.hidden_channels, 
-                                 kernel_size=1, padding=0)
-    self.conv2 = snconv3d(self.hidden_channels, self.hidden_channels)
-    self.conv3 = snconv3d(self.hidden_channels, self.hidden_channels)
+                                 kernel_size=1, padding=0, sngan=sngan)
+    self.conv2 = snconv3d(self.hidden_channels, self.hidden_channels, sngan=sngan)
+    self.conv3 = snconv3d(self.hidden_channels, self.hidden_channels, sngan=sngan)
     self.conv4 = snconv3d(self.hidden_channels, self.out_channels, 
-                                 kernel_size=1, padding=0)
+                                 kernel_size=1, padding=0, sngan=sngan)
     # Batchnorm layers
     self.bn1 = nn.BatchNorm3d(self.in_channels)
     self.bn2 = nn.BatchNorm3d(self.hidden_channels)
