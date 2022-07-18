@@ -8,33 +8,7 @@ from pytorch_msssim import MS_SSIM
 from torch.cuda.amp import autocast
 
 
-def mmd(model, real, fake):
-    #x = model(real.cuda()).mean(dim=(2,3,4)).detach().cpu()
-    #y = model(fake.cuda()).mean(dim=(2,3,4)).detach().cpu()
-
-    #xx = torch.mm(x, x.t())
-    #yy = torch.mm(y, y.t())
-    #zz = torch.mm(x, y.t())
-
-    #rx = (xx.diag().unsqueeze(0).expand_as(xx))
-    #ry = (yy.diag().unsqueeze(0).expand_as(yy))
-
-    #dxx = rx.t() + rx - 2. * xx
-    #dyy = ry.t() + ry - 2. * yy
-    #dxy = rx.t() + ry - 2. * zz
-
-    #XX, YY, XY = (torch.zeros(xx.shape),
-    #              torch.zeros(xx.shape),
-    #              torch.zeros(xx.shape))
-
-    #bandwidth_range = [10, 15, 20, 50]
-    #for a in bandwidth_range:
-    #    XX += torch.exp(-0.5*dxx/a)
-    #    YY += torch.exp(-0.5*dyy/a)
-    #    XY += torch.exp(-0.5*dxy/a)
-
-    #return torch.mean(XX+YY-2.*XY)
-
+def mmd(real, fake):
     batch_size = real.shape[0]
 
     beta = (1./(batch_size*batch_size))
