@@ -35,7 +35,7 @@ def eval(params):
 	x2 = torch.randn(32, 1,128, 128, 128, dtype=torch.float, device=params.device)
 
 	s,f = ssim(x1.cpu(),x2.cpu()), fid_3d(fid_model, x1, x2)
-	m = mmd(fid_model, x1.cpu(), x2.cpu())
+	m = mmd(x1.cpu(), x2.cpu())
 	fa, fc, fs = fid(x1, x2, params.device)
 		
 	print('Metrics vs 2 RandN')
@@ -45,7 +45,7 @@ def eval(params):
 	x2 = torch.rand(32, 1,128, 128, 128, dtype=torch.float, device=params.device)
 
 	s,f = ssim(x1.cpu(),x2.cpu()), fid_3d(fid_model, x1, x2)
-	m = mmd(fid_model, x1.cpu(), x2.cpu())
+	m = mmd(x1.cpu(), x2.cpu())
 	fa, fc, fs = fid(x1, x2, params.device)
 		
 	print('Metrics vs RandN/RandU')
