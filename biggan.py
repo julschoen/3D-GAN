@@ -30,7 +30,7 @@ class Generator(nn.Module):
                                upsample=(functools.partial(F.interpolate, scale_factor=2)if g_index == 1 else None))]
                          for g_index in range(2)]
       else:
-        self.blocks += [[GBlock(in_channels=self.arch['in_channels'][index],
+        self.blocks += [[GBlockDeep(in_channels=self.arch['in_channels'][index],
                              out_channels=self.arch['out_channels'][index],
                              upsample=functools.partial(F.interpolate, scale_factor=2),
                              sngan=self.p.sngan)]]
