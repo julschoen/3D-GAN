@@ -40,8 +40,8 @@ def mmd(model, real, fake):
     beta = (1./(batch_size*batch_size))
     gamma = (2./(batch_size*batch_size)) 
 
-    x = real.reshape(batch_size,-1)
-    y = fake.reshape(batch_size, -1)
+    y = real.reshape(batch_size,-1)
+    x = fake.reshape(batch_size, -1)
 
     xx, yy, zz = torch.mm(x,x.t()), torch.mm(y,y.t()), torch.mm(x,y.t())
     return beta * (torch.sum(xx)+torch.sum(yy)) - gamma * torch.sum(zz)
