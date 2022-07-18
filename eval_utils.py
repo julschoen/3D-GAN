@@ -9,31 +9,39 @@ from torch.cuda.amp import autocast
 
 
 def mmd(model, real, fake):
-    x = model(real.cuda()).mean(dim=(2,3,4)).detach().cpu()
-    y = model(fake.cuda()).mean(dim=(2,3,4)).detach().cpu()
+    #x = model(real.cuda()).mean(dim=(2,3,4)).detach().cpu()
+    #y = model(fake.cuda()).mean(dim=(2,3,4)).detach().cpu()
 
-    xx = torch.mm(x, x.t())
-    yy = torch.mm(y, y.t())
-    zz = torch.mm(x, y.t())
+    #xx = torch.mm(x, x.t())
+    #yy = torch.mm(y, y.t())
+    #zz = torch.mm(x, y.t())
 
-    rx = (xx.diag().unsqueeze(0).expand_as(xx))
-    ry = (yy.diag().unsqueeze(0).expand_as(yy))
+    #rx = (xx.diag().unsqueeze(0).expand_as(xx))
+    #ry = (yy.diag().unsqueeze(0).expand_as(yy))
 
-    dxx = rx.t() + rx - 2. * xx
-    dyy = ry.t() + ry - 2. * yy
-    dxy = rx.t() + ry - 2. * zz
+    #dxx = rx.t() + rx - 2. * xx
+    #dyy = ry.t() + ry - 2. * yy
+    #dxy = rx.t() + ry - 2. * zz
 
-    XX, YY, XY = (torch.zeros(xx.shape),
-                  torch.zeros(xx.shape),
-                  torch.zeros(xx.shape))
+    #XX, YY, XY = (torch.zeros(xx.shape),
+    #              torch.zeros(xx.shape),
+    #              torch.zeros(xx.shape))
 
-    bandwidth_range = [10, 15, 20, 50]
-    for a in bandwidth_range:
-        XX += torch.exp(-0.5*dxx/a)
-        YY += torch.exp(-0.5*dyy/a)
-        XY += torch.exp(-0.5*dxy/a)
+    #bandwidth_range = [10, 15, 20, 50]
+    #for a in bandwidth_range:
+    #    XX += torch.exp(-0.5*dxx/a)
+    #    YY += torch.exp(-0.5*dyy/a)
+    #    XY += torch.exp(-0.5*dxy/a)
 
-    return torch.mean(XX+YY-2.*XY)
+    #return torch.mean(XX+YY-2.*XY)
+
+    batch_size = real.shape[0]
+    x = real.reshape(batch_size,-1)
+    y = fake.reshape(batch_size, -1)
+
+    return (torch.mm(x,x.t()) + torch.mm(y,y.t()) -2*torch.mm(y, x.t())).sum()/batch_size**2
+
+    
 
 def psnr(real, fake):
     with torch.no_grad():
