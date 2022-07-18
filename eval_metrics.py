@@ -24,9 +24,9 @@ def eval(params):
 			break
 
 
-	s,f = 0,0#ssim(x1.cpu(),x2.cpu()), fid_3d(fid_model, x1, x2)
+	s,f = ssim(x1.cpu(),x2.cpu()), fid_3d(fid_model, x1, x2)
 	m = mmd(x1.cpu(), x2.cpu())
-	fa, fc, fs = 0,0,0#fid(x1, x2, params.device)
+	fa, fc, fs = fid(x1, x2, params.device)
 		
 	print('Metrics vs 2 Data Batches')
 	print(f'SSIM: {s:.2f} MMD: {m:.2f} FID ax: {fa:.1f} cor: {fc:.1f} sag: {fs:.1f} 3D: {f:.2f}')
@@ -34,9 +34,9 @@ def eval(params):
 	x1 = torch.randn(32, 1,128, 128, 128, dtype=torch.float, device=params.device)
 	x2 = torch.randn(32, 1,128, 128, 128, dtype=torch.float, device=params.device)
 
-	s,f = 0,0#ssim(x1.cpu(),x2.cpu()), fid_3d(fid_model, x1, x2)
+	s,f = ssim(x1.cpu(),x2.cpu()), fid_3d(fid_model, x1, x2)
 	m = mmd(x1.cpu(), x2.cpu())
-	fa, fc, fs = 0,0,0#fid(x1, x2, params.device)
+	fa, fc, fs = fid(x1, x2, params.device)
 		
 	print('Metrics vs 2 RandN')
 	print(f'SSIM: {s:.2f} MMD: {m:.2f} FID ax: {fa:.1f} cor: {fc:.1f} sag: {fs:.1f} 3D: {f:.2f}')
@@ -44,9 +44,9 @@ def eval(params):
 	x1 = torch.randn(32, 1,128, 128, 128, dtype=torch.float, device=params.device)
 	x2 = torch.rand(32, 1,128, 128, 128, dtype=torch.float, device=params.device)
 
-	s,f = 0,0#ssim(x1.cpu(),x2.cpu()), fid_3d(fid_model, x1, x2)
+	s,f = ssim(x1.cpu(),x2.cpu()), fid_3d(fid_model, x1, x2)
 	m = mmd(x1.cpu(), x2.cpu())
-	fa, fc, fs = 0,0,0#fid(x1, x2, params.device)
+	fa, fc, fs = fid(x1, x2, params.device)
 		
 	print('Metrics vs RandN/RandU')
 	print(f'SSIM: {s:.2f} MMD: {m:.2f} FID ax: {fa:.1f} cor: {fc:.1f} sag: {fs:.1f} 3D: {f:.2f}')
