@@ -25,7 +25,7 @@ def eval(params):
 
 
 	s,f = ssim(x1.cpu(),x2.cpu()), ,fid_3d(fid_model, x1, x2)
-	m = mmd(fid_model, x1.cpu(), x2.cpu())
+	m = mmd(x1.cpu(), x2.cpu())
 	fa, fc, fs = fid(x1, x2, params.device)
 		
 	print('Metrics vs 2 Data Batches')
