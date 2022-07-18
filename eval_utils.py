@@ -35,12 +35,15 @@ def mmd(model, real, fake):
 
     #return torch.mean(XX+YY-2.*XY)
 
+    beta = (1./(B*B))
+    gamma = (2./(B*B)) 
+
     batch_size = real.shape[0]
     x = real.reshape(batch_size,-1)
     y = fake.reshape(batch_size, -1)
 
-    return (torch.mm(x,x.t()) + torch.mm(y,y.t()) -2*torch.mm(y, x.t())).sum()/batch_size**2
-
+    xx, yy, zz = torch.mm(x,x.t()), torch.mm(y,y.t()), torch.mm(x,y.t())
+    return beta * (torch.sum(xx)+torch.sum(yy)) - gamma * torch.sum(zz)
     
 
 def psnr(real, fake):
