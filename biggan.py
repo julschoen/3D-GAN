@@ -15,7 +15,7 @@ class Generator(nn.Module):
     self.arch = {'in_channels' :  [item * self.p.filterG for item in [16, 16, 8, 4, 2]],
              'out_channels' : [item * self.p.filterG for item in [16, 8, 4,  2, 1]],
              'resolution' : [8, 16, 32, 64, 128],
-             'attention' : {2**i: (2**i in [int(item) for item in '16'.split('_')]) for i in range(3,8)}}
+             'attention' : {2**i: (2**i in [int(item) for item in '32'.split('_')]) for i in range(3,8)}}
     print(self.arch)
     self.linear = snlinear(self.p.z_size, self.arch['in_channels'][0] * (4**3), sngan=self.p.sngan)
       
@@ -31,7 +31,7 @@ class Generator(nn.Module):
                              out_channels=self.arch['out_channels'][index],
                              upsample=functools.partial(F.interpolate, scale_factor=2),
                              sngan=self.p.sngan)]]
-      if self.p.sagan and self.arch['attention'][self.arch['resolution'][index]]:
+      if (self.p.sagan or self.p.biggan) and self.arch['attention'][self.arch['resolution'][index]]:
           self.blocks[-1] += [Attention(self.arch['out_channels'][index])]
 
     # Turn self.blocks into a ModuleList so that it's all properly registered.
@@ -73,7 +73,7 @@ class Discriminator(nn.Module):
                'out_channels' : [item * self.p.filterD for item in [2, 4, 8, 16, 16]],
                'downsample' : [True] * 5 + [False],
                'resolution' : [64, 32, 16, 8, 4, 4],
-               'attention' : {2**i: 2**i in [int(item) for item in '32'.split('_')]
+               'attention' : {2**i: 2**i in [int(item) for item in '16'.split('_')]
                               for i in range(2,8)}}
     
     # Prepare model
@@ -92,7 +92,7 @@ class Discriminator(nn.Module):
                          out_channels=self.arch['out_channels'][index],
                          preactivation=True,
                          downsample=(nn.AvgPool3d(2) if self.arch['downsample'][index] else None))]]
-      if self.p.sagan and self.arch['attention'][self.arch['resolution'][index]]:
+      if (self.p.sagan or self.p.biggan) and self.arch['attention'][self.arch['resolution'][index]]:
         self.blocks[-1] += [Attention(self.arch['out_channels'][index])]
 
     self.blocks = nn.ModuleList([nn.ModuleList(block) for block in self.blocks])
