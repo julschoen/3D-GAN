@@ -83,7 +83,7 @@ def eval(params):
 			f'\tFID ax: {fids_ax.mean():.1f}+-{fids_ax.std():.1f}'+
 			f'\tFID cor: {fids_cor.mean():.1f}+-{fids_cor.std():.1f}'+
 			f'\tFID sag: {fids_sag.mean():.1f}+-{fids_sag.std():.1f}'#+
-			#f'\t3d-FID: {fids.mean():.2f}+-{fids.std():.2f}')
+			#f'\t3d-FID: {fids.mean():.2f}+-{fids.std():.2f}'
 			)
 		np.savez_compressed(os.path.join(params.log_dir,f'{model_path}_stats.npz'), fid_ax=fids_ax, fid_cor=fids_cor, fid_sag=fids_sag)
 		#np.savez_compressed(os.path.join(params.log_dir,f'{model_path}_stats.npz'),
