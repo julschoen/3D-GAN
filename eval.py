@@ -58,11 +58,11 @@ def eval(params):
 							1, 1, 1, dtype=torch.float, device=params.device)
 				x2 = netG(noise)
 				
-				s,f = ssim(x1.cpu(),x2.cpu()) ,fid_3d(fid_model, x1, x2)
-				m = mmd(x1.cpu(), x2.cpu())
-				ssims.append(s)
-				fids.append(f)
-				mmds.append(m)
+				#s,f = ssim(x1.cpu(),x2.cpu()) ,fid_3d(fid_model, x1, x2)
+				#m = mmd(x1.cpu(), x2.cpu())
+				#ssims.append(s)
+				#fids.append(f)
+				#mmds.append(m)
 
 				fa, fc, fs = fid(x1, x2, params.device)
 				fids_ax.append(fa)
@@ -72,20 +72,21 @@ def eval(params):
 				np.savez_compressed(os.path.join(params.log_dir,f'{model_path}_ims.npz'), x2[:6].cpu().numpy())
 			
 
-		ssims = np.array(ssims)
-		mmds = np.array(mmds)
-		fids = np.array(fids)
+		#ssims = np.array(ssims)
+		#mmds = np.array(mmds)
+		#fids = np.array(fids)
 		fids_ax = np.array(fids_ax)
 		fids_cor = np.array(fids_cor)
 		fids_sag = np.array(fids_sag)
-		print(f'SSIM: {ssims.mean():.2f}+-{ssims.std():.2f}'+ 
-			f'\tMMD: {mmds.mean():.2f}+-{mmds.std():.2f}'+
+		print(#f'SSIM: {ssims.mean():.2f}+-{ssims.std():.2f}'+ 
+			#f'\tMMD: {mmds.mean():.2f}+-{mmds.std():.2f}'+
 			f'\tFID ax: {fids_ax.mean():.1f}+-{fids_ax.std():.1f}'+
 			f'\tFID cor: {fids_cor.mean():.1f}+-{fids_cor.std():.1f}'+
 			f'\tFID sag: {fids_sag.mean():.1f}+-{fids_sag.std():.1f}'+
-			f'\t3d-FID: {fids.mean():.2f}+-{fids.std():.2f}')
-		np.savez_compressed(os.path.join(params.log_dir,f'{model_path}_stats.npz'),
-			ssim = ssims, mmds=mmds, fid = fids, fid_ax=fids_ax, fid_cor=fids_cor, fid_sag=fids_sag)
+			#f'\t3d-FID: {fids.mean():.2f}+-{fids.std():.2f}')
+		np.savez_compressed(os.path.join(params.log_dir,f'{model_path}_stats.npz'), fid_ax=fids_ax, fid_cor=fids_cor, fid_sag=fids_sag)
+		#np.savez_compressed(os.path.join(params.log_dir,f'{model_path}_stats.npz'),
+		#		ssim = ssims, mmds=mmds, fid = fids, fid_ax=fids_ax, fid_cor=fids_cor, fid_sag=fids_sag)
 
 def main():
 	parser = argparse.ArgumentParser()
