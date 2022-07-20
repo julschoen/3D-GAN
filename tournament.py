@@ -62,19 +62,22 @@ def get_decision_bound(discs, gens, data, params):
 def round(disc, gen, bound, params):
 	disc = disc.to(params.device)
 	gen = gen.to(params.device)
-	with torch.no_grad():
-		if params.ngpu > 1:
-			noise = torch.randn(params.batch_size, gen.module.dim_z,
-					1, 1, 1, dtype=torch.float, device=params.device)
-		else:
-			noise = torch.randn(params.batch_size, gen.dim_z,
-					1, 1, 1, dtype=torch.float, device=params.device)
-		f = disc(gen(noise))
+	wrt = 0
+	for i in range(2):
+		with torch.no_grad():
+			if params.ngpu > 1:
+				noise = torch.randn(params.batch_size, gen.module.dim_z,
+						1, 1, 1, dtype=torch.float, device=params.device)
+			else:
+				noise = torch.randn(params.batch_size, gen.dim_z,
+						1, 1, 1, dtype=torch.float, device=params.device)
+			f = disc(gen(noise))
+			wrt += (f > bound).sum().item()
 
 	disc, gen = disc.cpu(), gen.cpu()
 
-	wrg = (f > bound).sum()/params.batch_size 
-	return wrg.item()
+	wrt =wrt/(params.batch_size*2)
+	return wrt
 
 def tournament(discs, gens, data, params):
 	names = params.model_log
@@ -98,7 +101,7 @@ def tournament(discs, gens, data, params):
 
 def main():
 	parser = argparse.ArgumentParser()
-	parser.add_argument('--batch_size', type=int, default=64, help='Batch size')
+	parser.add_argument('--batch_size', type=int, default=16, help='Batch size')
 	parser.add_argument('--data_path', type=str, default='test_lidc_128.npz',help='Path to data.')
 	parser.add_argument('--ngpu', type=int, default=2, help='Number of GPUs')
 	parser.add_argument('--log_dir', type=str, default='log', help='Save Location')
