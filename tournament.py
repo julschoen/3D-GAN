@@ -23,9 +23,6 @@ def load_model(path, ngpu):
     if params.dcgan:
         netG = Generator(params)
         netD = Discriminator(params)
-    elif params.hybrid:
-        netG = BigG(params)
-        netD = Discriminator(params)
     else:
         netG = BigG(params)
         netD = BigD(params)
