@@ -15,10 +15,11 @@ from data_handler import DATA
 def load_gen(path, ngpu):
 	with open(os.path.join(path, 'params.pkl'), 'rb') as file:
 		params = pickle.load(file)
-	if params.hybrid or params.biggan:
-		netG = BigG(params)
-	else:
+	if params.dcgan:
 		netG = Generator(params)
+	else:
+		netG = BigG(params)
+		
 
 	if ngpu > 1:
 		netG = nn.DataParallel(netG)
