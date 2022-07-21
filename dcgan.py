@@ -16,28 +16,28 @@ class Generator(nn.Module):
         if params.sagan:
             self.main = nn.Sequential(
                 # in z x 1 x 1 x 1
-                SpectralNorm(nn.ConvTranspose3d(nz, ngf*16, 4, stride=1)),
+                nn.ConvTranspose3d(nz, ngf*16, 4, stride=1),
                 nn.BatchNorm3d(ngf * 16),
                 nn.ReLU(True),
                 # state size (ngf*16) x 4 x 4 x 4
-                SpectralNorm(nn.ConvTranspose3d(ngf*16, ngf*8, 4, stride=2, padding=1)),
+                nn.ConvTranspose3d(ngf*16, ngf*8, 4, stride=2, padding=1),
                 nn.BatchNorm3d(ngf * 8),
                 nn.ReLU(True),
                 # state size (ngf*8) x 8 x 8 x 8
-                SpectralNorm(nn.ConvTranspose3d(ngf*8, ngf*4, 4, stride=2, padding=1)),
+                nn.ConvTranspose3d(ngf*8, ngf*4, 4, stride=2, padding=1),
                 nn.BatchNorm3d(ngf * 4),
                 nn.ReLU(True),
                 # state size (ngf*4) x 16 x 16 x 16
-                SpectralNorm(nn.ConvTranspose3d(ngf*4, ngf*2, 4, stride=2, padding=1)),
+                nn.ConvTranspose3d(ngf*4, ngf*2, 4, stride=2, padding=1),
                 nn.BatchNorm3d(ngf * 2),
                 nn.ReLU(True),
                 SelfAttention(ngf*2),
                 # state size (ngf*2) x 32 x 32 x 32
-                SpectralNorm(nn.ConvTranspose3d(ngf*2, ngf, 4, stride=2, padding=1)),
+                nn.ConvTranspose3d(ngf*2, ngf, 4, stride=2, padding=1),
                 nn.BatchNorm3d(ngf),
                 nn.ReLU(True),
                 # state size (ngf) x 64 x 64 x 64
-                SpectralNorm(nn.ConvTranspose3d(ngf, nc, 4, stride=2, padding=1)),
+                nn.ConvTranspose3d(ngf, nc, 4, stride=2, padding=1),
                 nn.Tanh()
                 # state size nc x 128 x 128 x 128
             )
