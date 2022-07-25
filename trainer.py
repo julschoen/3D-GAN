@@ -14,7 +14,7 @@ from torch.cuda.amp import autocast, GradScaler
 
 import torchvision
 import torchvision.utils as vutils
-from torchsummary import summary
+#from torchsummary import summary
 
 from dcgan import Discriminator, Generator
 from biggan import Discriminator as BigD #Hihi
