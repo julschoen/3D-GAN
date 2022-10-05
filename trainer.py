@@ -83,7 +83,7 @@ class Trainer(object):
         self.D_losses = []
         self.fid = []
         self.fid_epoch = []
-        self.tracker = CarbonTracker(epochs=self.p.niters, log_dir=self.p.log_dir)
+        #self.tracker = CarbonTracker(epochs=self.p.niters, log_dir=self.p.log_dir)
 
     def inf_train_gen(self):
         while True:
@@ -197,7 +197,7 @@ class Trainer(object):
 
         print("Starting Training...")
         for i in range(step_done, self.p.niters):
-            self.tracker.epoch_start()
+            #self.tracker.epoch_start()
             for p in self.netD.parameters():
                 p.requires_grad = True
             for _ in range(self.p.iterD):    
@@ -244,7 +244,7 @@ class Trainer(object):
 
             for p in self.netG.parameters():
                 p.requires_grad = False
-            self.tracker.epoch_end()
+            #self.tracker.epoch_end()
 
             self.G_losses.append(errG.item())
             self.D_losses.append((errD_real.item(), errD_fake.item()))
@@ -254,6 +254,6 @@ class Trainer(object):
                 self.fid_epoch.append(np.array(self.fid).mean())
                 self.fid = []
                 self.save_checkpoint(i)
-        self.tracker.stop()
+        #self.tracker.stop()
         self.log_final(i, fake, real)
         print('...Done')
