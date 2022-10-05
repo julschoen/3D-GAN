@@ -3,7 +3,7 @@ import numpy as np
 path =  'brats_128.npz'
 data = np.load(path)['X']
 
-test_ind = np.random.choice(data, size=int(len(dirs)*0.1))
+test_ind = np.random.choice(data, size=int(len(data)*0.1))
 train = []
 test = []
 for i, d in enumerate(data):
