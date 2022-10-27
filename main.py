@@ -30,6 +30,7 @@ def main():
 	parser.add_argument('--sngan', type=bool, default=False, help='Use SNGAN')
 	parser.add_argument('--sagan', type=bool, default=False, help='Use SAGAN')
 	parser.add_argument('--biggan', type=bool, default=False, help='Use BigGAN-Deep')
+	parser.add_argument('--stylegan', type=bool, default=False, help='Use StyleGAN2')
 	
 	## Loss
 	parser.add_argument('--hinge', type=bool, default=False, help='Use Hinge Loss or Wasserstein loss')

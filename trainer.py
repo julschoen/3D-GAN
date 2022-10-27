@@ -19,6 +19,8 @@ import torchvision.utils as vutils
 from dcgan import Discriminator, Generator
 from biggan import Discriminator as BigD #Hihi
 from biggan import Generator as BigG
+from stylegan import Generator as StyleG
+from stylegan import Discriminator as StyleD
 
 
 class Trainer(object):
@@ -51,6 +53,9 @@ class Trainer(object):
         elif self.p.dcgan:
             self.netD = Discriminator(self.p).to(self.device)
             self.netG = Generator(self.p).to(self.device)
+        elif self.p.stylegan:
+            self.netD = StyleD(self.p).to(self.device)
+            self.netG = StyleG(self.p).to(self.device)
         else:
             self.netD = BigD(self.p).to(self.device)
             self.netG = BigG(self.p).to(self.device)
