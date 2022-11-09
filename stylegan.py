@@ -235,7 +235,7 @@ class SynthesisNetwork(nn.Module):
         super().__init__()
         self.image_size = image_size
         self.latent_dim = latent_dim
-        self.num_layers = int(log2(image_size) - 1)
+        self.num_layers = int(torch.log2(image_size) - 1)
 
         filters = [network_capacity * (2 ** (i + 1)) for i in range(self.num_layers)][::-1]
 
