@@ -351,7 +351,7 @@ class DiscriminatorBlock(nn.Module):
 class Discriminator(nn.Module):
     def __init__(self, image_size, network_capacity = 16, fq_layers = [], fq_dict_size = 256, attn_layers = [], transparent = False, fmap_max = 512):
         super().__init__()
-        num_layers = int(log2(image_size) - 1)
+        num_layers = int(torch.log2(image_size) - 1)
         num_init_filters = 3 if not transparent else 4
 
         blocks = []
