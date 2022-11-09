@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import torch.nn as nn
+from math import log2
 
 #----------------------------------------------------------------------------
 ### Works ###
@@ -235,7 +236,7 @@ class SynthesisNetwork(nn.Module):
         super().__init__()
         self.image_size = image_size
         self.latent_dim = latent_dim
-        self.num_layers = int(torch.log2(image_size) - 1)
+        self.num_layers = int(log2(image_size) - 1)
 
         filters = [network_capacity * (2 ** (i + 1)) for i in range(self.num_layers)][::-1]
 
@@ -352,7 +353,7 @@ class Discriminator(nn.Module):
     def __init__(self, params, image_size=128, network_capacity = 16, fq_layers = [], fq_dict_size = 256, attn_layers = [], transparent = False, fmap_max = 512):
         super().__init__()
         self.p = params
-        num_layers = int(torch.log2(image_size) - 1)
+        num_layers = int(log2(image_size) - 1)
         num_init_filters = 3 if not transparent else 4
 
         blocks = []
