@@ -251,8 +251,8 @@ class GeneratorBlock(nn.Module):
 class SynthesisNetwork(nn.Module):
     def __init__(self, w_dim, img_resolution, network_capacity = 16, attn_layers = [], no_const = False, fmap_max = 512):
         super().__init__()
-        self.image_size = image_size
-        self.latent_dim = latent_dim
+        self.image_size = img_resolution
+        self.latent_dim = w_dim
         self.num_layers = int(log2(image_size) - 1)
 
         filters = [network_capacity * (2 ** (i + 1)) for i in range(self.num_layers)][::-1]
