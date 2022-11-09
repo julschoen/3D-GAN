@@ -253,7 +253,7 @@ class SynthesisNetwork(nn.Module):
         super().__init__()
         self.image_size = img_resolution
         self.latent_dim = w_dim
-        self.num_layers = int(log2(image_size) - 1)
+        self.num_layers = int(log2(self.image_size) - 1)
 
         filters = [network_capacity * (2 ** (i + 1)) for i in range(self.num_layers)][::-1]
 
@@ -266,7 +266,7 @@ class SynthesisNetwork(nn.Module):
         self.no_const = no_const
 
         if no_const:
-            self.to_initial_block = nn.ConvTranspose3d(latent_dim, init_channels, 4, 1, 0, bias=False)
+            self.to_initial_block = nn.ConvTranspose3d(self.latent_dim, init_channels, 4, 1, 0, bias=False)
         else:
             self.initial_block = nn.Parameter(torch.randn((1, init_channels, 4, 4, 4)))
 
@@ -284,7 +284,7 @@ class SynthesisNetwork(nn.Module):
             self.attns.append(attn_fn)
 
             block = GeneratorBlock(
-                latent_dim,
+                self.latent_dim,
                 in_chan,
                 out_chan,
                 upsample = not_first,
