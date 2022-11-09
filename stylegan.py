@@ -297,16 +297,16 @@ class SynthesisNetwork(nn.Module):
 #----------------------------------------------------------------------------
 ### Should Work ###
 class Generator(torch.nn.Module):
-    def __init__(self,
-        z_dim,                      # Input latent (Z) dimensionality
-        w_dim,                      # Intermediate latent (W) dimensionality.
+    def __init__(self, params,
+        w_dim = 512,                      # Intermediate latent (W) dimensionality.
         img_resolution=128,             # Output resolution.
         img_channels=1,               # Number of output color channels.
         mapping_kwargs      = {},   # Arguments for MappingNetwork.
         synthesis_kwargs    = {},   # Arguments for SynthesisNetwork.
     ):
         super().__init__()
-        self.z_dim = z_dim
+        self.p = params
+        self.z_dim = self.p.z_size
         self.w_dim = w_dim
         self.img_resolution = img_resolution
         self.img_channels = img_channels
@@ -349,8 +349,9 @@ class DiscriminatorBlock(nn.Module):
 #----------------------------------------------------------------------------
 ### Should Work ###
 class Discriminator(nn.Module):
-    def __init__(self, image_size, network_capacity = 16, fq_layers = [], fq_dict_size = 256, attn_layers = [], transparent = False, fmap_max = 512):
+    def __init__(self, params, image_size=128, network_capacity = 16, fq_layers = [], fq_dict_size = 256, attn_layers = [], transparent = False, fmap_max = 512):
         super().__init__()
+        self.p = params
         num_layers = int(torch.log2(image_size) - 1)
         num_init_filters = 3 if not transparent else 4
 
