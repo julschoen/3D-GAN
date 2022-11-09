@@ -96,7 +96,8 @@ class FullyConnectedLayer(torch.nn.Module):
             print(x.shape, w.shape)
             x = x.squeeze()
             x = x.matmul(w.t())
-            x = bias_act.bias_act(x, b, act=self.activation)
+            x = F.linear(x, w, bias=b)
+            x = self.activation(x)
         return x
 
 #----------------------------------------------------------------------------
