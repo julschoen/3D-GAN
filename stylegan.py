@@ -3,11 +3,23 @@ import torch
 import torch.nn as nn
 from math import log2
 from functools import partial
+from kornia.filters import filter3d
 
 #----------------------------------------------------------------------------
 ### Works ###
 def normalize_2nd_moment(x, dim=1, eps=1e-8):
     return x * (x.square().mean(dim=dim, keepdim=True) + eps).rsqrt()
+
+class Blur(nn.Module):
+    def __init__(self):
+        super().__init__()
+        f = torch.Tensor([1, 2, 1])
+        self.register_buffer('f', f)
+    def forward(self, x):
+        f = self.f
+        f = f[None, None, :] * f [None, :, None]
+        f = f.repeat((1,3,1)).reshape(1,3,3,3)
+        return filter3d(x, f, normalized=True)
 
 #----------------------------------------------------------------------------
 ## Should Work
@@ -337,7 +349,7 @@ class DiscriminatorBlock(nn.Module):
 
         self.downsample = nn.Sequential(
             Blur(),
-            nn.Conv2d(filters, filters, 3, padding = 1, stride = 2)
+            nn.Conv3d(filters, filters, 3, padding = 1, stride = 2)
         ) if downsample else None
 
     def forward(self, x):
