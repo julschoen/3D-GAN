@@ -166,6 +166,7 @@ class MappingNetwork(torch.nn.Module):
         self.num_ws = num_ws
         self.num_layers = num_layers
         self.w_avg_beta = w_avg_beta
+        self.w_avg = 0
 
         if layer_features is None:
             layer_features = w_dim
