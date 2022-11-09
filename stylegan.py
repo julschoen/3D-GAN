@@ -21,6 +21,10 @@ class Blur(nn.Module):
         f = f.repeat((1,3,1)).reshape(1,3,3,3)
         return filter3d(x, f, normalized=True)
 
+class Flatten(nn.Module):
+    def forward(self, x):
+        return x.reshape(x.shape[0], -1)
+
 #----------------------------------------------------------------------------
 ## Should Work
 class Conv3DMod(nn.Module):
