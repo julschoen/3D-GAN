@@ -26,6 +26,9 @@ class Flatten(nn.Module):
     def forward(self, x):
         return x.reshape(x.shape[0], -1)
 
+def exists(val):
+    return val is not None
+
 #----------------------------------------------------------------------------
 ## Should Work
 class Conv3DMod(nn.Module):
