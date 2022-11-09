@@ -300,7 +300,7 @@ class SynthesisNetwork(nn.Module):
             avg_style = styles.mean(dim=1)[:, :, None, None]
             x = self.to_initial_block(avg_style)
         else:
-            x = self.initial_block.expand(batch_size, -1, -1, -1)
+            x = self.initial_block.expand(batch_size, -1, -1, -1, -1)
 
         rgb = None
         styles = styles.transpose(0, 1)
