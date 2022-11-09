@@ -221,30 +221,29 @@ class GeneratorBlock(nn.Module):
         self.upsample = nn.Upsample(scale_factor=2, mode='trilinear', align_corners=False) if upsample else None
 
         self.to_style1 = nn.Linear(latent_dim, in_channels)
-        self.to_noise1 = nn.Linear(1, out_channels)
         self.conv1 = Conv3DMod(in_channels, out_channels, 3)
         
         self.to_style2 = nn.Linear(latent_dim, out_channels)
-        self.to_noise2 = nn.Linear(1, out_channels)
         self.conv2 = Conv3DMod(out_channels, out_channels, 3)
 
         self.activation = nn.LeakyReLU(0.2, inplace=True)
 
-    def forward(self, x, w, inoise):
+        self.noise_const = torch.randn([out_channels, out_channels])
+        self.noise_strength = torch.nn.Parameter(torch.zeros([]))
+
+    def forward(self, x, w):
         if exists(self.upsample):
             x = self.upsample(x)
 
-        inoise = inoise[:, :x.shape[2], :x.shape[3], :]
-        noise1 = self.to_noise1(inoise).permute((0, 3, 2, 1))
-        noise2 = self.to_noise2(inoise).permute((0, 3, 2, 1))
+        noise = self.noise_const * self.noise_strength
 
         style1 = self.to_style1(w)
         x = self.conv1(x, style1)
-        x = self.activation(x + noise1)
+        x = self.activation(x + noise)
 
         style2 = self.to_style2(w)
         x = self.conv2(x, style2)
-        x = self.activation(x + noise2)
+        x = self.activation(x + noise)
 
         return x
 
@@ -293,7 +292,7 @@ class SynthesisNetwork(nn.Module):
             )
             self.blocks.append(block)
 
-    def forward(self, styles, input_noise):
+    def forward(self, styles):
         batch_size = styles.shape[0]
         image_size = self.image_size
 
@@ -310,7 +309,7 @@ class SynthesisNetwork(nn.Module):
         for style, block, attn in zip(styles, self.blocks, self.attns):
             if exists(attn):
                 x = attn(x)
-            x = block(x, style, input_noise)
+            x = block(x, style)
 
         return x
 
