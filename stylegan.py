@@ -220,9 +220,9 @@ class GeneratorBlock(nn.Module):
 
         self.to_style1 = nn.Linear(latent_dim, in_channels)
         self.to_noise1 = nn.Linear(1, out_channels)
-        self.conv1 = Conv3DMod(in_channels, filters, 3)
+        self.conv1 = Conv3DMod(in_channels, out_channels, 3)
         
-        self.to_style2 = nn.Linear(latent_dim, filters)
+        self.to_style2 = nn.Linear(latent_dim, out_channels)
         self.to_noise2 = nn.Linear(1, out_channels)
         self.conv2 = Conv3DMod(out_channels, out_channels, 3)
 
