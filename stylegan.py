@@ -307,8 +307,6 @@ class SynthesisNetwork(nn.Module):
         x = self.initial_conv(x)
 
         for style, block, attn in zip(styles, self.blocks, self.attns):
-            if exists(attn):
-                x = attn(x)
             x = block(x, style)
 
         return x
