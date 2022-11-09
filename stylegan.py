@@ -166,7 +166,6 @@ class MappingNetwork(torch.nn.Module):
         self.num_ws = num_ws
         self.num_layers = num_layers
         self.w_avg_beta = w_avg_beta
-        self.w_avg = torch.zeros(1)
 
         if layer_features is None:
             layer_features = w_dim
@@ -178,7 +177,7 @@ class MappingNetwork(torch.nn.Module):
             layer = FullyConnectedLayer(in_features, out_features, activation=nn.LeakyReLU(0.2), lr_multiplier=lr_multiplier)
             setattr(self, f'fc{idx}', layer)
 
-        if num_ws is not None and w_avg_beta is not None:
+        if w_avg_beta is not None:# and num_ws is not None:
             self.register_buffer('w_avg', torch.zeros([w_dim]))
 
     def forward(self, z, truncation_psi=1, truncation_cutoff=None, skip_w_avg_update=False):
