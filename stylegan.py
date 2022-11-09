@@ -72,15 +72,12 @@ class FullyConnectedLayer(torch.nn.Module):
         in_features,                # Number of input features.
         out_features,               # Number of output features.
         bias            = True,     # Apply additive bias before the activation function?
-        activation      = 'linear', # Activation function: 'relu', 'lrelu', etc.
+        activation      = None, # Activation function: 'relu', 'lrelu', etc.
         lr_multiplier   = 1,        # Learning rate multiplier.
         bias_init       = 0,        # Initial value for the additive bias.
     ):
         super().__init__()
-        if activation == 'lrelu':
-            self.activation = nn.LeakyReLU(0.2)
-        else:
-            self.activation = activation
+        self.activation = activation
         self.weight = torch.nn.Parameter(torch.randn([out_features, in_features]) / lr_multiplier)
         self.bias = torch.nn.Parameter(torch.full([out_features], np.float32(bias_init))) if bias else None
         self.weight_gain = lr_multiplier / np.sqrt(in_features)
@@ -94,7 +91,7 @@ class FullyConnectedLayer(torch.nn.Module):
             if self.bias_gain != 1:
                 b = b * self.bias_gain
 
-        if self.activation == 'linear' and b is not None:
+        if self.activation is None and b is not None:
             x = torch.addmm(b.unsqueeze(0), x, w.t())
         else:
             x = x.squeeze()
@@ -160,7 +157,6 @@ class MappingNetwork(torch.nn.Module):
         num_ws,                     # Number of intermediate latents to output, None = do not broadcast.
         num_layers      = 8,        # Number of mapping layers.
         layer_features  = None,     # Number of intermediate features in the mapping layers, None = same as w_dim.
-        activation      = 'lrelu',  # Activation function: 'relu', 'lrelu', etc.
         lr_multiplier   = 0.01,     # Learning rate multiplier for the mapping layers.
         w_avg_beta      = 0.995,    # Decay for tracking the moving average of W during training, None = do not track.
     ):
@@ -178,7 +174,7 @@ class MappingNetwork(torch.nn.Module):
         for idx in range(num_layers):
             in_features = features_list[idx]
             out_features = features_list[idx + 1]
-            layer = FullyConnectedLayer(in_features, out_features, activation=activation, lr_multiplier=lr_multiplier)
+            layer = FullyConnectedLayer(in_features, out_features, activation=nn.LeakyReLU(0.2), lr_multiplier=lr_multiplier)
             setattr(self, f'fc{idx}', layer)
 
         if num_ws is not None and w_avg_beta is not None:
