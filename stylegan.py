@@ -77,7 +77,10 @@ class FullyConnectedLayer(torch.nn.Module):
         bias_init       = 0,        # Initial value for the additive bias.
     ):
         super().__init__()
-        self.activation = activation
+        if activation == 'lrelu':
+            self.activation = nn.LeakyReLU(0.2)
+        else:
+            self.activation = activation
         self.weight = torch.nn.Parameter(torch.randn([out_features, in_features]) / lr_multiplier)
         self.bias = torch.nn.Parameter(torch.full([out_features], np.float32(bias_init))) if bias else None
         self.weight_gain = lr_multiplier / np.sqrt(in_features)
