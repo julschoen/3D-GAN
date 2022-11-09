@@ -48,7 +48,7 @@ class Conv3DMod(nn.Module):
 
     def forward(self, x, y):
         b, c, h, w, d = x.shape
-
+        print(y)
         w1 = y[:, None, :, None, None]
         w2 = self.weight[None, :, :, :, :]
         weights = w2 * (w1 + 1)
@@ -241,6 +241,7 @@ class GeneratorBlock(nn.Module):
         noise = self.noise_const * self.noise_strength
 
         style1 = self.to_style1(w)
+        print(style1)
         x = self.conv1(x, style1)
         x = self.activation(x + noise)
 
