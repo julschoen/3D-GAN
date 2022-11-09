@@ -48,7 +48,7 @@ class Conv3DMod(nn.Module):
 
     def forward(self, x, y):
         b, c, h, w, d = x.shape
-        print(y)
+        print(y.shape)
         w1 = y[:, None, :, None, None]
         w2 = self.weight[None, :, :, :, :]
         weights = w2 * (w1 + 1)
