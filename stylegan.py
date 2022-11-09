@@ -4,6 +4,7 @@ import torch.nn as nn
 from math import log2
 from functools import partial
 from kornia.filters import filter3d
+import torch.nn.functional as F
 
 #----------------------------------------------------------------------------
 ### Works ###
