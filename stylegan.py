@@ -93,9 +93,7 @@ class FullyConnectedLayer(torch.nn.Module):
         if self.activation == 'linear' and b is not None:
             x = torch.addmm(b.unsqueeze(0), x, w.t())
         else:
-            print(x.shape, w.shape)
             x = x.squeeze()
-            x = x.matmul(w.t())
             x = F.linear(x, w, bias=b)
             x = self.activation(x)
         return x
