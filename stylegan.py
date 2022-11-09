@@ -231,7 +231,7 @@ class GeneratorBlock(nn.Module):
 
         self.activation = nn.LeakyReLU(0.2, inplace=True)
 
-        self.noise_const = torch.randn([out_channels, out_channels])
+        self.register_buffer('noise_const', torch.randn([out_channels, out_channels]))
         self.noise_strength = torch.nn.Parameter(torch.zeros([]))
 
     def forward(self, x, w):
