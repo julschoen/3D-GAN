@@ -329,7 +329,7 @@ class Generator(torch.nn.Module):
         self.img_resolution = img_resolution
         self.img_channels = img_channels
         self.synthesis = SynthesisNetwork(w_dim=w_dim, img_resolution=img_resolution, **synthesis_kwargs)
-        self.num_ws = self.synthesis.num_ws
+        self.num_ws = None#self.synthesis.num_ws
         self.mapping = MappingNetwork(z_dim=z_dim, w_dim=w_dim, num_ws=self.num_ws, **mapping_kwargs)
 
     def forward(self, z, truncation_psi=1, truncation_cutoff=None, **synthesis_kwargs):
