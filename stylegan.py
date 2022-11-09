@@ -236,7 +236,6 @@ class GeneratorBlock(nn.Module):
     def forward(self, x, w):
         if exists(self.upsample):
             x = self.upsample(x)
-        print(x.shape, w.shape)
         noise = self.noise_const * self.noise_strength
 
         style1 = self.to_style1(w)
@@ -295,6 +294,7 @@ class SynthesisNetwork(nn.Module):
             self.blocks.append(block)
 
     def forward(self, styles):
+        print(styles.shape)
         batch_size = styles.shape[0]
         image_size = self.image_size
 
