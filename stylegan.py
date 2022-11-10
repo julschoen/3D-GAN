@@ -242,8 +242,7 @@ class GeneratorBlock(nn.Module):
 
         style1 = self.to_style1(w)
         x = self.conv1(x, style1)
-        print(noise.shape)
-        print(x.shape)
+
         x = self.activation(x.add_(noise.to(x.dtype)))
 
         style2 = self.to_style2(w)
@@ -330,27 +329,6 @@ class SynthesisNetwork(nn.Module):
                 res
             )
             self.blocks.append(block)
-            
-        
-        """
-        for ind, (in_chan, out_chan) in enumerate(in_out_pairs):
-            not_first = ind != 0
-            not_last = ind != (self.num_layers - 1)
-            num_layer = self.num_layers - ind
-
-            attn_fn = attn_and_ff(in_chan) if num_layer in attn_layers else None
-
-            self.attns.append(attn_fn)
-
-            block = GeneratorBlock(
-                self.latent_dim,
-                in_chan,
-                out_chan,
-                self.block_resolutions[ind],
-                upsample = not_first,
-            )
-            self.blocks.append(block)
-        """
 
     def forward(self, styles):
         batch_size = styles.shape[0]
