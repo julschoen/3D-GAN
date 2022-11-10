@@ -310,7 +310,7 @@ class SynthesisNetwork(nn.Module):
         self.image_size = img_resolution
         self.latent_dim = w_dim
         self.num_layers = int(log2(self.image_size)-1)
-        self.block_resolutions = [2 ** i for i in range(3, self.num_layers)]
+        self.block_resolutions = [2 ** (i+1) for i in range(self.num_layers)]
         channels_dict = {res: min(network_capacity // res, fmap_max) for res in self.block_resolutions}
 
 
