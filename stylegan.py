@@ -321,7 +321,6 @@ class SynthesisNetwork(nn.Module):
         filters = [init_channels, *filters]
 
         in_out_pairs = zip(filters[:-1], filters[1:])
-        self.no_const = no_const
 
         self.initial_block = nn.Parameter(torch.randn((1, init_channels, 4, 4, 4)))
 
