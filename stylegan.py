@@ -49,7 +49,7 @@ class Conv3DMod(nn.Module):
     def forward(self, x, y):
         b, c, h, w, d = x.shape
         
-        w1 = y[:, None, :, None, None]
+        w1 = y[:, None, :, None, None, None]
         w2 = self.weight[None, :, :, :, :]
 
         print(w1.shape)
@@ -311,7 +311,7 @@ class SynthesisNetwork(nn.Module):
         rgb = None
         styles = styles.transpose(0, 1)
         x = self.initial_conv(x)
-        print(styles.shape)
+
         for style, block, attn in zip(styles, self.blocks, self.attns):
             x = block(x, style)
 
