@@ -293,7 +293,7 @@ class SynthesisNetwork(nn.Module):
                 self.latent_dim,
                 in_chan,
                 out_chan,
-                self.block_resolutions[ind]
+                self.block_resolutions[ind],
                 upsample = not_first,
             )
             self.blocks.append(block)
