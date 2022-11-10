@@ -319,7 +319,7 @@ class SynthesisNetwork(nn.Module):
         filters = list(map(set_fmap_max, filters))
         init_channels = filters[0]
         filters = [init_channels, *filters]
-
+        print(filters)
         in_out_pairs = zip(filters[:-1], filters[1:])
 
         self.initial_block = nn.Parameter(torch.randn((1, init_channels, 4, 4, 4)))
@@ -327,7 +327,7 @@ class SynthesisNetwork(nn.Module):
         self.blocks = nn.ModuleList([])
         print(self.block_resolutions)
         for res in self.block_resolutions:
-            in_channels = channels_dict[res // 2] if res > 4 else 0
+            in_channels = channels_dict[res // 2]
             out_channels = channels_dict[res]
             use_fp16 = (res >= fp16_resolution)
             is_last = (res == self.img_resolution)
