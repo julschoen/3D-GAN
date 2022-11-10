@@ -232,7 +232,7 @@ class GeneratorBlock(nn.Module):
 
         self.activation = nn.LeakyReLU(0.2, inplace=True)
 
-        self.register_buffer('noise_const', torch.randn([resolution, resolution]))
+        self.register_buffer('noise_const', torch.randn([6, 6, 6]))
         self.noise_strength = torch.nn.Parameter(torch.zeros([]))
 
     def forward(self, x, w):
@@ -308,7 +308,6 @@ class SynthesisNetwork(nn.Module):
         else:
             x = self.initial_block.expand(batch_size, -1, -1, -1, -1)
 
-        rgb = None
         styles = styles.transpose(0, 1)
         x = self.initial_conv(x)
 
