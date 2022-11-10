@@ -311,7 +311,7 @@ class SynthesisNetwork(nn.Module):
         self.latent_dim = w_dim
         self.num_layers = int(log2(self.image_size)-1)
         self.block_resolutions = [2 ** (i+2) for i in range(self.num_layers)]
-        channels_dict = {res: min(network_capacity // res, fmap_max) for res in self.block_resolutions}
+        channels_dict = {res: min(1e20 // res, fmap_max) for res in self.block_resolutions}
 
 
         filters = [network_capacity * (2 ** (i + 1)) for i in range(self.num_layers)][::-1]
@@ -322,13 +322,17 @@ class SynthesisNetwork(nn.Module):
         print(filters)
         in_out_pairs = zip(filters[:-1], filters[1:])
 
-        self.initial_block = nn.Parameter(torch.randn((1, init_channels, 4, 4, 4)))
+        init_res = self.block_resolutions[0]
+        init_channels = channels_dict[init_res]
+        self.initial_block = nn.Parameter(torch.randn((1, init_channels, init_res, init_res, init_res)))
 
         self.blocks = nn.ModuleList([])
         print(self.block_resolutions)
         for res in self.block_resolutions:
-            in_channels = channels_dict[res // 2]
-            out_channels = channels_dict[res]
+            print(res, channels_dict[res])
+        for res in self.block_resolutions:
+            in_channels = channels_dict[res]
+            out_channels = channels_dict[res*2]
             use_fp16 = (res >= fp16_resolution)
             is_last = (res == self.img_resolution)
             block = SynthesisBlock(in_channels, out_channels, w_dim=w_dim, resolution=res,
