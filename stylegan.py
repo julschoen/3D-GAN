@@ -244,7 +244,7 @@ class GeneratorBlock(nn.Module):
         x = self.conv1(x, style1)
         print(noise.shape)
         print(x.shape)
-        x = self.activation(x + noise)
+        x = self.activation(x.add_(noise.to(x.dtype)))
 
         style2 = self.to_style2(w)
         x = self.conv2(x, style2)
