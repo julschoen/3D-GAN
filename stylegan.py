@@ -420,7 +420,7 @@ class Discriminator(nn.Module):
             num_layer = ind + 1
             is_not_last = ind != (len(chan_in_out) - 1)
 
-            block = DiscriminatorBlock(in_chan, out_chan, downsample = True)
+            block = DiscriminatorBlock(in_chan, out_chan, downsample = is_not_last)
             blocks.append(block)
 
 
@@ -429,7 +429,7 @@ class Discriminator(nn.Module):
         chan_last = filters[-1]
         latent_dim = 2 * 2 * 2 * chan_last
 
-        self.final_conv = nn.Conv3d(chan_last, chan_last, 1, padding=1)
+        self.final_conv = nn.Conv3d(chan_last, chan_last, 1, padding=0)
         self.flatten = Flatten()
         self.to_logit = nn.Linear(latent_dim, 1)
 
