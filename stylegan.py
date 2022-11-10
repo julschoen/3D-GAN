@@ -30,7 +30,7 @@ def exists(val):
     return val is not None
 
 #----------------------------------------------------------------------------
-## Should Work
+### Works ### 
 class Conv3DMod(nn.Module):
     def __init__(self, in_chan, out_chan, kernel, demod=True, stride=1, dilation=1, eps = 1e-8, **kwargs):
         super().__init__()
@@ -242,6 +242,8 @@ class GeneratorBlock(nn.Module):
 
         style1 = self.to_style1(w)
         x = self.conv1(x, style1)
+        print(noise.shape)
+        print(x.shape)
         x = self.activation(x + noise)
 
         style2 = self.to_style2(w)
