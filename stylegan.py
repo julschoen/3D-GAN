@@ -220,7 +220,7 @@ class MappingNetwork(torch.nn.Module):
 #----------------------------------------------------------------------------
 ### Should Work ###
 class GeneratorBlock(nn.Module):
-    def __init__(self, latent_dim, in_channels, out_channels, upsample = True):
+    def __init__(self, latent_dim, in_channels, out_channels, resolution, upsample = True):
         super().__init__()
         self.upsample = nn.Upsample(scale_factor=2, mode='trilinear', align_corners=False) if upsample else None
 
@@ -232,7 +232,7 @@ class GeneratorBlock(nn.Module):
 
         self.activation = nn.LeakyReLU(0.2, inplace=True)
 
-        self.register_buffer('noise_const', torch.randn([out_channels, out_channels]))
+        self.register_buffer('noise_const', torch.randn([resolution, resolution]))
         self.noise_strength = torch.nn.Parameter(torch.zeros([]))
 
     def forward(self, x, w):
@@ -260,7 +260,7 @@ class SynthesisNetwork(nn.Module):
         self.image_size = img_resolution
         self.latent_dim = w_dim
         self.num_layers = int(log2(self.image_size) - 1)
-
+        self.block_resolutions = [2 ** i for i in range(2, self.num_layers + 2)]
         filters = [network_capacity * (2 ** (i + 1)) for i in range(self.num_layers)][::-1]
 
         set_fmap_max = partial(min, fmap_max)
@@ -293,6 +293,7 @@ class SynthesisNetwork(nn.Module):
                 self.latent_dim,
                 in_chan,
                 out_chan,
+                self.block_resolutions[ind]
                 upsample = not_first,
             )
             self.blocks.append(block)
