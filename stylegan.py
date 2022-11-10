@@ -317,11 +317,12 @@ class SynthesisNetwork(nn.Module):
         init_res = self.block_resolutions[0]
         init_channels = channels_dict[init_res]
         self.initial_block = nn.Parameter(torch.randn((1, init_channels, init_res, init_res, init_res)))
+        self.block_resolutions = self.block_resolutions[1:]
 
         self.blocks = nn.ModuleList([])
         for res in self.block_resolutions:
-            in_channels = channels_dict[res]
-            out_channels = channels_dict[res*2]
+            in_channels = channels_dict[res//2]
+            out_channels = channels_dict[res]
             block = GeneratorBlock(
                 self.latent_dim,
                 in_channels,
