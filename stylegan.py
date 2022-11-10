@@ -413,14 +413,14 @@ class Discriminator(nn.Module):
         set_fmap_max = partial(min, fmap_max)
         filters = list(map(set_fmap_max, filters))
         chan_in_out = list(zip(filters[:-1], filters[1:]))
-        print(chan_in_out)
+
         blocks = []
 
         for ind, (in_chan, out_chan) in enumerate(chan_in_out):
             num_layer = ind + 1
             is_not_last = ind != (len(chan_in_out) - 1)
 
-            block = DiscriminatorBlock(in_chan, out_chan, downsample = is_not_last)
+            block = DiscriminatorBlock(in_chan, out_chan, downsample = True)
             blocks.append(block)
 
 
@@ -436,13 +436,12 @@ class Discriminator(nn.Module):
     def forward(self, x):
         b, *_ = x.shape
 
-        quantize_loss = torch.zeros(1).to(x)
-
         for block in self.blocks:
             x = block(x)
 
+        print(x.shape)
         x = self.final_conv(x)
         print(x.shape)
         x = self.flatten(x)
         x = self.to_logit(x)
-        return x.squeeze(), quantize_loss
+        return x.squeeze()
