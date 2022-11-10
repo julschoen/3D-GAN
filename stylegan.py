@@ -232,7 +232,7 @@ class GeneratorBlock(nn.Module):
 
         self.activation = nn.LeakyReLU(0.2, inplace=True)
 
-        self.register_buffer('noise_const', torch.randn([6, 6, 6]))
+        self.register_buffer('noise_const', torch.randn([resolution, resolution, resolution]))
         self.noise_strength = torch.nn.Parameter(torch.zeros([]))
 
     def forward(self, x, w):
@@ -314,36 +314,24 @@ class SynthesisNetwork(nn.Module):
         filters = [network_capacity * (2 ** (i + 1)) for i in range(self.num_layers)][::-1]
         channels_dict = {res: min(filters[i], fmap_max) for i, res in enumerate(self.block_resolutions)}
 
-
-        filters = [network_capacity * (2 ** (i + 1)) for i in range(self.num_layers)][::-1]
-        set_fmap_max = partial(min, fmap_max)
-        filters = list(map(set_fmap_max, filters))
-        init_channels = filters[0]
-        filters = [init_channels, *filters]
-        print(filters)
-        in_out_pairs = zip(filters[:-1], filters[1:])
-
         init_res = self.block_resolutions[0]
         init_channels = channels_dict[init_res]
         self.initial_block = nn.Parameter(torch.randn((1, init_channels, init_res, init_res, init_res)))
 
         self.blocks = nn.ModuleList([])
-        print(self.block_resolutions)
-        for res in self.block_resolutions:
-            print(res, channels_dict[res])
         for res in self.block_resolutions:
             in_channels = channels_dict[res]
             out_channels = channels_dict[res*2]
-            use_fp16 = (res >= fp16_resolution)
-            is_last = (res == self.img_resolution)
-            block = SynthesisBlock(in_channels, out_channels, w_dim=w_dim, resolution=res,
-                img_channels=img_channels, is_last=is_last, use_fp16=use_fp16, **block_kwargs)
-            self.num_ws += block.num_conv
-            if is_last:
-                self.num_ws += block.num_torgb
-            setattr(self, f'b{res}', block)
+            block = GeneratorBlock(
+                self.latent_dim,
+                in_channels,
+                out_channels,
+                res
+            )
+            self.blocks.append(block)
+            
         
-
+        """
         for ind, (in_chan, out_chan) in enumerate(in_out_pairs):
             not_first = ind != 0
             not_last = ind != (self.num_layers - 1)
@@ -361,6 +349,7 @@ class SynthesisNetwork(nn.Module):
                 upsample = not_first,
             )
             self.blocks.append(block)
+        """
 
     def forward(self, styles):
         batch_size = styles.shape[0]
