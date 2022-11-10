@@ -237,9 +237,8 @@ class GeneratorBlock(nn.Module):
         if exists(self.upsample):
             x = self.upsample(x)
         noise = self.noise_const * self.noise_strength
-        print(w.shape)
+
         style1 = self.to_style1(w)
-        print(style1.shape)
         x = self.conv1(x, style1)
         x = self.activation(x + noise)
 
@@ -305,7 +304,7 @@ class SynthesisNetwork(nn.Module):
             x = self.initial_block.expand(batch_size, -1, -1, -1, -1)
 
         rgb = None
-        #styles = styles.transpose(0, 1)
+        styles = styles.transpose(0, 1)
         x = self.initial_conv(x)
 
         for style, block, attn in zip(styles, self.blocks, self.attns):
@@ -330,7 +329,7 @@ class Generator(torch.nn.Module):
         self.img_resolution = img_resolution
         self.img_channels = img_channels
         self.synthesis = SynthesisNetwork(w_dim=self.w_dim, img_resolution=self.img_resolution, **synthesis_kwargs)
-        self.num_ws = None#self.synthesis.num_ws
+        self.num_ws = self.synthesis.num_layers
         self.mapping = MappingNetwork(z_dim=self.z_dim, w_dim=self.w_dim, num_ws=self.num_ws, **mapping_kwargs)
 
     def forward(self, z, truncation_psi=1, truncation_cutoff=None, **synthesis_kwargs):
