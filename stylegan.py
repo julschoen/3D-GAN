@@ -449,7 +449,7 @@ class Discriminator(nn.Module):
 
         for (block, attn_block, q_block) in zip(self.blocks, self.attn_blocks, self.quantize_blocks):
             x = block(x)
-
+            print(x.shape)
             if exists(attn_block):
                 x = attn_block(x)
 
