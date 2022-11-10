@@ -427,9 +427,9 @@ class Discriminator(nn.Module):
         self.blocks = nn.ModuleList(blocks)
 
         chan_last = filters[-1]
-        latent_dim = 2 * 2 * 2 * chan_last
+        latent_dim = 4**3 * chan_last
 
-        self.final_conv = nn.Conv3d(chan_last, chan_last, 1, padding=0)
+        self.final_conv = nn.Conv3d(chan_last, chan_last, 1, padding=1)
         self.flatten = Flatten()
         self.to_logit = nn.Linear(latent_dim, 1)
 
@@ -439,9 +439,7 @@ class Discriminator(nn.Module):
         for block in self.blocks:
             x = block(x)
 
-        print(x.shape)
         x = self.final_conv(x)
-        print(x.shape)
         x = self.flatten(x)
         x = self.to_logit(x)
         return x.squeeze()
