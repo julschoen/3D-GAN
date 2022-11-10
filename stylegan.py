@@ -53,7 +53,7 @@ class Conv3DMod(nn.Module):
         w2 = self.weight[None, :, :, :, :]
 
         weights = w2 * (w1 + 1)
-
+        print(weights.shape)
         if self.demod:
             d = torch.rsqrt((weights ** 2).sum(dim=(2, 3, 4, 5), keepdim=True) + self.eps)
             weights = weights * d
