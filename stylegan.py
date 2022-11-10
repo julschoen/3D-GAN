@@ -400,11 +400,11 @@ class DiscriminatorBlock(nn.Module):
 #----------------------------------------------------------------------------
 ### Should Work ###
 class Discriminator(nn.Module):
-    def __init__(self, params, image_size=128, network_capacity = 16, fq_layers = [], fq_dict_size = 256, attn_layers = [], transparent = False, fmap_max = 512):
+    def __init__(self, params, image_size=128, network_capacity = 16, fmap_max = 512):
         super().__init__()
         self.p = params
         num_layers = int(log2(image_size) - 1)
-        num_init_filters = 3 if not transparent else 4
+        num_init_filters = 1
 
         blocks = []
         filters = [num_init_filters] + [(network_capacity * 4) * (2 ** i) for i in range(num_layers + 1)]
@@ -412,10 +412,8 @@ class Discriminator(nn.Module):
         set_fmap_max = partial(min, fmap_max)
         filters = list(map(set_fmap_max, filters))
         chan_in_out = list(zip(filters[:-1], filters[1:]))
-
+        print(chan_in_out)
         blocks = []
-        attn_blocks = []
-        quantize_blocks = []
 
         for ind, (in_chan, out_chan) in enumerate(chan_in_out):
             num_layer = ind + 1
@@ -424,16 +422,8 @@ class Discriminator(nn.Module):
             block = DiscriminatorBlock(in_chan, out_chan, downsample = is_not_last)
             blocks.append(block)
 
-            attn_fn = attn_and_ff(out_chan) if num_layer in attn_layers else None
-
-            attn_blocks.append(attn_fn)
-
-            #quantize_fn = PermuteToFrom(VectorQuantize(out_chan, fq_dict_size)) if num_layer in fq_layers else None
-            #quantize_blocks.append(quantize_fn)
 
         self.blocks = nn.ModuleList(blocks)
-        self.attn_blocks = nn.ModuleList(attn_blocks)
-        self.quantize_blocks = nn.ModuleList(quantize_blocks)
 
         chan_last = filters[-1]
         latent_dim = 2 * 2 * chan_last
@@ -447,15 +437,17 @@ class Discriminator(nn.Module):
 
         quantize_loss = torch.zeros(1).to(x)
 
-        for (block, attn_block, q_block) in zip(self.blocks, self.attn_blocks, self.quantize_blocks):
+        for block in self.blocks:
             x = block(x)
             print(x.shape)
+            """
             if exists(attn_block):
                 x = attn_block(x)
 
             if exists(q_block):
                 x, loss = q_block(x)
                 quantize_loss += loss
+            """
 
         x = self.final_conv(x)
         x = self.flatten(x)
