@@ -260,6 +260,7 @@ class Trainer(object):
                             dtype=torch.float, device=self.device)
                 if self.p.stylegan:
                     fake, ws = self.netG(noise)
+                    ws.requires_grad_()
                 else:
                     fake = self.netG(noise)
 
