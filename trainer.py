@@ -21,6 +21,7 @@ from biggan import Discriminator as BigD #Hihi
 from biggan import Generator as BigG
 from stylegan import Generator as StyleG
 from stylegan import Discriminator as StyleD
+from stylegan import EMA
 
 
 class Trainer(object):
@@ -56,6 +57,7 @@ class Trainer(object):
         elif self.p.stylegan:
             self.netD = StyleD(self.p).to(self.device)
             self.netG = StyleG(self.p).to(self.device)
+            self.pl_length_ema = EMA(0.99)
         else:
             self.netD = BigD(self.p).to(self.device)
             self.netG = BigG(self.p).to(self.device)
@@ -222,7 +224,7 @@ class Trainer(object):
                         errD_real = (nn.ReLU()(1.0 - real_out)).mean()
                         errD_fake = (nn.ReLU()(1.0 + self.netD(fake))).mean()
                         errD = errD_fake + errD_real
-                        
+
                         if self.p.stylegan:
                             gradients = torch.autograd.grad(outputs=real_out, inputs=real,
                                                    grad_outputs=torch.ones(real_out.size(), device=real.device),
@@ -257,6 +259,23 @@ class Trainer(object):
                             dtype=torch.float, device=self.device)
                 fake = self.netG(noise)
                 errG = -self.netD(fake).mean()
+                if self.p.stylegan:
+                    num_pixels = fake.shape[2] * fake.shape[3] * fake.shape[4]
+                    pl_noise = torch.randn(fake.shape, device=self.p.device) / np.sqrt(num_pixels)
+                    outputs = (fake * pl_noise).sum()
+
+                    pl_grads = torch.autograd.grad(outputs=outputs, inputs=self.G.last_ws,
+                                          grad_outputs=torch.ones(outputs.shape, device=self.p.device),
+                                          create_graph=True, retain_graph=True, only_inputs=True)[0]
+
+                    pl = (pl_grads ** 2).sum(dim=2).mean(dim=1).sqrt()
+
+                    avg_pl_length = np.mean(pl_lengths.detach().cpu().numpy())
+
+                    if self.pl_mean is not None:
+                        pl_loss = ((pl_lengths - self.pl_mean) ** 2).mean()
+                        if not torch.isnan(pl_loss):
+                            gen_loss = gen_loss + pl_loss
                 
             self.scalerG.scale(errG).backward()
             self.scalerG.step(self.optimizerG)
@@ -265,6 +284,9 @@ class Trainer(object):
             for p in self.netG.parameters():
                 p.requires_grad = False
             #self.tracker.epoch_end()
+
+            if self.p.stylegan:
+                self.pl_mean = self.pl_length_ma.update_average(self.pl_mean, avg_pl_length)
 
             self.G_losses.append(errG.item())
             self.D_losses.append((errD_real.item(), errD_fake.item()))
