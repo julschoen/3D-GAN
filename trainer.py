@@ -287,7 +287,7 @@ class Trainer(object):
                     if self.pl_mean is not None:
                         pl_loss = ((pl - self.pl_mean) ** 2).mean()
                         if not torch.isnan(pl_loss):
-                            gen_loss = gen_loss + pl_loss
+                            errG = errG + pl_loss
                 
             self.scalerG.scale(errG).backward()
             self.scalerG.step(self.optimizerG)
