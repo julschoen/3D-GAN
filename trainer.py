@@ -183,9 +183,7 @@ class Trainer(object):
             gradients = grad(outputs=disc_interpolates,
                              inputs=interpolates,
                              grad_outputs=torch.ones(disc_interpolates.size()).to(self.device),
-                             create_graph=True,
-                             retain_graph=True,
-                             only_inputs=True)[0]
+                             retain_graph=True)[0]
 
             gradients = gradients.view(gradients.size(0), -1)
             gradient_penalty = ((gradients.norm(2, dim=1) - 1) **2).mean() * 10
@@ -215,9 +213,12 @@ class Trainer(object):
                     if self.p.hinge:
                         noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
                                     dtype=torch.float, device=self.device)
-                        fake = self.netG(noise)
+
                         if self.p.stylegan:
+                            fake, _ = self.netG(noise)
                             real.requires_grad_()
+                        else:
+                            fake = self.netG(noise)
 
                         real_out = self.netD(real)
 
@@ -257,14 +258,18 @@ class Trainer(object):
             with autocast():
                 noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
                             dtype=torch.float, device=self.device)
-                fake = self.netG(noise)
+                if self.p.stylegan:
+                    fake, ws = self.netG(noise)
+                else:
+                    fake = self.netG(noise)
+
                 errG = -self.netD(fake).mean()
                 if self.p.stylegan:
                     num_pixels = fake.shape[2] * fake.shape[3] * fake.shape[4]
                     pl_noise = torch.randn(fake.shape, device=self.p.device) / np.sqrt(num_pixels)
                     outputs = (fake * pl_noise).sum()
 
-                    pl_grads = torch.autograd.grad(outputs=outputs, inputs=self.netG.module.last_ws,
+                    pl_grads = torch.autograd.grad(outputs=outputs, inputs=ws,
                                           grad_outputs=torch.ones(outputs.shape, device=self.p.device),
                                           create_graph=False, retain_graph=True)[0]
 
