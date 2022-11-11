@@ -295,7 +295,7 @@ class Trainer(object):
             #self.tracker.epoch_end()
 
             if self.p.stylegan:
-                self.pl_mean = self.pl_length_ma.update_average(self.pl_mean, avg_pl_length)
+                self.pl_mean = self.pl_length_ema.update_average(self.pl_mean, avg_pl_length)
 
             self.G_losses.append(errG.item())
             self.D_losses.append((errD_real.item(), errD_fake.item()))
