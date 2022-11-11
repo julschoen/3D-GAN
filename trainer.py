@@ -276,9 +276,10 @@ class Trainer(object):
                     pl_grads = torch.autograd.grad(outputs=outputs, inputs=ws,
                                           grad_outputs=torch.ones(outputs.shape, device=self.p.device),
                                           create_graph=False, retain_graph=True)[0]
+                    print(pl_grads.shape)
 
                     pl = (pl_grads ** 2).sum(dim=2).mean(dim=1).sqrt()
-
+                    print(pl.shape)
                     avg_pl_length = np.mean(pl.detach().cpu().numpy())
 
                     if self.pl_mean is not None:
