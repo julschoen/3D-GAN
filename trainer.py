@@ -221,6 +221,7 @@ class Trainer(object):
                         errD_fake = (nn.ReLU()(1.0 + self.netD(fake))).mean()
                         errD = errD_fake + errD_real
                         if self.p.stylegan:
+                            real.requires_grad_()
                             gradients = torch.autograd.grad(outputs=real_out, inputs=real,
                                                    grad_outputs=torch.ones(real_out.size(), device=real.device),
                                                    create_graph=True, retain_graph=True, only_inputs=True)[0]
