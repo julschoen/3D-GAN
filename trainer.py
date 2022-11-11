@@ -263,7 +263,7 @@ class Trainer(object):
                     fake = self.netG.module.synthesis(ws)
                 else:
                     fake = self.netG(noise)
-
+                print(fake.shape)
                 errG = -self.netD(fake).mean()
                 if self.p.stylegan:
                     num_pixels = fake.shape[2] * fake.shape[3] * fake.shape[4]
