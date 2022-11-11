@@ -264,7 +264,7 @@ class Trainer(object):
                     pl_noise = torch.randn(fake.shape, device=self.p.device) / np.sqrt(num_pixels)
                     outputs = (fake * pl_noise).sum()
 
-                    pl_grads = torch.autograd.grad(outputs=outputs, inputs=self.netG.last_ws,
+                    pl_grads = torch.autograd.grad(outputs=outputs, inputs=self.netG.module.last_ws,
                                           grad_outputs=torch.ones(outputs.shape, device=self.p.device),
                                           create_graph=False, retain_graph=True)[0]
 
