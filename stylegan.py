@@ -30,6 +30,15 @@ class Flatten(nn.Module):
 def exists(val):
     return val is not None
 
+class EMA():
+    def __init__(self, beta):
+        super().__init__()
+        self.beta = beta
+    def update_average(self, old, new):
+        if old is None:
+            return new
+        return old * self.beta + (1 - self.beta) * new
+
 #----------------------------------------------------------------------------
 ### Works ### 
 class Conv3DMod(nn.Module):
@@ -360,6 +369,7 @@ class Generator(torch.nn.Module):
         self.p = params
         self.z_dim = self.p.z_size
         self.w_dim = w_dim
+        self.last_ws = None
         self.img_resolution = img_resolution
         self.img_channels = img_channels
         self.synthesis = SynthesisNetwork(w_dim=self.w_dim, img_resolution=self.img_resolution, **synthesis_kwargs)
@@ -369,6 +379,7 @@ class Generator(torch.nn.Module):
     def forward(self, z, truncation_psi=1, truncation_cutoff=None, **synthesis_kwargs):
         ws = self.mapping(z, truncation_psi=truncation_psi, truncation_cutoff=truncation_cutoff)
         img = self.synthesis(ws, **synthesis_kwargs)
+        self.last_ws = ws
         return img
 
 #----------------------------------------------------------------------------
