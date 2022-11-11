@@ -57,6 +57,7 @@ class Trainer(object):
         elif self.p.stylegan:
             self.netD = StyleD(self.p).to(self.device)
             self.netG = StyleG(self.p).to(self.device)
+            self.pl_mean = None
             self.pl_length_ema = EMA(0.99)
         else:
             self.netD = BigD(self.p).to(self.device)
