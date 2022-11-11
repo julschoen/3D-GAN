@@ -228,7 +228,7 @@ class Trainer(object):
                         if self.p.stylegan:
                             gradients = torch.autograd.grad(outputs=real_out, inputs=real,
                                                    grad_outputs=torch.ones(real_out.size(), device=real.device),
-                                                   create_graph=True, retain_graph=True, only_inputs=True)[0]
+                                                   create_graph=False, retain_graph=False, only_inputs=True)[0]
 
                             gradients = gradients.reshape(real.shape[0], -1)
                             gp = 10 * ((gradients.norm(2, dim=1) - 1) ** 2).mean()
@@ -266,7 +266,7 @@ class Trainer(object):
 
                     pl_grads = torch.autograd.grad(outputs=outputs, inputs=self.G.last_ws,
                                           grad_outputs=torch.ones(outputs.shape, device=self.p.device),
-                                          create_graph=True, retain_graph=True, only_inputs=True)[0]
+                                          create_graph=False, retain_graph=False, only_inputs=True)[0]
 
                     pl = (pl_grads ** 2).sum(dim=2).mean(dim=1).sqrt()
 
