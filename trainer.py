@@ -259,8 +259,8 @@ class Trainer(object):
                 noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
                             dtype=torch.float, device=self.device)
                 if self.p.stylegan:
-                    ws = self.netG.modules.mapping(noise)
-                    fake = self.netG.modules.synthesis(ws)
+                    ws = self.netG.mapping(noise)
+                    fake = self.netG.synthesis(ws)
                 else:
                     fake = self.netG(noise)
 
