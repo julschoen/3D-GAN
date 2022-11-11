@@ -450,6 +450,5 @@ class Discriminator(nn.Module):
 
         x = self.final_conv(x)
         x = self.flatten(x)
-        print(x.shape)
         x = self.to_logit(x)
         return x.squeeze()
