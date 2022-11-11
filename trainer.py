@@ -214,14 +214,16 @@ class Trainer(object):
                         noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
                                     dtype=torch.float, device=self.device)
                         fake = self.netG(noise)
+                        if self.p.stylegan:
+                            real.requires_grad_()
 
                         real_out = self.netD(real)
 
                         errD_real = (nn.ReLU()(1.0 - real_out)).mean()
                         errD_fake = (nn.ReLU()(1.0 + self.netD(fake))).mean()
                         errD = errD_fake + errD_real
+                        
                         if self.p.stylegan:
-                            real.requires_grad_()
                             gradients = torch.autograd.grad(outputs=real_out, inputs=real,
                                                    grad_outputs=torch.ones(real_out.size(), device=real.device),
                                                    create_graph=True, retain_graph=True, only_inputs=True)[0]
