@@ -259,11 +259,14 @@ class Trainer(object):
                 noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
                             dtype=torch.float, device=self.device)
                 if self.p.stylegan:
-                    ws = self.netG.module.mapping(noise)
-                    fake = self.netG.module.synthesis(ws)
+                    #ws = self.netG.module.mapping(noise)
+                    #fake = self.netG.module.synthesis(ws)
+                    fake, ws = self.netG(noise)
                 else:
                     fake = self.netG(noise)
+
                 errG = -self.netD(fake).mean()
+
                 if self.p.stylegan:
                     num_pixels = fake.shape[2] * fake.shape[3] * fake.shape[4]
                     pl_noise = torch.randn(fake.shape, device=self.p.device) / np.sqrt(num_pixels)
@@ -275,10 +278,10 @@ class Trainer(object):
 
                     pl = (pl_grads ** 2).sum(dim=2).mean(dim=1).sqrt()
 
-                    avg_pl_length = np.mean(pl_lengths.detach().cpu().numpy())
+                    avg_pl_length = np.mean(pl.detach().cpu().numpy())
 
                     if self.pl_mean is not None:
-                        pl_loss = ((pl_lengths - self.pl_mean) ** 2).mean()
+                        pl_loss = ((pl - self.pl_mean) ** 2).mean()
                         if not torch.isnan(pl_loss):
                             gen_loss = gen_loss + pl_loss
                 
