@@ -194,7 +194,7 @@ class GeneratorBlock(nn.Module):
             x = self.upsample(x)
         noise = self.noise_const * self.noise_strength
 
-        style1 = self.affine(w)
+        style1 = self.affine1(w)
         x = self.conv1(x, style1)
 
         x = self.activation(x.add_(noise.to(x.dtype)))
