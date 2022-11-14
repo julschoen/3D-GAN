@@ -350,11 +350,11 @@ class Discriminator(nn.Module):
     def __init__(self, params, image_size=64, network_capacity = 128, fmap_max = 512):
         super().__init__()
         self.p = params
-        num_layers = int(log2(image_size) - 1)
+        num_layers = int(log2(image_size))
         num_init_filters = 1
 
         blocks = []
-        filters = [num_init_filters] + [min(network_capacity * (2 ** i), fmap_max) for i in range(num_layers + 1)]
+        filters = [num_init_filters] + [min(network_capacity * (2 ** i), fmap_max) for i in range(num_layers)]
 
         chan_in_out = list(zip(filters[:-1], filters[1:]))
 
@@ -364,7 +364,7 @@ class Discriminator(nn.Module):
             num_layer = ind + 1
             is_not_last = ind != (len(chan_in_out) - 1)
 
-            block = DiscriminatorBlock(in_chan, out_chan, downsample = is_not_last)
+            block = DiscriminatorBlock(in_chan, out_chan, downsample = True)
             blocks.append(block)
 
 
@@ -385,11 +385,9 @@ class Discriminator(nn.Module):
 
         for block in self.blocks:
             x = block(x)
-        print(x.shape)
+
         x = self.act(self.final_conv(x))
-        print(x.shape)
         x = self.flatten(x)
-        print(x.shape)
         x = self.fc(x)
         x = self.out(x)
         return x.squeeze()
