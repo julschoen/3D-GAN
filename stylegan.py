@@ -380,7 +380,8 @@ class Discriminator(nn.Module):
         self.act = nn.LeakyReLU(0.2, inplace=True)
         self.final_conv = nn.Conv3d(chan_last, chan_last, 1, padding=1)
         self.flatten = Flatten()
-        self.to_logit = nn.Linear(latent_dim, 1)
+        self.fc = FullyConnectedLayer(latent_dim, chan_last)
+        self.out = nn.FullyConnectedLayer(chan_last, 1)
 
     def forward(self, x):
         b, *_ = x.shape
@@ -390,5 +391,6 @@ class Discriminator(nn.Module):
 
         x = self.act(self.final_conv(x))
         x = self.flatten(x)
-        x = self.to_logit(x)
+        x = self.fc(x)
+        x = self.out(x)
         return x.squeeze()
