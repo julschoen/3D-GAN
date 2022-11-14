@@ -278,6 +278,7 @@ class SynthesisNetwork(nn.Module):
                 in_channels,
                 out_channels,
                 res
+                demod = res == self.image_size
             )
             self.blocks.append(block)
 
