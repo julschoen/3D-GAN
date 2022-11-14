@@ -300,7 +300,7 @@ class SynthesisNetwork(nn.Module):
             if is_last:
                 block = OutBlock(
                     self.latent_dim,
-                    self.in_channels
+                    in_channels
                 )
             else:
                 block = GeneratorBlock(
