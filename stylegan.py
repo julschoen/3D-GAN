@@ -253,7 +253,7 @@ class GeneratorBlock(nn.Module):
         return x
 
 class SynthesisNetwork(nn.Module):
-    def __init__(self, w_dim, img_resolution, network_capacity = 32, fmap_max = 512):
+    def __init__(self, w_dim, img_resolution, network_capacity = 16, fmap_max = 512):
         super().__init__()
         self.image_size = img_resolution
         self.latent_dim = w_dim
