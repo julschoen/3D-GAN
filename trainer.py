@@ -297,7 +297,7 @@ class Trainer(object):
                 p.requires_grad = False
             #self.tracker.epoch_end()
 
-            if self.p.stylegan:
+            if False and self.p.stylegan:
                 self.pl_mean = self.pl_length_ema.update_average(self.pl_mean, avg_pl_length)
 
             self.G_losses.append(errG.item())
