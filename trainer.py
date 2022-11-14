@@ -55,7 +55,7 @@ class Trainer(object):
             self.netD = Discriminator(self.p).to(self.device)
             self.netG = Generator(self.p).to(self.device)
         elif self.p.stylegan:
-            self.netD = StyleD(self.p).to(self.device)
+            self.netD = Discriminator(self.p).to(self.device)
             self.netG = StyleG(self.p).to(self.device)
             self.pl_mean = None
             self.pl_length_ema = EMA(0.99)
