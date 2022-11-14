@@ -277,7 +277,7 @@ class SynthesisNetwork(nn.Module):
                 self.latent_dim,
                 in_channels,
                 out_channels,
-                res
+                res,
                 demod = res == self.image_size
             )
             self.blocks.append(block)
