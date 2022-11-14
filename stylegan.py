@@ -178,11 +178,11 @@ class GeneratorBlock(nn.Module):
         super().__init__()
         self.upsample = nn.Upsample(scale_factor=2, mode='trilinear', align_corners=False) if upsample else None
 
-        self.affine = FullyConnectedLayer(latent_dim, in_channels, bias_init=1)
+        self.affine1 = FullyConnectedLayer(latent_dim, in_channels, bias_init=1)
         self.conv1 = Conv3DMod(in_channels, out_channels, 3)
         
-        #self.to_style2 = nn.Linear(latent_dim, out_channels)
-        #self.conv2 = Conv3DMod(out_channels, out_channels, 3)
+        self.affine2 = FullyConnectedLayer(latent_dim, out_channels, bias_init=1)
+        self.conv2 = Conv3DMod(out_channels, out_channels, 3)
 
         self.activation = nn.LeakyReLU(0.2, inplace=True)
 
@@ -194,14 +194,14 @@ class GeneratorBlock(nn.Module):
             x = self.upsample(x)
         noise = self.noise_const * self.noise_strength
 
-        style = self.affine(w)
-        x = self.conv1(x, style)
+        style1 = self.affine(w)
+        x = self.conv1(x, style1)
 
         x = self.activation(x.add_(noise.to(x.dtype)))
 
-        #style2 = self.to_style2(w)
-        #x = self.conv2(x, style2)
-        #x = self.activation(x + noise)
+        style2 = self.affine2(w)
+        x = self.conv2(x, style2)
+        x = self.activation(x + noise)
 
         return x
 
