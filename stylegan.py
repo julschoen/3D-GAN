@@ -253,7 +253,7 @@ class GeneratorBlock(nn.Module):
         return x
 
 class SynthesisNetwork(nn.Module):
-    def __init__(self, w_dim, img_resolution, network_capacity = 64, fmap_max = 512):
+    def __init__(self, w_dim, img_resolution, network_capacity = 32, fmap_max = 512):
         super().__init__()
         self.image_size = img_resolution
         self.latent_dim = w_dim
@@ -347,7 +347,7 @@ class DiscriminatorBlock(nn.Module):
         return x
 
 class Discriminator(nn.Module):
-    def __init__(self, params, image_size=128, network_capacity = 64, fmap_max = 512):
+    def __init__(self, params, image_size=128, network_capacity = 32, fmap_max = 512):
         super().__init__()
         self.p = params
         num_layers = int(log2(image_size))
