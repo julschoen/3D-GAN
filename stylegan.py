@@ -8,7 +8,7 @@ from kornia.filters import filter3d
 import torch.nn.functional as F
 
 #----------------------------------------------------------------------------
-### Works ###
+### Helpers ###
 def normalize_2nd_moment(x, dim=1, eps=1e-8):
     return x * (x.square().mean(dim=dim, keepdim=True) + eps).rsqrt()
 
@@ -27,9 +27,6 @@ class Flatten(nn.Module):
     def forward(self, x):
         return x.reshape(x.shape[0], -1)
 
-def exists(val):
-    return val is not None
-
 class EMA():
     def __init__(self, beta):
         super().__init__()
@@ -40,7 +37,104 @@ class EMA():
         return old * self.beta + (1 - self.beta) * new
 
 #----------------------------------------------------------------------------
-### Works ### 
+### Mapping Network ###
+class FullyConnectedLayer(torch.nn.Module):
+    def __init__(self,
+        in_features,                # Number of input features.
+        out_features,               # Number of output features.
+        bias            = True,     # Apply additive bias before the activation function?
+        activation      = None, # Activation function: 'relu', 'lrelu', etc.
+        lr_multiplier   = 100,        # Learning rate multiplier.
+        bias_init       = 0,        # Initial value for the additive bias.
+    ):
+        super().__init__()
+        self.activation = activation
+        self.weight = torch.nn.Parameter(torch.randn([out_features, in_features]) / lr_multiplier)
+        self.bias = torch.nn.Parameter(torch.full([out_features], np.float32(bias_init))) if bias else None
+        self.weight_gain = lr_multiplier / np.sqrt(in_features)
+        self.bias_gain = lr_multiplier
+
+    def forward(self, x):
+        w = self.weight.to(x.dtype) * self.weight_gain
+        b = self.bias
+        if b is not None:
+            b = b.to(x.dtype)
+            if self.bias_gain != 1:
+                b = b * self.bias_gain
+
+        if self.activation is None and b is not None:
+            x = torch.addmm(b.unsqueeze(0), x, w.t())
+        else:
+            x = x.squeeze()
+            x = F.linear(x, w, bias=b)
+            x = self.activation(x)
+        return x
+
+class MappingNetwork(torch.nn.Module):
+    def __init__(self,
+        z_dim,                      # Input latent (Z) dimensionality, 0 = no latent.
+        w_dim,                      # Intermediate latent (W) dimensionality.
+        num_ws,                     # Number of intermediate latents to output, None = do not broadcast.
+        num_layers      = 8,        # Number of mapping layers.
+        layer_features  = None,     # Number of intermediate features in the mapping layers, None = same as w_dim.
+        lr_multiplier   = 0.01,     # Learning rate multiplier for the mapping layers.
+        w_avg_beta      = 0.995,    # Decay for tracking the moving average of W during training, None = do not track.
+    ):
+        super().__init__()
+        self.z_dim = z_dim
+        self.w_dim = w_dim
+        self.num_ws = num_ws
+        self.num_layers = num_layers
+        self.w_avg_beta = w_avg_beta
+
+        if layer_features is None:
+            layer_features = w_dim
+        features_list = [z_dim] + [layer_features] * (num_layers - 1) + [w_dim]
+
+        for idx in range(num_layers):
+            in_features = features_list[idx]
+            out_features = features_list[idx + 1]
+            layer = FullyConnectedLayer(in_features, out_features, activation=nn.LeakyReLU(0.2), lr_multiplier=lr_multiplier)
+            setattr(self, f'fc{idx}', layer)
+
+        if w_avg_beta is not None and num_ws is not None:
+            self.register_buffer('w_avg', torch.zeros([w_dim]))
+
+    def forward(self, z, truncation_psi=1, truncation_cutoff=None, skip_w_avg_update=False):
+        # Embed, normalize, and concat inputs.
+        x = None
+        with torch.autograd.profiler.record_function('input'):
+            if self.z_dim > 0:
+                x = normalize_2nd_moment(z.to(torch.float32))
+
+        # Main layers.
+        for idx in range(self.num_layers):
+            layer = getattr(self, f'fc{idx}')
+            x = layer(x)
+
+        # Update moving average of W.
+        if self.w_avg_beta is not None and self.training and not skip_w_avg_update:
+            self.w_avg = self.w_avg.to(x.dtype)
+            with torch.autograd.profiler.record_function('update_w_avg'):
+                self.w_avg.copy_(x.detach().mean(dim=0).lerp(self.w_avg, self.w_avg_beta))
+
+        # Broadcast.
+        if self.num_ws is not None:
+            with torch.autograd.profiler.record_function('broadcast'):
+                x = x.unsqueeze(1).repeat([1, self.num_ws, 1])
+
+        # Apply truncation.
+        if truncation_psi != 1:
+            with torch.autograd.profiler.record_function('truncate'):
+                assert self.w_avg_beta is not None
+                if self.num_ws is None or truncation_cutoff is None:
+                    x = self.w_avg.lerp(x, truncation_psi)
+                else:
+                    x[:, :truncation_cutoff] = self.w_avg.lerp(x[:, :truncation_cutoff], truncation_psi)
+        return x
+
+#----------------------------------------------------------------------------
+### Synthesis Network ###
 class Conv3DMod(nn.Module):
     def __init__(self, in_chan, out_chan, kernel, demod=True, stride=1, dilation=1, eps = 1e-8, **kwargs):
         super().__init__()
@@ -79,156 +173,6 @@ class Conv3DMod(nn.Module):
         x = x.reshape(-1, self.filters, h, w, d)
         return x
 
-#----------------------------------------------------------------------------
-### Works ###
-class FullyConnectedLayer(torch.nn.Module):
-    def __init__(self,
-        in_features,                # Number of input features.
-        out_features,               # Number of output features.
-        bias            = True,     # Apply additive bias before the activation function?
-        activation      = None, # Activation function: 'relu', 'lrelu', etc.
-        lr_multiplier   = 100,        # Learning rate multiplier.
-        bias_init       = 0,        # Initial value for the additive bias.
-    ):
-        super().__init__()
-        self.activation = activation
-        self.weight = torch.nn.Parameter(torch.randn([out_features, in_features]) / lr_multiplier)
-        self.bias = torch.nn.Parameter(torch.full([out_features], np.float32(bias_init))) if bias else None
-        self.weight_gain = lr_multiplier / np.sqrt(in_features)
-        self.bias_gain = lr_multiplier
-
-    def forward(self, x):
-        w = self.weight.to(x.dtype) * self.weight_gain
-        b = self.bias
-        if b is not None:
-            b = b.to(x.dtype)
-            if self.bias_gain != 1:
-                b = b * self.bias_gain
-
-        if self.activation is None and b is not None:
-            x = torch.addmm(b.unsqueeze(0), x, w.t())
-        else:
-            x = x.squeeze()
-            x = F.linear(x, w, bias=b)
-            x = self.activation(x)
-        return x
-
-#----------------------------------------------------------------------------
-class Conv3dLayer(torch.nn.Module):
-    def __init__(self,
-        in_channels,                    # Number of input channels.
-        out_channels,                   # Number of output channels.
-        kernel_size,                    # Width and height of the convolution kernel.
-        bias            = True,         # Apply additive bias before the activation function?
-        activation      = 'linear',     # Activation function: 'relu', 'lrelu', etc.
-        up              = 1,            # Integer upsampling factor.
-        down            = 1,            # Integer downsampling factor.
-        resample_filter = [1,3,3,1],    # Low-pass filter to apply when resampling activations.
-        conv_clamp      = None,         # Clamp the output to +-X, None = disable clamping.
-        channels_last   = False,        # Expect the input to have memory_format=channels_last?
-        trainable       = True,         # Update the weights of this layer during training?
-    ):
-        super().__init__()
-        self.activation = activation
-        self.up = up
-        self.down = down
-        self.conv_clamp = conv_clamp
-        self.register_buffer('resample_filter', upfirdn2d.setup_filter(resample_filter))
-        self.padding = kernel_size // 2
-        self.weight_gain = 1 / np.sqrt(in_channels * (kernel_size ** 2))
-        self.act_gain = bias_act.activation_funcs[activation].def_gain
-
-        memory_format = torch.channels_last if channels_last else torch.contiguous_format
-        weight = torch.randn([out_channels, in_channels, kernel_size, kernel_size, kernel_size]).to(memory_format=memory_format)
-        bias = torch.zeros([out_channels]) if bias else None
-        if trainable:
-            self.weight = torch.nn.Parameter(weight)
-            self.bias = torch.nn.Parameter(bias) if bias is not None else None
-        else:
-            self.register_buffer('weight', weight)
-            if bias is not None:
-                self.register_buffer('bias', bias)
-            else:
-                self.bias = None
-
-    def forward(self, x, gain=1):
-        w = self.weight * self.weight_gain
-        b = self.bias.to(x.dtype) if self.bias is not None else None
-        flip_weight = (self.up == 1) # slightly faster
-        x = conv2d_resample.conv2d_resample(x=x, w=w.to(x.dtype), f=self.resample_filter, up=self.up, down=self.down, padding=self.padding, flip_weight=flip_weight)
-
-        act_gain = self.act_gain * gain
-        act_clamp = self.conv_clamp * gain if self.conv_clamp is not None else None
-        x = bias_act.bias_act(x, b, act=self.activation, gain=act_gain, clamp=act_clamp)
-        return x
-
-#----------------------------------------------------------------------------
-### Works ###
-class MappingNetwork(torch.nn.Module):
-    def __init__(self,
-        z_dim,                      # Input latent (Z) dimensionality, 0 = no latent.
-        w_dim,                      # Intermediate latent (W) dimensionality.
-        num_ws,                     # Number of intermediate latents to output, None = do not broadcast.
-        num_layers      = 8,        # Number of mapping layers.
-        layer_features  = None,     # Number of intermediate features in the mapping layers, None = same as w_dim.
-        lr_multiplier   = 0.01,     # Learning rate multiplier for the mapping layers.
-        w_avg_beta      = 0.995,    # Decay for tracking the moving average of W during training, None = do not track.
-    ):
-        super().__init__()
-        self.z_dim = z_dim
-        self.w_dim = w_dim
-        self.num_ws = num_ws
-        self.num_layers = num_layers
-        self.w_avg_beta = w_avg_beta
-
-        if layer_features is None:
-            layer_features = w_dim
-        features_list = [z_dim] + [layer_features] * (num_layers - 1) + [w_dim]
-
-        for idx in range(num_layers):
-            in_features = features_list[idx]
-            out_features = features_list[idx + 1]
-            layer = FullyConnectedLayer(in_features, out_features, activation=nn.LeakyReLU(0.2), lr_multiplier=lr_multiplier)
-            setattr(self, f'fc{idx}', layer)
-
-        if w_avg_beta is not None:# and num_ws is not None:
-            self.register_buffer('w_avg', torch.zeros([w_dim]))
-
-    def forward(self, z, truncation_psi=1, truncation_cutoff=None, skip_w_avg_update=False):
-        # Embed, normalize, and concat inputs.
-        x = None
-        with torch.autograd.profiler.record_function('input'):
-            if self.z_dim > 0:
-                x = normalize_2nd_moment(z.to(torch.float32))
-
-        # Main layers.
-        for idx in range(self.num_layers):
-            layer = getattr(self, f'fc{idx}')
-            x = layer(x)
-
-        # Update moving average of W.
-        if self.w_avg_beta is not None and self.training and not skip_w_avg_update:
-            self.w_avg = self.w_avg.to(x.dtype)
-            with torch.autograd.profiler.record_function('update_w_avg'):
-                self.w_avg.copy_(x.detach().mean(dim=0).lerp(self.w_avg, self.w_avg_beta))
-
-        # Broadcast.
-        if self.num_ws is not None:
-            with torch.autograd.profiler.record_function('broadcast'):
-                x = x.unsqueeze(1).repeat([1, self.num_ws, 1])
-
-        # Apply truncation.
-        if truncation_psi != 1:
-            with torch.autograd.profiler.record_function('truncate'):
-                assert self.w_avg_beta is not None
-                if self.num_ws is None or truncation_cutoff is None:
-                    x = self.w_avg.lerp(x, truncation_psi)
-                else:
-                    x[:, :truncation_cutoff] = self.w_avg.lerp(x[:, :truncation_cutoff], truncation_psi)
-        return x
-
-#----------------------------------------------------------------------------
-### Should Work ###
 class GeneratorBlock(nn.Module):
     def __init__(self, latent_dim, in_channels, out_channels, resolution, upsample = True):
         super().__init__()
@@ -246,7 +190,7 @@ class GeneratorBlock(nn.Module):
         self.noise_strength = torch.nn.Parameter(torch.zeros([]))
 
     def forward(self, x, w):
-        if exists(self.upsample):
+        if self.upsample is not None:
             x = self.upsample(x)
         noise = self.noise_const * self.noise_strength
 
@@ -261,8 +205,6 @@ class GeneratorBlock(nn.Module):
 
         return x
 
-#----------------------------------------------------------------------------
-### Should Work ###
 class SynthesisNetwork(nn.Module):
     def __init__(self, w_dim, img_resolution, network_capacity = 16, fmap_max = 512):
         super().__init__()
@@ -306,7 +248,7 @@ class SynthesisNetwork(nn.Module):
         return x
 
 #----------------------------------------------------------------------------
-### Should Work ###
+### Generator ###
 class Generator(torch.nn.Module):
     def __init__(self, params,
         w_dim = 512,                      # Intermediate latent (W) dimensionality.
@@ -331,7 +273,7 @@ class Generator(torch.nn.Module):
         return img, ws
 
 #----------------------------------------------------------------------------
-### Should Work ###
+### Discriminator ###
 class DiscriminatorBlock(nn.Module):
     def __init__(self, input_channels, filters, downsample=True):
         super().__init__()
@@ -352,13 +294,11 @@ class DiscriminatorBlock(nn.Module):
     def forward(self, x):
         res = self.conv_res(x)
         x = self.net(x)
-        if exists(self.downsample):
+        if self.downsample is not None:
             x = self.downsample(x)
         x = (x + res) * (1 / math.sqrt(2))
         return x
 
-#----------------------------------------------------------------------------
-### Should Work ###
 class Discriminator(nn.Module):
     def __init__(self, params, image_size=128, network_capacity = 16, fmap_max = 512):
         super().__init__()
