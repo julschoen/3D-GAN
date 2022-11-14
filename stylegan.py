@@ -385,9 +385,11 @@ class Discriminator(nn.Module):
 
         for block in self.blocks:
             x = block(x)
-
+        print(x.shape)
         x = self.act(self.final_conv(x))
         x = self.flatten(x)
+        print(x.shape)
         x = self.fc(x)
+        print(x.shape)
         x = self.out(x)
         return x.squeeze()
