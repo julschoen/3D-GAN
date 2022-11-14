@@ -354,7 +354,7 @@ class Discriminator(nn.Module):
         num_init_filters = 1
 
         blocks = []
-        filters = [num_init_filters] + [min(network_capacity * (2 ** i), fmap_max) for i in range(num_layers)]
+        filters = [num_init_filters] + [min(network_capacity * (2 ** i), fmap_max) for i in range(num_layers+1)]
 
         chan_in_out = list(zip(filters[:-1], filters[1:]))
 
