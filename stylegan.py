@@ -220,6 +220,29 @@ class Conv3dLayer(torch.nn.Module):
         x = bias_act.bias_act(x, b, act=self.activation, gain=act_gain, clamp=act_clamp)
         return x
 
+class OutBlock(nn.Module):
+    def __init__(self, latent_dim, input_channel, upsample=True):
+        super().__init__()
+        self.input_channel = input_channel
+        self.affine = FullyConnectedLayer(latent_dim, input_channel)
+
+        out_filters = 1
+        self.conv = Conv3DMod(input_channel, out_filters, 1, demod=False)
+
+        self.upsample = nn.Sequential(
+            nn.Upsample(scale_factor = 2, mode='trilinear', align_corners=False),
+            Blur()
+        ) if upsample else None
+
+    def forward(self, x, w):
+        style = self.affine(w)
+        x = self.conv(x, style)
+
+        if self.upsample is not None:
+            x = self.upsample(x)
+
+        return x
+
 class GeneratorBlock(nn.Module):
     def __init__(self, latent_dim, in_channels, out_channels, resolution, upsample = True):
         super().__init__()
@@ -272,14 +295,20 @@ class SynthesisNetwork(nn.Module):
         for res in self.block_resolutions:
             in_channels = channels_dict[res//2]
             out_channels = channels_dict[res]
+            is_last = res == self.image_size
 
-            block = GeneratorBlock(
-                self.latent_dim,
-                in_channels,
-                out_channels,
-                res,
-                demod = res == self.image_size
-            )
+            if is_last:
+                block = OutBlock(
+                    self.latent_dim,
+                    self.in_channels
+                )
+            else:
+                block = GeneratorBlock(
+                    self.latent_dim,
+                    in_channels,
+                    out_channels,
+                    res
+                )
             self.blocks.append(block)
 
     def forward(self, styles):
