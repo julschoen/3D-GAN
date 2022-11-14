@@ -255,7 +255,7 @@ class Trainer(object):
 
             for p in self.netD.parameters():
                 p.requires_grad = False
-
+            self.netD.zero_grad()
             for p in self.netG.parameters():
                 p.requires_grad = True
 
