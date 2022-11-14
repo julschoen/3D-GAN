@@ -255,7 +255,7 @@ class Trainer(object):
 
             for p in self.netD.parameters():
                 p.requires_grad = False
-            self.netD.zero_grad()
+
             for p in self.netG.parameters():
                 p.requires_grad = True
 
@@ -264,15 +264,15 @@ class Trainer(object):
                 noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
                             dtype=torch.float, device=self.device)
                 if self.p.stylegan:
-                    ws = self.netG.module.mapping(noise)
-                    fake = self.netG.module.synthesis(ws)
-                    #fake, ws = self.netG(noise)
+                    #ws = self.netG.module.mapping(noise)
+                    #fake = self.netG.module.synthesis(ws)
+                    fake, ws = self.netG(noise)
                 else:
                     fake = self.netG(noise)
 
                 errG = -self.netD(fake).mean()
 
-                if self.p.stylegan:
+                if False and self.p.stylegan:
                     num_pixels = fake.shape[2] * fake.shape[3] * fake.shape[4]
                     pl_noise = torch.randn(fake.shape, device=self.p.device) / np.sqrt(num_pixels)
                     outputs = (fake * pl_noise).sum()
