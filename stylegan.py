@@ -378,7 +378,7 @@ class Discriminator(nn.Module):
 
 
         self.act = nn.LeakyReLU(0.2, inplace=True)
-        self.final_conv = nn.Conv3d(chan_last, chan_last, 1, padding=1)
+        self.final_conv = nn.Conv3d(chan_last, chan_last, 1, padding=0)
         self.flatten = Flatten()
         self.fc = FullyConnectedLayer(latent_dim, chan_last)
         self.out = FullyConnectedLayer(chan_last, 1)
