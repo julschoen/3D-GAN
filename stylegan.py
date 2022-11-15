@@ -117,14 +117,6 @@ class MappingNetwork(torch.nn.Module):
             with torch.autograd.profiler.record_function('broadcast'):
                 x = x.unsqueeze(1).repeat([1, self.num_ws, 1])
 
-        # Apply truncation.
-        if truncation_psi != 1:
-            with torch.autograd.profiler.record_function('truncate'):
-                assert self.w_avg_beta is not None
-                if self.num_ws is None or truncation_cutoff is None:
-                    x = self.w_avg.lerp(x, truncation_psi)
-                else:
-                    x[:, :truncation_cutoff] = self.w_avg.lerp(x[:, :truncation_cutoff], truncation_psi)
         return x
 
 #----------------------------------------------------------------------------
@@ -263,7 +255,7 @@ class GeneratorBlock(nn.Module):
         return x
 
 class SynthesisNetwork(nn.Module):
-    def __init__(self, w_dim, img_resolution, network_capacity = 16, fmap_max = 512):
+    def __init__(self, w_dim, img_resolution, network_capacity = 64, fmap_max = 1024):
         super().__init__()
         self.image_size = img_resolution
         self.latent_dim = w_dim
