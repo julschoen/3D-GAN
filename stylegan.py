@@ -159,7 +159,7 @@ class OutBlock(nn.Module):
     def __init__(self, latent_dim, input_channel):
         super().__init__()
         self.input_channel = input_channel
-        self.affine = FullyConnectedLayer(latent_dim, input_channel)
+        self.affine = FullyConnectedLayer(latent_dim, input_channel, bias_init=1)
 
         out_filters = 1
         self.conv = Conv3DMod(input_channel, out_filters, 1, demod=False)
