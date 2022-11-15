@@ -274,7 +274,7 @@ class Trainer(object):
 
                 if self.p.stylegan:
                     num_pixels = fake.shape[2] * fake.shape[3] * fake.shape[4]
-                    pl_noise = torch.randn(fake.shape, device=self.p.device) / 128
+                    pl_noise = torch.randn(fake.shape, device=self.p.device) / np.sqrt(num_pixels)
                     outputs = (fake * pl_noise).sum()
 
                     pl_grads = torch.autograd.grad(outputs=outputs, inputs=ws,
