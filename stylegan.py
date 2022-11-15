@@ -286,7 +286,7 @@ class SynthesisNetwork(nn.Module):
         self.blocks.append(out)
 
     def forward(self, style):
-        x = self.initial_block.expand(style.shape[0], -1, -1, -1, -1)
+        x = self.initial_block.expand(styles.shape[0], -1, -1, -1, -1)
         for block in self.blocks:
             x = block(x, style)
 
