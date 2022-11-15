@@ -40,7 +40,7 @@ class FullyConnectedLayer(torch.nn.Module):
         out_features,               # Number of output features.
         bias            = True,     # Apply additive bias before the activation function?
         activation      = None, # Activation function: 'relu', 'lrelu', etc.
-        lr_multiplier   = 100,        # Learning rate multiplier.
+        lr_multiplier   = 0.01,        # Learning rate multiplier.
         bias_init       = 0,        # Initial value for the additive bias.
     ):
         super().__init__()
