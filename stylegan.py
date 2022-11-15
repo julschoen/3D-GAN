@@ -285,7 +285,8 @@ class SynthesisNetwork(nn.Module):
         self.block_resolutions = self.block_resolutions[1:]
 
         self.blocks = nn.ModuleList([])
-        for res in self.block_resolutions:
+        for i, res in enumerate(self.block_resolutions):
+            print(i)
             in_channels = channels_dict[res//2]
             out_channels = channels_dict[res]
             is_last = res == self.image_size
@@ -306,7 +307,7 @@ class SynthesisNetwork(nn.Module):
             self.blocks.append(block)
 
             if is_last:
-                print(in_channels)
+                print(res)
 
     def forward(self, styles):
         batch_size = styles.shape[0]
