@@ -221,7 +221,7 @@ class Conv3dLayer(torch.nn.Module):
         return x
 
 class OutBlock(nn.Module):
-    def __init__(self, latent_dim, input_channel, upsample=True):
+    def __init__(self, latent_dim, input_channel):
         super().__init__()
         self.input_channel = input_channel
         self.affine = FullyConnectedLayer(latent_dim, input_channel)
@@ -229,17 +229,9 @@ class OutBlock(nn.Module):
         out_filters = 1
         self.conv = Conv3DMod(input_channel, out_filters, 1, demod=False)
 
-        self.upsample = nn.Sequential(
-            nn.Upsample(scale_factor = 2, mode='trilinear', align_corners=False),
-            Blur()
-        ) if upsample else None
-
     def forward(self, x, w):
         style = self.affine(w)
         x = self.conv(x, style)
-
-        if self.upsample is not None:
-            x = self.upsample(x)
 
         return x
 
