@@ -314,7 +314,7 @@ class SynthesisNetwork(nn.Module):
         x = self.initial_block.expand(batch_size, -1, -1, -1, -1)
 
         styles = styles.transpose(0, 1)
-
+        print(styles.shape, self.blocks)
         for style, block in zip(styles, self.blocks):
             x = block(x, style)
 
