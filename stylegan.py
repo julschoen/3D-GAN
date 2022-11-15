@@ -246,7 +246,7 @@ class SynthesisNetwork(nn.Module):
 ### Generator ###
 class Generator(torch.nn.Module):
     def __init__(self, params,
-        w_dim = 512,                      # Intermediate latent (W) dimensionality.
+        w_dim = 128,                      # Intermediate latent (W) dimensionality.
         img_resolution=128,             # Output resolution.
         img_channels=1,               # Number of output color channels.
         mapping_kwargs      = {},   # Arguments for MappingNetwork.
