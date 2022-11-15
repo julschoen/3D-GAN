@@ -85,6 +85,7 @@ class MappingNetwork(torch.nn.Module):
         self.num_ws = num_ws
         self.num_layers = num_layers
         self.w_avg_beta = w_avg_beta
+        self.training = True
 
         if layer_features is None:
             layer_features = w_dim
@@ -275,10 +276,8 @@ class SynthesisNetwork(nn.Module):
         self.num_layers = int(log2(self.image_size)-1)
         self.block_resolutions = [2**(i+2) for i in range(self.num_layers)]
         filters = [network_capacity * (2**i) for i in range(self.num_layers)][::-1]
-        print(filters)
-        #filters[-1] = 1
+
         channels_dict = {res: min(filters[i], fmap_max) for i, res in enumerate(self.block_resolutions)}
-        print(channels_dict)
         init_res = self.block_resolutions[0]
         init_channels = channels_dict[init_res]
         self.initial_block = nn.Parameter(torch.randn((1, init_channels, init_res, init_res, init_res)))
