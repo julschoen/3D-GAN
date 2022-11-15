@@ -41,24 +41,19 @@ class FullyConnectedLayer(torch.nn.Module):
     ):
         super().__init__()
         self.activation = activation
-        self.weight = torch.nn.Parameter(torch.randn([out_features, in_features]) / lr_multiplier)
+        self.weight = torch.nn.Parameter(torch.randn([out_features, in_features]) * lr_multiplier)
         self.bias = torch.nn.Parameter(torch.full([out_features], np.float32(bias_init))) if bias else None
         self.weight_gain = lr_multiplier / np.sqrt(in_features)
         self.bias_gain = lr_multiplier
 
     def forward(self, x):
-        w = self.weight.to(x.dtype) * self.weight_gain
-        b = self.bias
-        if b is not None:
-            b = b.to(x.dtype)
-            if self.bias_gain != 1:
-                b = b * self.bias_gain
+        x = F.linear(
+            x,
+            self.weight.to(x.dtype) * self.weight_gain,
+            bias=self.bias * self.bias_gain
+        )
 
-        if self.activation is None and b is not None:
-            x = torch.addmm(b.unsqueeze(0), x, w.t())
-        else:
-            x = x.squeeze()
-            x = F.linear(x, w, bias=b)
+        if self.activation is not None and b is not None:
             x = self.activation(x)
         return x
 
