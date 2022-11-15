@@ -63,52 +63,27 @@ class MappingNetwork(torch.nn.Module):
         w_dim,                      # Intermediate latent (W) dimensionality.
         num_ws,                     # Number of intermediate latents to output, None = do not broadcast.
         num_layers      = 8,        # Number of mapping layers.
-        layer_features  = None,     # Number of intermediate features in the mapping layers, None = same as w_dim.
-        lr_multiplier   = 0.01,     # Learning rate multiplier for the mapping layers.
-        w_avg_beta      = 0.995,    # Decay for tracking the moving average of W during training, None = do not track.
+        lr_multiplier   = 0.01      # Learning rate multiplier for the mapping layers.
     ):
         super().__init__()
         self.z_dim = z_dim
         self.w_dim = w_dim
         self.num_ws = num_ws
         self.num_layers = num_layers
-        self.w_avg_beta = w_avg_beta
-        self.training = True
 
-        if layer_features is None:
-            layer_features = w_dim
-        features_list = [z_dim] + [layer_features] * (num_layers - 1) + [w_dim]
+        features_list = [z_dim] + [w_dim] * (num_layers)
 
+        layers = []
         for idx in range(num_layers):
             in_features = features_list[idx]
             out_features = features_list[idx + 1]
-            layer = FullyConnectedLayer(in_features, out_features, activation=nn.LeakyReLU(0.2), lr_multiplier=lr_multiplier)
-            setattr(self, f'fc{idx}', layer)
+            layers.extend([FullyConnectedLayer(in_features, out_features, activation=nn.LeakyReLU(0.2), lr_multiplier=lr_multiplier)])
+        self.net = nn.Sequential(*layers)
 
-        if w_avg_beta is not None and num_ws is not None:
-            self.register_buffer('w_avg', torch.zeros([w_dim]))
-
-    def forward(self, z, truncation_psi=1, truncation_cutoff=None, skip_w_avg_update=False):
+    def forward(self, z):
         # Embed, normalize, and concat inputs.
         x = F.normalize(z.squeeze(), dim=1)
-
-        # Main layers.
-        for idx in range(self.num_layers):
-            layer = getattr(self, f'fc{idx}')
-            x = layer(x)
-
-        # Update moving average of W.
-        if self.w_avg_beta is not None and self.training and not skip_w_avg_update:
-            self.w_avg = self.w_avg.to(x.dtype)
-            with torch.autograd.profiler.record_function('update_w_avg'):
-                self.w_avg.copy_(x.detach().mean(dim=0).lerp(self.w_avg, self.w_avg_beta))
-
-        # Broadcast.
-        if self.num_ws is not None:
-            with torch.autograd.profiler.record_function('broadcast'):
-                x = x.unsqueeze(1).repeat([1, self.num_ws, 1])
-
-        return x
+        return self.net(x).unsqueeze(1).repeat([1, self.num_ws, 1])
 
 #----------------------------------------------------------------------------
 ### Synthesis Network ###
@@ -241,7 +216,7 @@ class SynthesisNetwork(nn.Module):
 ### Generator ###
 class Generator(torch.nn.Module):
     def __init__(self, params,
-        w_dim = 128,                      # Intermediate latent (W) dimensionality.
+        w_dim = 512,                      # Intermediate latent (W) dimensionality.
         img_resolution=128,             # Output resolution.
         img_channels=1,               # Number of output color channels.
         mapping_kwargs      = {},   # Arguments for MappingNetwork.
@@ -257,8 +232,8 @@ class Generator(torch.nn.Module):
         self.num_ws = self.synthesis.num_layers
         self.mapping = MappingNetwork(z_dim=self.z_dim, w_dim=self.w_dim, num_ws=self.num_ws, **mapping_kwargs)
 
-    def forward(self, z, truncation_psi=1, truncation_cutoff=None, **synthesis_kwargs):
-        ws = self.mapping(z, truncation_psi=truncation_psi, truncation_cutoff=truncation_cutoff)
+    def forward(self, z, **synthesis_kwargs):
+        ws = self.mapping(z)
         img = self.synthesis(ws, **synthesis_kwargs)
         return img, ws
 
