@@ -127,7 +127,6 @@ class Conv3DMod(nn.Module):
         self.dilation = dilation
         self.weight = nn.Parameter(torch.randn((out_chan, in_chan, kernel, kernel, kernel)))
         self.eps = eps
-        #nn.init.kaiming_normal_(self.weight, a=0, mode='fan_in', nonlinearity='leaky_relu')
 
     def _get_same_padding(self, size, kernel, dilation, stride):
         return ((size - 1) * (stride - 1) + dilation * (kernel - 1)) // 2
@@ -138,11 +137,11 @@ class Conv3DMod(nn.Module):
         w1 = y[:, None, :, None, None, None]
         w2 = self.weight[None, :, :, :, :]
 
-        weights = w2 * (w1 + 1)
+        weights = w2 * w1
 
         if self.demod:
-            demod = torch.rsqrt((weights ** 2).sum(dim=(2, 3, 4, 5), keepdim=True) + self.eps)
-            weights = weights * demod
+            demod = torch.rsqrt((weights.square().sum(dim=(2, 3, 4, 5)) + self.eps)
+            weights = weights * demod.reshape(b, -1, 1, 1, 1, 1)
 
         x = x.reshape(1, -1, h, w, d)
 
