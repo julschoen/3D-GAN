@@ -264,6 +264,7 @@ class SynthesisNetwork(nn.Module):
         filters = [network_capacity * (2**i) for i in range(self.num_layers)][::-1]
 
         channels_dict = {res: min(filters[i], fmap_max) for i, res in enumerate(self.block_resolutions)}
+        print(channels_dict)
         init_res = self.block_resolutions[0]
         init_channels = channels_dict[init_res]
         self.initial_block = nn.Parameter(torch.randn((1, init_channels, init_res, init_res, init_res)))
