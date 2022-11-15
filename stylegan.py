@@ -113,9 +113,9 @@ class MappingNetwork(torch.nn.Module):
                 self.w_avg.copy_(x.detach().mean(dim=0).lerp(self.w_avg, self.w_avg_beta))
 
         # Broadcast.
-        if self.num_ws is not None:
-            with torch.autograd.profiler.record_function('broadcast'):
-                x = x.unsqueeze(1).repeat([1, self.num_ws, 1])
+        #if self.num_ws is not None:
+        #    with torch.autograd.profiler.record_function('broadcast'):
+        #        x = x.unsqueeze(1).repeat([1, self.num_ws, 1])
 
         return x
 
@@ -285,11 +285,9 @@ class SynthesisNetwork(nn.Module):
         out = OutBlock(self.latent_dim, out_channels)
         self.blocks.append(out)
 
-    def forward(self, styles):
+    def forward(self, style):
         x = self.initial_block.expand(styles.shape[0], -1, -1, -1, -1)
-        styles = styles.transpose(0, 1)
-
-        for style, block in zip(styles, self.blocks):
+        for block in self.blocks:
             x = block(x, style)
 
         return torch.tanh(x)
