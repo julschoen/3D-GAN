@@ -266,10 +266,6 @@ class Trainer(object):
                 if self.p.stylegan:
                     ws = self.netG.module.mapping(noise)
                     fake = self.netG.module.synthesis(ws)
-                    print(ws.shape)
-                    print(ws.std(dim=(1,2)))
-                    print(fake.shape)
-                    print(fake.max(dim=(2,3,4)))
                     #fake, ws = self.netG(noise)
                 else:
                     fake = self.netG(noise)
