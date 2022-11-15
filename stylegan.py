@@ -140,7 +140,7 @@ class Conv3DMod(nn.Module):
         weights = w2 * w1
 
         if self.demod:
-            demod = torch.rsqrt((weights.square().sum(dim=(2, 3, 4, 5)) + self.eps)
+            demod = torch.rsqrt(weights.square().sum(dim=(2, 3, 4, 5)) + self.eps)
             weights = weights * demod.reshape(b, -1, 1, 1, 1, 1)
 
         x = x.reshape(1, -1, h, w, d)
