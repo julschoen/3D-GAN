@@ -267,9 +267,9 @@ class Trainer(object):
                     ws = self.netG.module.mapping(noise)
                     fake = self.netG.module.synthesis(ws)
                     print(ws.shape)
-                    print(ws)
+                    print(ws.std(dim=1))
                     print(fake.shape)
-                    print(fake)
+                    print(fake.max(dim=1))
                     #fake, ws = self.netG(noise)
                 else:
                     fake = self.netG(noise)
