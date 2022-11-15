@@ -19,10 +19,6 @@ class Blur(nn.Module):
         f = f.repeat((1,3,1)).reshape(1,3,3,3)
         return filter3d(x, f, normalized=True)
 
-class Flatten(nn.Module):
-    def forward(self, x):
-        return x.reshape(x.shape[0], -1)
-
 class EMA():
     def __init__(self, beta):
         super().__init__()
@@ -328,9 +324,7 @@ class Discriminator(nn.Module):
 
         self.act = nn.LeakyReLU(0.2, inplace=True)
         self.final_conv = nn.Conv3d(chan_last, chan_last, 1, padding=0)
-        self.flatten = Flatten()
-        self.fc = FullyConnectedLayer(latent_dim, chan_last)
-        self.out = FullyConnectedLayer(chan_last, 1)
+        self.out = FullyConnectedLayer(latent_dim, 1)
 
     def forward(self, x):
         b, *_ = x.shape
@@ -339,7 +333,6 @@ class Discriminator(nn.Module):
             x = block(x)
 
         x = self.act(self.final_conv(x))
-        x = self.flatten(x)
-        x = self.fc(x)
+        x = torch.flatten(x, start_dim=1)
         x = self.out(x)
         return x.squeeze()
