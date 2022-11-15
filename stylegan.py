@@ -290,6 +290,7 @@ class SynthesisNetwork(nn.Module):
             is_last = res == self.image_size
 
             if is_last:
+                print('Last')
                 block = OutBlock(
                     self.latent_dim,
                     in_channels
@@ -302,6 +303,9 @@ class SynthesisNetwork(nn.Module):
                     res
                 )
             self.blocks.append(block)
+
+            if is_last:
+                print(in_channels)
 
     def forward(self, styles):
         batch_size = styles.shape[0]
