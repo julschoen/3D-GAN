@@ -227,8 +227,8 @@ class Trainer(object):
 
                         real_out = self.netD(real)
 
-                        errD_real = (nn.ReLU()(1.0 - real_out)).mean()
-                        errD_fake = (nn.ReLU()(1.0 + self.netD(fake))).mean()
+                        errD_real = (nn.ReLU()(1.0 + real_out)).mean()
+                        errD_fake = (nn.ReLU()(1.0 - self.netD(fake))).mean()
                         errD = errD_fake + errD_real
 
                         if self.p.stylegan:
