@@ -8,9 +8,6 @@ import torch.nn.functional as F
 
 #----------------------------------------------------------------------------
 ### Helpers ###
-def normalize_2nd_moment(x, dim=1, eps=1e-8):
-    return x * (x.square().mean(dim=dim, keepdim=True) + eps).rsqrt()
-
 class Blur(nn.Module):
     def __init__(self):
         super().__init__()
@@ -102,10 +99,7 @@ class MappingNetwork(torch.nn.Module):
 
     def forward(self, z, truncation_psi=1, truncation_cutoff=None, skip_w_avg_update=False):
         # Embed, normalize, and concat inputs.
-        x = None
-        with torch.autograd.profiler.record_function('input'):
-            if self.z_dim > 0:
-                x = normalize_2nd_moment(z.to(torch.float32))
+        x = F.normalize(z.squeeze, dim=1)
 
         # Main layers.
         for idx in range(self.num_layers):
