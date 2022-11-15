@@ -53,7 +53,7 @@ class FullyConnectedLayer(torch.nn.Module):
             bias=self.bias * self.bias_gain
         )
 
-        if self.activation is not None and b is not None:
+        if self.activation is not None:
             x = self.activation(x)
         return x
 
