@@ -227,8 +227,8 @@ class Trainer(object):
 
                         real_out = self.netD(real)
 
-                        errD_real = (nn.ReLU()(1.0 + real_out)).mean()
-                        errD_fake = (nn.ReLU()(1.0 - self.netD(fake))).mean()
+                        errD_real = (nn.ReLU()(1.0 - real_out)).mean()
+                        errD_fake = (nn.ReLU()(1.0 + self.netD(fake))).mean()
                         errD = errD_fake + errD_real
 
                         if self.p.stylegan:
@@ -247,7 +247,7 @@ class Trainer(object):
                         errD_real = self.netD(real).mean()
                         errD_fake = self.netD(fake).mean()
                         gradient_penalty = self.calc_gradient_penalty(real.data, fake.data)
-                        errD =  errD_fake-errD_real + gradient_penalty
+                        errD =  errD_fake + errD_real + gradient_penalty
 
                 self.scalerD.scale(errD).backward()
                 self.scalerD.step(self.optimizerD)
