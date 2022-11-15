@@ -99,7 +99,7 @@ class MappingNetwork(torch.nn.Module):
 
     def forward(self, z, truncation_psi=1, truncation_cutoff=None, skip_w_avg_update=False):
         # Embed, normalize, and concat inputs.
-        x = F.normalize(z.squeeze, dim=1)
+        x = F.normalize(z.squeeze(), dim=1)
 
         # Main layers.
         for idx in range(self.num_layers):
