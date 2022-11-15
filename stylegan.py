@@ -274,7 +274,6 @@ class SynthesisNetwork(nn.Module):
         self.latent_dim = w_dim
         self.num_layers = int(log2(self.image_size)-1)
         self.block_resolutions = [2 ** (i+2) for i in range(self.num_layers)]
-        print(self.block_resolutions)
         filters = [network_capacity * (2 ** (i + 1)) for i in range(self.num_layers)][::-1]
         filters[-1] = 1
         channels_dict = {res: min(filters[i], fmap_max) for i, res in enumerate(self.block_resolutions)}
@@ -286,37 +285,23 @@ class SynthesisNetwork(nn.Module):
 
         self.blocks = nn.ModuleList([])
         for i, res in enumerate(self.block_resolutions):
-            print(i)
             in_channels = channels_dict[res//2]
             out_channels = channels_dict[res]
-            is_last = res == self.image_size
-
-            if is_last:
-                print('Last')
-                block = OutBlock(
-                    self.latent_dim,
-                    in_channels
-                )
-            else:
-                block = GeneratorBlock(
-                    self.latent_dim,
-                    in_channels,
-                    out_channels,
-                    res
-                )
+            block = GeneratorBlock(
+                self.latent_dim,
+                in_channels,
+                out_channels,
+                res
+            )
             self.blocks.append(block)
 
-            if is_last:
-                print(res)
+        out = OutBlock(self.latent_dim, out_channels)
+        self.blocks.append(out)
 
     def forward(self, styles):
-        batch_size = styles.shape[0]
-        image_size = self.image_size
-
         x = self.initial_block.expand(batch_size, -1, -1, -1, -1)
-
         styles = styles.transpose(0, 1)
-        print(styles.shape, self.blocks)
+
         for style, block in zip(styles, self.blocks):
             x = block(x, style)
 
