@@ -269,7 +269,7 @@ class Trainer(object):
                     print(ws.shape)
                     print(ws.std(dim=(1,2)))
                     print(fake.shape)
-                    print(fake.max(dim=(1,2,3,4)))
+                    print(fake.max(dim=(2,3,4)))
                     #fake, ws = self.netG(noise)
                 else:
                     fake = self.netG(noise)
