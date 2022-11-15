@@ -347,7 +347,7 @@ class DiscriminatorBlock(nn.Module):
         return x
 
 class Discriminator(nn.Module):
-    def __init__(self, params, image_size=128, network_capacity = 64, fmap_max = 512):
+    def __init__(self, params, image_size=128, network_capacity = 16, fmap_max = 512):
         super().__init__()
         self.p = params
         num_layers = int(log2(image_size))
