@@ -247,7 +247,7 @@ class Trainer(object):
                         errD_real = self.netD(real).mean()
                         errD_fake = self.netD(fake).mean()
                         gradient_penalty = self.calc_gradient_penalty(real.data, fake.data)
-                        errD =  errD_fake + errD_real + gradient_penalty
+                        errD =  errD_fake - errD_real + gradient_penalty
 
                 self.scalerD.scale(errD).backward()
                 self.scalerD.step(self.optimizerD)
@@ -274,7 +274,7 @@ class Trainer(object):
 
                 if self.p.stylegan:
                     num_pixels = fake.shape[2] * fake.shape[3] * fake.shape[4]
-                    pl_noise = torch.randn(fake.shape, device=self.p.device) / np.sqrt(num_pixels)
+                    pl_noise = torch.randn(fake.shape, device=self.p.device) / 128
                     outputs = (fake * pl_noise).sum()
 
                     pl_grads = torch.autograd.grad(outputs=outputs, inputs=ws,
