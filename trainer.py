@@ -264,15 +264,15 @@ class Trainer(object):
                 noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
                             dtype=torch.float, device=self.device)
                 if self.p.stylegan:
-                    #ws = self.netG.module.mapping(noise)
-                    #fake = self.netG.module.synthesis(ws)
-                    fake, ws = self.netG(noise)
+                    ws = self.netG.module.mapping(noise)
+                    fake = self.netG.module.synthesis(ws)
+                    #fake, ws = self.netG(noise)
                 else:
                     fake = self.netG(noise)
 
                 errG = -self.netD(fake).mean()
 
-                if False and self.p.stylegan:
+                if self.p.stylegan:
                     num_pixels = fake.shape[2] * fake.shape[3] * fake.shape[4]
                     pl_noise = torch.randn(fake.shape, device=self.p.device) / 128
                     outputs = (fake * pl_noise).sum()
@@ -297,7 +297,7 @@ class Trainer(object):
                 p.requires_grad = False
             #self.tracker.epoch_end()
 
-            if False and self.p.stylegan:
+            if self.p.stylegan:
                 self.pl_mean = self.pl_length_ema.update_average(self.pl_mean, avg_pl_length)
 
             self.G_losses.append(errG.item())
