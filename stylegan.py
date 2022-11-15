@@ -108,16 +108,16 @@ class Conv3DMod(nn.Module):
         w1 = y[:, None, :, None, None, None]
         w2 = self.weight[None, :, :, :, :, :]
 
-        weights = w2 * w1
+        weights = w2 * (w1+1)
 
         if self.demod:
-            demod = torch.rsqrt(weights.square().sum(dim=(2, 3, 4, 5)) + self.eps)
-            weights = weights * demod.reshape(b, -1, 1, 1, 1, 1)
+            demod = torch.rsqrt(weights.square().sum(dim=(2, 3, 4, 5), keepdim=True) + self.eps)
+            weights = weights * demod
 
         x = x.reshape(1, -1, h, w, d)
 
         _, _, *ws = weights.shape
-        weights = weights.reshape(-1, in_channels, kh, kw, kd)
+        weights = weights.reshape(b * self.filters, *ws)
 
         padding = self._get_same_padding(h, self.kernel, self.dilation, self.stride)
         x = F.conv3d(x, weights, padding=padding, groups=b)
@@ -182,7 +182,7 @@ class SynthesisNetwork(nn.Module):
         filters = [network_capacity * (2**i) for i in range(self.num_layers)][::-1]
 
         channels_dict = {res: min(filters[i], fmap_max) for i, res in enumerate(self.block_resolutions)}
-        print(channels_dict)
+
         init_res = self.block_resolutions[0]
         init_channels = channels_dict[init_res]
         self.initial_block = nn.Parameter(torch.randn((1, init_channels, init_res, init_res, init_res)))
