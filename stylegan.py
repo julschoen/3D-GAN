@@ -135,7 +135,7 @@ class Conv3DMod(nn.Module):
         b, c, h, w, d = x.shape
         
         w1 = y[:, None, :, None, None, None]
-        w2 = self.weight[None, :, :, :, :]
+        w2 = self.weight[None, :, :, :, :, :]
 
         weights = w2 * w1
 
