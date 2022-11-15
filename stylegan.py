@@ -133,6 +133,7 @@ class Conv3DMod(nn.Module):
 
     def forward(self, x, y):
         b, c, h, w, d = x.shape
+        out_channels, in_channels, kh, kw, kd = self.weight.shape
         
         w1 = y[:, None, :, None, None, None]
         w2 = self.weight[None, :, :, :, :, :]
@@ -146,12 +147,12 @@ class Conv3DMod(nn.Module):
         x = x.reshape(1, -1, h, w, d)
 
         _, _, *ws = weights.shape
-        weights = weights.reshape(b * self.filters, *ws)
+        weights = weights.reshape(-1, in_channels, kh, kw, kd)
 
         padding = self._get_same_padding(h, self.kernel, self.dilation, self.stride)
         x = F.conv3d(x, weights, padding=padding, groups=b)
 
-        x = x.reshape(-1, self.filters, h, w, d)
+        x = x.reshape(b, -1, h, w, d)
         return x
 
 class OutBlock(nn.Module):
