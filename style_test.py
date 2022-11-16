@@ -419,7 +419,7 @@ class GeneratorBlock(torch.nn.Module):
         resolution,                         # Resolution of this block.
         img_channels=1,                       # Number of output color channels.
         is_last=False,                            # Is this the last block?
-        architecture        = 'skip',       # Architecture: 'orig', 'skip', 'resnet'.
+        architecture        = 'resnet',       # Architecture: 'orig', 'skip', 'resnet'.
         resample_filter     = [1,3,3,1],    # Low-pass filter to apply when resampling activations.
         use_fp16            = False,        # Use FP16 for this block?
         fp16_channels_last  = False,        # Use channels-last memory format with FP16?
@@ -527,6 +527,7 @@ class SynthesisNetwork(nn.Module):
     def forward(self, styles):
         x = self.initial_block.expand(styles.shape[0], -1, -1, -1, -1)
         styles = styles.transpose(0, 1)
+        print(x.shape)
         for style, block in zip(styles, self.blocks):
             x = block(x, style)
 
