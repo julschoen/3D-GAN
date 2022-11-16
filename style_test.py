@@ -241,12 +241,10 @@ class FullyConnectedLayer(torch.nn.Module):
                 b = b * self.bias_gain
 
         if self.activation == 'linear' and b is not None:
-            # Here
             x = torch.addmm(b.unsqueeze(0), x, w.t())
         else:
             x = x.matmul(w.t())
             x = bias_act(x, b, act=self.activation)
-        print(x.shape)
         return x
 
 #----------------------------------------------------------------------------
@@ -285,12 +283,12 @@ def modulated_conv3d(
 
     # Execute by scaling the activations before and after the convolution.
     if not fused_modconv:
-        x = x * styles.to(x.dtype).reshape(batch_size, -1, 1, 1)
-        x = conv2d_resample.conv2d_resample(x=x, w=weight.to(x.dtype), f=resample_filter, up=up, down=down, padding=padding, flip_weight=flip_weight)
+        x = x * styles.to(x.dtype).reshape(batch_size, -1, 1, 1, 1)
+        x = conv3d_resample(x=x, w=weight.to(x.dtype), f=resample_filter, up=up, down=down, padding=padding, flip_weight=flip_weight)
         if demodulate and noise is not None:
-            x = fma.fma(x, dcoefs.to(x.dtype).reshape(batch_size, -1, 1, 1), noise.to(x.dtype))
+            x = fma.fma(x, dcoefs.to(x.dtype).reshape(batch_size, -1, 1, 1, 1), noise.to(x.dtype))
         elif demodulate:
-            x = x * dcoefs.to(x.dtype).reshape(batch_size, -1, 1, 1)
+            x = x * dcoefs.to(x.dtype).reshape(batch_size, -1, 1, 1, 1)
         elif noise is not None:
             x = x.add_(noise.to(x.dtype))
         return x
