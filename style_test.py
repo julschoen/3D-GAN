@@ -78,7 +78,7 @@ def _upfirdn3d_ref(x, f, up=1, down=1, padding=0, flip_filter=False, gain=1):
     # Validate arguments.
     if f is None:
         f = torch.ones([1, 1, 1], dtype=torch.float32, device=x.device)
-
+    print(x.shape)
     batch_size, num_channels, in_height, in_width, in_depth = x.shape
     upx, upy, upz = _parse_scaling(up)
     downx, downy, downz = _parse_scaling(down)
