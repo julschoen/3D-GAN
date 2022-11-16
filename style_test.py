@@ -7,15 +7,15 @@ from kornia.filters import filter3d
 import torch.nn.functional as F
 
 activation_funcs = {
-    'linear':   func=lambda x: x,
-    'relu':     func=lambda x: torch.nn.functional.relu(x),
-    'lrelu':    func=lambda x: torch.nn.functional.leaky_relu(x, 0.2),
-    'tanh':     func=lambda x: torch.tanh(x),
-    'sigmoid':  func=lambda x: torch.sigmoid(x),
-    'elu':      func=lambda x: torch.nn.functional.elu(x),
-    'selu':     func=lambda x: torch.nn.functional.selu(x),
-    'softplus': func=lambda x: torch.nn.functional.softplus(x),
-    'swish':    func=lambda x: torch.sigmoid(x) * x
+    'linear':   lambda x: x,
+    'relu':     lambda x: torch.nn.functional.relu(x),
+    'lrelu':    lambda x: torch.nn.functional.leaky_relu(x, 0.2),
+    'tanh':     lambda x: torch.tanh(x),
+    'sigmoid':  lambda x: torch.sigmoid(x),
+    'elu':      lambda x: torch.nn.functional.elu(x),
+    'selu':     lambda x: torch.nn.functional.selu(x),
+    'softplus': lambda x: torch.nn.functional.softplus(x),
+    'swish':    lambda x: torch.sigmoid(x) * x
 }
 #----------------------------------------------------------------------------
 
