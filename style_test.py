@@ -170,11 +170,11 @@ def conv3d_resample(x, w, f=None, up=1, down=1, padding=0, groups=1, flip_weight
     if up > 1:
         if groups == 1:
             print(1)
-            w = w.transpose(0, 1)
+            #w = w.transpose(0, 1)
         else:
             print(2)
             w = w.reshape(groups, out_channels // groups, in_channels_per_group, kh, kw, kd)
-            w = w.transpose(1, 2)
+            #w = w.transpose(1, 2)
             w = w.reshape(groups * in_channels_per_group, out_channels // groups, kh, kw, kd)
         px0 -= kw - 1
         px1 -= kw - up
@@ -442,7 +442,7 @@ class GeneratorBlock(torch.nn.Module):
         self.num_torgb = 0
 
         if in_channels == 0:
-            self.const = torch.nn.Parameter(torch.randn([out_channels, resolution, resolution]))
+            self.const = torch.nn.Parameter(torch.randn([out_channels, resolution, resolution, resolution]))
 
         if in_channels != 0:
             self.conv0 = SynthesisLayer(in_channels, out_channels, w_dim=w_dim, resolution=resolution, up=2,
