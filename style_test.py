@@ -227,8 +227,8 @@ class FullyConnectedLayer(torch.nn.Module):
     ):
         super().__init__()
         self.activation = activation
-        self.weight = torch.nn.Parameter(torch.randn([in_features, out_features]) / lr_multiplier)
-        self.bias = torch.nn.Parameter(torch.full([in_features], np.float32(bias_init))) if bias else None
+        self.weight = torch.nn.Parameter(torch.randn([out_features, in_features]) / lr_multiplier)
+        self.bias = torch.nn.Parameter(torch.full([out_features], np.float32(bias_init))) if bias else None
         self.weight_gain = lr_multiplier / np.sqrt(in_features)
         self.bias_gain = lr_multiplier
 
@@ -264,21 +264,17 @@ def modulated_conv3d(
 ):
     batch_size = x.shape[0]
     out_channels, in_channels, kh, kw, kd = weight.shape
-    print(styles.shape)
-    print(weight.shape)
     # Pre-normalize inputs to avoid FP16 overflow.
     if x.dtype == torch.float16 and demodulate:
         weight = weight * (1 / np.sqrt(in_channels * kh * kw * kd) / weight.norm(float('inf'), dim=[1,2,3,4], keepdim=True)) # max_Ikk
         styles = styles / styles.norm(float('inf'), dim=1, keepdim=True) # max_I
 
     # Calculate per-sample weights and demodulation coefficients.
-    print(styles.shape)
-    print(weight.shape)
     w = None
     dcoefs = None
     if demodulate or fused_modconv:
         w = weight.unsqueeze(0) # [NOIkk]
-        w = w * styles.reshape(batch_size, 1, -1) # [NOIkk]
+        w = w * styles.reshape(batch_size, 1, -1, 1, 1) # [NOIkk]
     if demodulate:
         dcoefs = (w.square().sum(dim=[2,3,4]) + 1e-8).rsqrt() # [NO]
     if demodulate and fused_modconv:
@@ -509,9 +505,9 @@ class SynthesisNetwork(nn.Module):
             in_channels = channels_dict[res//2]
             out_channels = channels_dict[res]
             block = GeneratorBlock(
-                self.latent_dim,
                 in_channels,
                 out_channels,
+                self.latent_dim,
                 res
             )
             self.blocks.append(block)
