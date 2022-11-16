@@ -32,9 +32,9 @@ def _parse_scaling(scaling):
         scaling = [scaling, scaling, scaling]
     assert isinstance(scaling, (list, tuple))
     assert all(isinstance(x, int) for x in scaling)
-    sx, sy = scaling
-    assert sx >= 1 and sy >= 1
-    return sx, sy
+    sx, sy, sz = scaling
+    assert sx >= 1 and sy >= 1 and sz >= 1
+    return sx, sy, sz
 
 def _parse_padding(padding):
     if isinstance(padding, int):
