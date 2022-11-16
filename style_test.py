@@ -131,7 +131,7 @@ def conv3d_resample(x, w, f=None, up=1, down=1, padding=0, groups=1, flip_weight
     # Validate arguments.
     out_channels, in_channels_per_group, kh, kw, kd = _get_weight_shape(w)
     fw, fh, fd = _get_filter_size(f)
-    px0, px1, py0, py1, pd0, pd1 = _parse_padding(padding)
+    px0, px1, py0, py1, pz0, pz1 = _parse_padding(padding)
 
     # Adjust padding to account for up/downsampling.
     if up > 1:
@@ -139,11 +139,15 @@ def conv3d_resample(x, w, f=None, up=1, down=1, padding=0, groups=1, flip_weight
         px1 += (fw - up) // 2
         py0 += (fh + up - 1) // 2
         py1 += (fh - up) // 2
+        pz0 += (fd + up - 1) // 2
+        pz1 += (fd - up) // 2
     if down > 1:
         px0 += (fw - down + 1) // 2
         px1 += (fw - down) // 2
         py0 += (fh - down + 1) // 2
         py1 += (fh - down) // 2
+        pz0 += (fd - down + 1) // 2
+        pz1 += (fd - down) // 2
 
     # Fast path: 1x1 convolution with downsampling only => downsample first, then convolve.
     if kw == 1 and kh == 1 and (down > 1 and up == 1):
