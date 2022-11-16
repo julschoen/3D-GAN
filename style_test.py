@@ -326,7 +326,7 @@ class Conv3dLayer(torch.nn.Module):
         self.down = down
         self.resample_filter = torch.Tensor(resample_filter)
         self.resample_filter = self.resample_filter[None, None, :] * self.resample_filter [None, :, None]
-        self.resample_filter = self.resample_filter.repeat((1,3,1)).reshape(1,3,4,4)
+        self.resample_filter = self.resample_filter.repeat((1,3,1)).reshape(3,4,4)
         self.padding = kernel_size // 2
         self.weight_gain = 1 / np.sqrt(in_channels * (kernel_size ** 3))
 
@@ -369,7 +369,7 @@ class SynthesisLayer(torch.nn.Module):
         self.activation = activation
         self.resample_filter = torch.Tensor(resample_filter)
         self.resample_filter = self.resample_filter[None, None, :] * self.resample_filter [None, :, None]
-        self.resample_filter = self.resample_filter.repeat((1,3,1)).reshape(1,3,4,4)
+        self.resample_filter = self.resample_filter.repeat((1,3,1)).reshape(3,4,4)
         self.padding = kernel_size // 2
 
         self.affine = FullyConnectedLayer(w_dim, in_channels, bias_init=1)
@@ -435,7 +435,7 @@ class GeneratorBlock(torch.nn.Module):
         self.channels_last = (use_fp16 and fp16_channels_last)
         self.resample_filter = torch.Tensor(resample_filter)
         self.resample_filter = self.resample_filter[None, None, :] * self.resample_filter [None, :, None]
-        self.resample_filter = self.resample_filter.repeat((1,3,1)).reshape(1,3,4,4)
+        self.resample_filter = self.resample_filter.repeat((1,3,1)).reshape(3,4,4)
         self.num_conv = 0
         self.num_torgb = 0
 
