@@ -11,12 +11,12 @@ import torch.nn.functional as F
 class Blur(nn.Module):
     def __init__(self):
         super().__init__()
-        f = torch.Tensor([1, 3, 1])
+        f = torch.Tensor([1, 3, 3, 1])
         self.register_buffer('f', f)
     def forward(self, x):
         f = self.f
         f = f[None, None, :] * f [None, :, None]
-        f = f.repeat((1,3,1)).reshape(1,3,3,3)
+        f = f.repeat((1,3,1)).reshape(1,3,4,4)
         return filter3d(x, f, normalized=True)
 
 class EMA():
