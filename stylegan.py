@@ -5,6 +5,7 @@ from math import log2
 import math
 from kornia.filters import filter3d
 import torch.nn.functional as F
+from style_test import SynthesisNetwork
 
 #----------------------------------------------------------------------------
 ### Helpers ###
@@ -172,6 +173,7 @@ class GeneratorBlock(nn.Module):
 
         return x
 
+"""
 class SynthesisNetwork(nn.Module):
     def __init__(self, w_dim, img_resolution, network_capacity = 16, fmap_max = 512):
         super().__init__()
@@ -211,7 +213,7 @@ class SynthesisNetwork(nn.Module):
             x = block(x, style)
 
         return torch.tanh(x)
-
+"""
 #----------------------------------------------------------------------------
 ### Generator ###
 class Generator(torch.nn.Module):
