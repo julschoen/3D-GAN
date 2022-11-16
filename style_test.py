@@ -264,13 +264,16 @@ def modulated_conv3d(
 ):
     batch_size = x.shape[0]
     out_channels, in_channels, kh, kw, kd = weight.shape
-
+    print(styles.shape)
+    print(weight.shape)
     # Pre-normalize inputs to avoid FP16 overflow.
     if x.dtype == torch.float16 and demodulate:
         weight = weight * (1 / np.sqrt(in_channels * kh * kw * kd) / weight.norm(float('inf'), dim=[1,2,3,4], keepdim=True)) # max_Ikk
         styles = styles / styles.norm(float('inf'), dim=1, keepdim=True) # max_I
 
     # Calculate per-sample weights and demodulation coefficients.
+    print(styles.shape)
+    print(weight.shape)
     w = None
     dcoefs = None
     if demodulate or fused_modconv:
