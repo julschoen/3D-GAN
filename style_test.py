@@ -82,8 +82,8 @@ def _upfirdn3d_ref(x, f, up=1, down=1, padding=0, flip_filter=False, gain=1):
     """
     # Validate arguments.
     if x.dtype != f.dtype:
-        f.to(x.dtype)
-        f.cuda()
+        f = f.to(x.dtype)
+        f = f.cuda()
 
     if f is None:
         f = torch.ones([1, 1, 1], dtype=x.dtype, device=x.device)
@@ -98,7 +98,7 @@ def _upfirdn3d_ref(x, f, up=1, down=1, padding=0, flip_filter=False, gain=1):
     #x = x.reshape([batch_size, num_channels, in_height * upy, in_width * upx, in_depth * upz])
 
     up = nn.Upsample(scale_factor=(upx, upy, upz), mode='trilinear', align_corners=True)
-    x = up(x).to(f.dtype)
+    x = up(x)
 
     # Pad or crop.
     x = torch.nn.functional.pad(x, [max(padx0, 0), max(padx1, 0), max(pady0, 0), max(pady1, 0), max(padz0, 0), max(padz1, 0)])
@@ -115,8 +115,6 @@ def _upfirdn3d_ref(x, f, up=1, down=1, padding=0, flip_filter=False, gain=1):
     # Convolve with the filter.
     f = f[np.newaxis,np.newaxis].repeat([num_channels,num_channels] + [1] * f.ndim)
 
-    f.to(x.dtype)
-    f.cuda()
     x = F.conv3d(x, f)
 
     # Downsample by throwing away pixels.
