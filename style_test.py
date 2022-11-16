@@ -50,6 +50,7 @@ def _parse_padding(padding):
 def _get_filter_size(f):
     if f is None:
         return 1, 1, 1
+    print(f.shape)
     assert isinstance(f, torch.Tensor) and f.ndim in [1, 2, 3]
     fd = f.shape[2]
     fw = f.shape[1]
