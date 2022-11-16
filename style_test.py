@@ -178,10 +178,10 @@ def conv3d_resample(x, w, f=None, up=1, down=1, padding=0, groups=1, flip_weight
 
     if up > 1:
         if groups == 1:
-            #w = w.transpose(0, 1)
+            w = w.transpose(0, 1)
         else:
             w = w.reshape(groups, out_channels // groups, in_channels_per_group, kh, kw, kd)
-            #w = w.transpose(1, 2)
+            w = w.transpose(1, 2)
             w = w.reshape(groups * in_channels_per_group, out_channels // groups, kh, kw, kd)
         px0 -= kw - 1
         px1 -= kw - up
