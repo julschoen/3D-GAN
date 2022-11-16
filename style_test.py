@@ -71,7 +71,7 @@ def _conv3d_wrapper(x, w, stride=1, padding=0, groups=1, transpose=False, flip_w
 
     if transpose:
         op = F.conv_transpose3d
-        w = w.T()
+        w = w.t()
     else:
         op = F.conv3d
 
