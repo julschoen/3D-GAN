@@ -407,21 +407,19 @@ class GeneratorBlock(torch.nn.Module):
 
         if in_channels != 0:
             self.conv0 = SynthesisLayer(in_channels, out_channels, w_dim=w_dim, resolution=resolution, up=2,
-                resample_filter=resample_filter, channels_last=self.channels_last, **layer_kwargs)
+                resample_filter=resample_filter, **layer_kwargs)
             self.num_conv += 1
 
-        self.conv1 = SynthesisLayer(out_channels, out_channels, w_dim=w_dim, resolution=resolution,
-            channels_last=self.channels_last, **layer_kwargs)
+        self.conv1 = SynthesisLayer(out_channels, out_channels, w_dim=w_dim, resolution=resolution, **layer_kwargs)
         self.num_conv += 1
 
         if is_last or architecture == 'skip':
-            self.torgb = OutBlock(out_channels, img_channels, w_dim=w_dim,
-                channels_last=self.channels_last)
+            self.torgb = OutBlock(out_channels, img_channels, w_dim=w_dim)
             self.num_torgb += 1
 
         if in_channels != 0 and architecture == 'resnet':
             self.skip = Conv3dLayer(in_channels, out_channels, kernel_size=1, bias=False, up=2,
-                resample_filter=resample_filter, channels_last=self.channels_last)
+                resample_filter=resample_filter)
 
     def forward(self, x, img, ws, force_fp32=False, fused_modconv=None, **layer_kwargs):
         if fused_modconv is None:
