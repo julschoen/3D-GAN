@@ -100,6 +100,7 @@ def _upfirdn3d_ref(x, f, up=1, down=1, padding=0, flip_filter=False, gain=1):
         f = f.flip(list(range(f.ndim)))
 
     # Convolve with the filter.
+    print(f.shape)
     f = f[np.newaxis, np.newaxis].repeat([num_channels] + [1] * f.ndim)
     x = F.conv3d(x, f)
 
