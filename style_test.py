@@ -274,6 +274,8 @@ def modulated_conv3d(
     dcoefs = None
     if demodulate or fused_modconv:
         w = weight.unsqueeze(0) # [NOIkk]
+        print(w.shape)
+        print(styles.shape)
         w = w * styles.reshape(batch_size, 1, -1, 1, 1) # [NOIkk]
     if demodulate:
         dcoefs = (w.square().sum(dim=[2,3,4]) + 1e-8).rsqrt() # [NO]
