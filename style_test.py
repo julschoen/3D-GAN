@@ -97,7 +97,7 @@ def _upfirdn3d_ref(x, f, up=1, down=1, padding=0, flip_filter=False, gain=1):
     #x = x.reshape([batch_size, num_channels, in_height * upy, in_width * upx, in_depth * upz])
 
     up = nn.Upsample(scale_factor=(upx, upy, upz), mode='trilinear', align_corners=True)
-    x = up(x)
+    x = up(x).to(f.dtype)
 
     # Pad or crop.
     x = torch.nn.functional.pad(x, [max(padx0, 0), max(padx1, 0), max(pady0, 0), max(pady1, 0), max(padz0, 0), max(padz1, 0)])
