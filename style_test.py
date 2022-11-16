@@ -281,14 +281,12 @@ class Conv3dLayer(torch.nn.Module):
         up              = 1,            # Integer upsampling factor.
         down            = 1,            # Integer downsampling factor.
         resample_filter = [1,3,3,1],    # Low-pass filter to apply when resampling activations.
-        conv_clamp      = None,         # Clamp the output to +-X, None = disable clamping.
         trainable       = True,         # Update the weights of this layer during training?
     ):
         super().__init__()
         self.activation = activation
         self.up = up
         self.down = down
-        self.conv_clamp = conv_clamp
         self.resample_filter = torch.Tensor(resample_filter)
         self.resample_filter = self.resample_filter[None, None, :] * self.resample_filter [None, :, None]
         self.resample_filter = self.resample_filter.repeat((1,3,1)).reshape(1,3,4,4)
@@ -384,7 +382,6 @@ class GeneratorBlock(torch.nn.Module):
         is_last=False,                            # Is this the last block?
         architecture        = 'skip',       # Architecture: 'orig', 'skip', 'resnet'.
         resample_filter     = [1,3,3,1],    # Low-pass filter to apply when resampling activations.
-        conv_clamp          = None,         # Clamp the output of convolution layers to +-X, None = disable clamping.
         use_fp16            = False,        # Use FP16 for this block?
         fp16_channels_last  = False,        # Use channels-last memory format with FP16?
         **layer_kwargs,                     # Arguments for SynthesisLayer.
@@ -410,16 +407,16 @@ class GeneratorBlock(torch.nn.Module):
 
         if in_channels != 0:
             self.conv0 = SynthesisLayer(in_channels, out_channels, w_dim=w_dim, resolution=resolution, up=2,
-                resample_filter=resample_filter, conv_clamp=conv_clamp, channels_last=self.channels_last, **layer_kwargs)
+                resample_filter=resample_filter, channels_last=self.channels_last, **layer_kwargs)
             self.num_conv += 1
 
         self.conv1 = SynthesisLayer(out_channels, out_channels, w_dim=w_dim, resolution=resolution,
-            conv_clamp=conv_clamp, channels_last=self.channels_last, **layer_kwargs)
+            channels_last=self.channels_last, **layer_kwargs)
         self.num_conv += 1
 
         if is_last or architecture == 'skip':
             self.torgb = OutBlock(out_channels, img_channels, w_dim=w_dim,
-                conv_clamp=conv_clamp, channels_last=self.channels_last)
+                channels_last=self.channels_last)
             self.num_torgb += 1
 
         if in_channels != 0 and architecture == 'resnet':
