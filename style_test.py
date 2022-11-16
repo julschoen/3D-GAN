@@ -221,26 +221,30 @@ class FullyConnectedLayer(torch.nn.Module):
         in_features,                # Number of input features.
         out_features,               # Number of output features.
         bias            = True,     # Apply additive bias before the activation function?
-        activation      = None, # Activation function: 'relu', 'lrelu', etc.
-        lr_multiplier   = 0.01,        # Learning rate multiplier.
+        activation      = 'linear', # Activation function: 'relu', 'lrelu', etc.
+        lr_multiplier   = 1,        # Learning rate multiplier.
         bias_init       = 0,        # Initial value for the additive bias.
     ):
         super().__init__()
         self.activation = activation
-        self.weight = torch.nn.Parameter(torch.randn([in_features, out_features]) * lr_multiplier)
+        self.weight = torch.nn.Parameter(torch.randn([out_features, in_features]) / lr_multiplier)
         self.bias = torch.nn.Parameter(torch.full([out_features], np.float32(bias_init))) if bias else None
         self.weight_gain = lr_multiplier / np.sqrt(in_features)
         self.bias_gain = lr_multiplier
 
     def forward(self, x):
-        x = F.linear(
-            x,
-            self.weight.to(x.dtype) * self.weight_gain,
-            bias=self.bias * self.bias_gain
-        )
+        w = self.weight.to(x.dtype) * self.weight_gain
+        b = self.bias
+        if b is not None:
+            b = b.to(x.dtype)
+            if self.bias_gain != 1:
+                b = b * self.bias_gain
 
-        if self.activation is not None:
-            x = self.activation(x)
+        if self.activation == 'linear' and b is not None:
+            x = torch.addmm(b.unsqueeze(0), x, w.t())
+        else:
+            x = x.matmul(w.t())
+            x = bias_act(x, b, act=self.activation)
         return x
 
 #----------------------------------------------------------------------------
