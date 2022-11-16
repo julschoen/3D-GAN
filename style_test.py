@@ -449,7 +449,6 @@ class GeneratorBlock(torch.nn.Module):
                 resample_filter=resample_filter)
 
     def forward(self, x, ws, img=None, force_fp32=False, fused_modconv=None, **layer_kwargs):
-        w_iter = iter(ws.unbind(dim=1))
         dtype = torch.float16 if self.use_fp16 and not force_fp32 else torch.float32
         if fused_modconv is None:
             fused_modconv = (not self.training) and (dtype == torch.float32 or int(x.shape[0]) == 1)
@@ -460,21 +459,21 @@ class GeneratorBlock(torch.nn.Module):
 
         # Main layers.
         if self.in_channels == 0:
-            x = self.conv1(x, next(w_iter), fused_modconv=fused_modconv, **layer_kwargs)
+            x = self.conv1(x, ws, fused_modconv=fused_modconv, **layer_kwargs)
         elif self.architecture == 'resnet':
             y = self.skip(x, gain=np.sqrt(0.5))
-            x = self.conv0(x, next(w_iter), fused_modconv=fused_modconv, **layer_kwargs)
-            x = self.conv1(x, next(w_iter), fused_modconv=fused_modconv, gain=np.sqrt(0.5), **layer_kwargs)
+            x = self.conv0(x, ws, fused_modconv=fused_modconv, **layer_kwargs)
+            x = self.conv1(x, ws, fused_modconv=fused_modconv, gain=np.sqrt(0.5), **layer_kwargs)
             x = y.add_(x)
         else:
-            x = self.conv0(x, next(w_iter), fused_modconv=fused_modconv, **layer_kwargs)
-            x = self.conv1(x, next(w_iter), fused_modconv=fused_modconv, **layer_kwargs)
+            x = self.conv0(x, ws, fused_modconv=fused_modconv, **layer_kwargs)
+            x = self.conv1(x, ws, fused_modconv=fused_modconv, **layer_kwargs)
 
         # ToRGB.
         if img is not None:
             img = _upfirdn3d_ref(img, self.resample_filter)
         if self.is_last or self.architecture == 'skip':
-            y = self.torgb(x, next(w_iter), fused_modconv=fused_modconv)
+            y = self.torgb(x, ws, fused_modconv=fused_modconv)
             y = y.to(dtype=torch.float32)
             img = img.add_(y) if img is not None else y
 
@@ -516,7 +515,6 @@ class SynthesisNetwork(nn.Module):
     def forward(self, styles):
         x = self.initial_block.expand(styles.shape[0], -1, -1, -1, -1)
         styles = styles.transpose(0, 1)
-        print(styles.shape)
         for style, block in zip(styles, self.blocks):
             x = block(x, style)
 
