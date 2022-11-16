@@ -62,6 +62,10 @@ def _get_filter_size(f):
     assert fw >= 1 and fh >= 1 and fd >=1
     return fw, fh, fd
 
+def _get_weight_shape(w):
+    shape = [int(sz) for sz in w.shape]
+    return shape
+
 def _conv3d_wrapper(x, w, stride=1, padding=0, groups=1, transpose=False, flip_weight=True):
     if not flip_weight: 
         w = w.flip([2, 3, 4])
