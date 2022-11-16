@@ -83,21 +83,25 @@ def _upfirdn3d_ref(x, f, up=1, down=1, padding=0, flip_filter=False, gain=1):
     # Validate arguments.
     if f is None:
         f = torch.ones([1, 1, 1], dtype=torch.float32, device=x.device)
-    print(x.shape)
     batch_size, num_channels, in_height, in_width, in_depth = x.shape
     upx, upy, upz = _parse_scaling(up)
     downx, downy, downz = _parse_scaling(down)
     padx0, padx1, pady0, pady1, padz0, padz1 = _parse_padding(padding)
 
     # Upsample by inserting zeros.
-    x = x.reshape([batch_size, num_channels, in_height, 1, in_width, 1, in_depth, 1])
-    x = torch.nn.functional.pad(x, [0, upx - 1, 0, 0, 0, upy - 1, 0, upz -1])
-    x = x.reshape([batch_size, num_channels, in_height * upy, in_width * upx, in_depth * upz])
-    print(x.shape)
+    #x = x.reshape([batch_size, num_channels, in_height, 1, in_width, 1, in_depth, 1])
+    #x = torch.nn.functional.pad(x, [0, upx - 1, 0, 0, 0, upy - 1, 0, upz -1])
+    #x = x.reshape([batch_size, num_channels, in_height * upy, in_width * upx, in_depth * upz])
+
+    up = nn.Upsample(scale_factor=(upx, upy, upz), mode='trilinear', align_corners=True)
+    x = up(x)
+
     # Pad or crop.
     x = torch.nn.functional.pad(x, [max(padx0, 0), max(padx1, 0), max(pady0, 0), max(pady1, 0), max(padz0, 0), max(padz1, 0)])
     x = x[:, :, max(-pady0, 0) : x.shape[2] - max(-pady1, 0), max(-padx0, 0) : x.shape[3] - max(-padx1, 0), max(-padz0, 0) : x.shape[4] - max(-padz1, 0)]
-    print(x.shape)
+
+    
+
     # Setup filter.
     f = f * (gain ** (f.ndim / 2))
     f = f.to(x.dtype)
@@ -174,10 +178,8 @@ def conv3d_resample(x, w, f=None, up=1, down=1, padding=0, groups=1, flip_weight
 
     if up > 1:
         if groups == 1:
-            print(1)
             #w = w.transpose(0, 1)
         else:
-            print(2)
             w = w.reshape(groups, out_channels // groups, in_channels_per_group, kh, kw, kd)
             #w = w.transpose(1, 2)
             w = w.reshape(groups * in_channels_per_group, out_channels // groups, kh, kw, kd)
@@ -532,7 +534,6 @@ class SynthesisNetwork(nn.Module):
     def forward(self, styles):
         x = self.initial_block.expand(styles.shape[0], -1, -1, -1, -1)
         styles = styles.transpose(0, 1)
-        print(x.shape)
         for style, block in zip(styles, self.blocks):
             x = block(x, style)
 
