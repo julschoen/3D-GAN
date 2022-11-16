@@ -449,9 +449,7 @@ class GeneratorBlock(torch.nn.Module):
                 resample_filter=resample_filter)
 
     def forward(self, x, ws, img=None, force_fp32=False, fused_modconv=None, **layer_kwargs):
-        if fused_modconv is None:
-            with misc.suppress_tracer_warnings(): # this value will be treated as a constant
-                fused_modconv = (not self.training) and (dtype == torch.float32 or int(x.shape[0]) == 1)
+        fused_modconv = False
 
         if self.in_channels == 0:
             x = self.const
