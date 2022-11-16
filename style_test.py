@@ -69,7 +69,12 @@ def _conv3d_wrapper(x, w, stride=1, padding=0, groups=1, transpose=False, flip_w
     if not flip_weight: 
         w = w.flip([2, 3, 4])
 
-    op = F.conv3d if transpose else F.conv_transpose3d
+    if transpose:
+        op = F.conv_transpose3d
+        w = w.T()
+    else:
+        op = F.conv3d
+
     return op(x, w, stride=stride, padding=padding, groups=groups)
 
 def _upfirdn3d_ref(x, f, up=1, down=1, padding=0, flip_filter=False, gain=1):
@@ -468,7 +473,7 @@ class GeneratorBlock(torch.nn.Module):
         if self.in_channels == 0:
             x = self.const
             x = x.unsqueeze(0).repeat([ws.shape[0], 1, 1, 1])
-        print(x.shape)
+
         # Main layers.
         if self.in_channels == 0:
             x = self.conv1(x, ws, fused_modconv=fused_modconv, **layer_kwargs)
