@@ -506,7 +506,7 @@ class SynthesisNetwork(nn.Module):
 
         init_res = self.block_resolutions[0]
         init_channels = channels_dict[init_res]
-        self.initial_block = nn.Parameter(torch.randn((1, init_channels, init_res, init_res, init_res)))
+        self.initial_block = nn.Parameter(torch.randn((1, init_channels, 4, 4, 4)))
         self.block_resolutions = self.block_resolutions[1:]
 
         self.blocks = nn.ModuleList([])
