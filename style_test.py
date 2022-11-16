@@ -50,17 +50,15 @@ def _parse_padding(padding):
 def _get_filter_size(f):
     if f is None:
         return 1, 1, 1
-    print(f.shape)
     assert isinstance(f, torch.Tensor) and f.ndim in [1, 2, 3]
     fd = f.shape[2]
     fw = f.shape[1]
     fh = f.shape[0]
-    with misc.suppress_tracer_warnings():
-        fw = int(fw)
-        fh = int(fh)
-        fd = int(fd)
-    misc.assert_shape(f, [fh, fw, fd][:f.ndim])
-    assert fw >= 1 and fh >= 1 and fd >=1
+    
+    fw = int(fw)
+    fh = int(fh)
+    fd = int(fd)
+ 
     return fw, fh, fd
 
 def _get_weight_shape(w):
@@ -279,8 +277,6 @@ def modulated_conv3d(
     dcoefs = None
     if demodulate or fused_modconv:
         w = weight.unsqueeze(0) # [NOIkk]
-        print(w.shape)
-        print(styles.shape)
         w = w * styles.reshape(batch_size, 1, -1, 1, 1, 1) # [NOIkk]
     if demodulate:
         dcoefs = (w.square().sum(dim=[2,3,4]) + 1e-8).rsqrt() # [NO]
