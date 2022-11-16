@@ -448,7 +448,7 @@ class GeneratorBlock(torch.nn.Module):
             self.skip = Conv3dLayer(in_channels, out_channels, kernel_size=1, bias=False, up=2,
                 resample_filter=resample_filter)
 
-    def forward(self, x, img, ws, force_fp32=False, fused_modconv=None, **layer_kwargs):
+    def forward(self, x, ws, img=None, force_fp32=False, fused_modconv=None, **layer_kwargs):
         if fused_modconv is None:
             with misc.suppress_tracer_warnings(): # this value will be treated as a constant
                 fused_modconv = (not self.training) and (dtype == torch.float32 or int(x.shape[0]) == 1)
