@@ -83,6 +83,7 @@ def _upfirdn3d_ref(x, f, up=1, down=1, padding=0, flip_filter=False, gain=1):
     # Validate arguments.
     if x.dtype != f.dtype:
         f.to(x.dtype)
+        f.cuda()
 
     if f is None:
         f = torch.ones([1, 1, 1], dtype=x.dtype, device=x.device)
@@ -113,6 +114,9 @@ def _upfirdn3d_ref(x, f, up=1, down=1, padding=0, flip_filter=False, gain=1):
 
     # Convolve with the filter.
     f = f[np.newaxis,np.newaxis].repeat([num_channels,num_channels] + [1] * f.ndim)
+    if x.dtype != f.dtype:
+        f.to(x.dtype)
+        f.cuda()
     x = F.conv3d(x, f)
 
     # Downsample by throwing away pixels.
