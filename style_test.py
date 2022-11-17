@@ -774,10 +774,12 @@ class MinibatchStdLayer(torch.nn.Module):
         y = y.square().mean(dim=0)          # [nFcHW]  Calc variance over group.
         y = (y + 1e-8).sqrt()               # [nFcHW]  Calc stddev over group.
         y = y.mean(dim=[2,3,4,5])             # [nF]     Take average over channels and pixels.
+        print(y.shape)
         y = y.reshape(-1, F, 1, 1)          # [nF11]   Add missing dimensions.
-        y = y.repeat(G, 1, H, W, D)            # [NFHW]   Replicate over group and pixels.
+        y = y.repeat(N, 1, H, W, D)            # [NFHW]   Replicate over group and pixels.
         print(y.shape, x.shape)
         x = torch.cat([x, y], dim=1)        # [NCHW]   Append to input as new channels.
+
         return x
 
 #----------------------------------------------------------------------------
@@ -788,7 +790,7 @@ class DiscriminatorEpilogue(torch.nn.Module):
         img_channels,                   # Number of input color channels.
         architecture        = 'resnet', # Architecture: 'orig', 'skip', 'resnet'.
         mbstd_group_size    = 4,        # Group size for the minibatch standard deviation layer, None = entire minibatch.
-        mbstd_num_channels  = 512,        # Number of features for the minibatch standard deviation layer, 0 = disable.
+        mbstd_num_channels  = 1,        # Number of features for the minibatch standard deviation layer, 0 = disable.
         activation          = 'lrelu',  # Activation function: 'relu', 'lrelu', etc.
         conv_clamp          = None,     # Clamp the output of convolution layers to +-X, None = disable clamping.
     ):
@@ -803,7 +805,7 @@ class DiscriminatorEpilogue(torch.nn.Module):
             self.fromrgb = Conv3dLayer(img_channels, in_channels, kernel_size=1, activation=activation)
         self.mbstd = MinibatchStdLayer(group_size=mbstd_group_size, num_channels=mbstd_num_channels) if mbstd_num_channels > 0 else None
         self.conv = Conv3dLayer(in_channels + mbstd_num_channels, in_channels, kernel_size=3, activation=activation)
-        self.fc = FullyConnectedLayer(in_channels * (resolution ** 2), in_channels, activation=activation)
+        self.fc = FullyConnectedLayer(in_channels * (resolution ** 3), in_channels, activation=activation)
         self.out = FullyConnectedLayer(in_channels, 1)
 
     def forward(self, x, img, force_fp32=False):
