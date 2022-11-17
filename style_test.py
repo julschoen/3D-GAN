@@ -635,7 +635,6 @@ class SynthesisNetwork(nn.Module):
             #else:
                 #if img is not None: print(img.shape, x.shape)
             x, img = block(x, style, img=img)
-
         return torch.tanh(img)
 
 #----------------------------------------------------------------------------
@@ -809,7 +808,6 @@ class DiscriminatorEpilogue(torch.nn.Module):
     def forward(self, x, img, force_fp32=False):
         dtype = torch.float32
         memory_format = torch.contiguous_format
-        print(x)
         # FromRGB.
         x = x.to(dtype=dtype, memory_format=memory_format)
         if self.architecture == 'skip':
@@ -869,6 +867,7 @@ class Discriminator(torch.nn.Module):
         x = None
         for res in self.block_resolutions:
             block = getattr(self, f'b{res}')
+            print(x,img)
             x, img = block(x, img, **block_kwargs)
 
         x = self.b4(x, img)
