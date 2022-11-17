@@ -565,6 +565,7 @@ class GeneratorBlock(torch.nn.Module):
         elif self.architecture == 'resnet':
             y = self.skip(x, gain=np.sqrt(0.5))
             x = self.conv0(x, ws, fused_modconv=fused_modconv, **layer_kwargs)
+            return x, x
             x = self.conv1(x, ws, fused_modconv=fused_modconv, gain=np.sqrt(0.5), **layer_kwargs)
             x = y.add_(x)
         else:
