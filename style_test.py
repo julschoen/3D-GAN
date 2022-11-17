@@ -559,7 +559,7 @@ class SynthesisNetwork(nn.Module):
 
         init_res = self.block_resolutions[0]
         init_channels = channels_dict[init_res]
-        self.initial_block = nn.Parameter(torch.randn((1, init_channels, 4, 4, 4)))
+        self.initial_block = nn.Parameter(torch.randn((1, init_channels, init_res, init_res, init_res)))
         self.block_resolutions = self.block_resolutions[1:]
 
         self.blocks = nn.ModuleList([])
@@ -579,6 +579,7 @@ class SynthesisNetwork(nn.Module):
 
     def forward(self, styles):
         x = self.initial_block.expand(styles.shape[0], -1, -1, -1, -1)
+        print(x.shape)
         styles = styles.transpose(0, 1)
         for style, block in zip(styles, self.blocks):
             x = block(x, style)
