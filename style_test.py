@@ -839,10 +839,6 @@ class Discriminator(torch.nn.Module):
         channels_dict = {res: min(channel_base // res, channel_max) for res in self.block_resolutions + [4]}
         fp16_resolution = max(2 ** (self.img_resolution_log2 + 1 - num_fp16_res), 8)
 
-        if cmap_dim is None:
-            cmap_dim = channels_dict[4]
-        if c_dim == 0:
-            cmap_dim = 0
 
         common_kwargs = dict(img_channels=img_channels, architecture=architecture)
         cur_layer_idx = 0
