@@ -704,17 +704,17 @@ class DiscriminatorBlock(torch.nn.Module):
 
         if in_channels == 0 or architecture == 'skip':
             self.fromrgb = Conv3dLayer(img_channels, tmp_channels, kernel_size=1, activation=activation,
-                trainable=next(trainable_iter), conv_clamp=conv_clamp, channels_last=self.channels_last)
+                trainable=next(trainable_iter))
 
         self.conv0 = Conv3dLayer(tmp_channels, tmp_channels, kernel_size=3, activation=activation,
-            trainable=next(trainable_iter), conv_clamp=conv_clamp, channels_last=self.channels_last)
+            trainable=next(trainable_iter))
 
         self.conv1 = Conv3dLayer(tmp_channels, out_channels, kernel_size=3, activation=activation, down=2,
-            trainable=next(trainable_iter), resample_filter=resample_filter, conv_clamp=conv_clamp, channels_last=self.channels_last)
+            trainable=next(trainable_iter), resample_filter=resample_filter)
 
         if architecture == 'resnet':
             self.skip = Conv3dLayer(tmp_channels, out_channels, kernel_size=1, bias=False, down=2,
-                trainable=next(trainable_iter), resample_filter=resample_filter, channels_last=self.channels_last)
+                trainable=next(trainable_iter), resample_filter=resample_filter)
 
     def forward(self, x, img, force_fp32=False):
         dtype = torch.float16 if self.use_fp16 and not force_fp32 else torch.float32
