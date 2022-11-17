@@ -816,8 +816,6 @@ class DiscriminatorEpilogue(torch.nn.Module):
         return x
 
 #----------------------------------------------------------------------------
-
-@persistence.persistent_class
 class Discriminator(torch.nn.Module):
     def __init__(self,
         img_resolution,                 # Input resolution.
