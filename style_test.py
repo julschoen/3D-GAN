@@ -123,10 +123,6 @@ def _upfirdn3d_ref(x, f, up=1, down=1, padding=0, flip_filter=False, gain=1):
     """Slow reference implementation of `upfirdn2d()` using standard PyTorch ops.
     """
     # Validate arguments.
-    if x.dtype != f.dtype:
-        f = f.to(x.dtype)
-        f = f.cuda()
-
     if f is None:
         f = torch.ones([1, 1, 1], dtype=x.dtype, device=x.device)
     batch_size, num_channels, in_height, in_width, in_depth = x.shape
@@ -148,13 +144,12 @@ def _upfirdn3d_ref(x, f, up=1, down=1, padding=0, flip_filter=False, gain=1):
 
     # Setup filter.
     f = f * (gain ** (f.ndim / 2))
-    f = f.to(x.dtype)
     if not flip_filter:
         f = f.flip(list(range(f.ndim)))
 
     # Convolve with the filter.
     f = f[np.newaxis,np.newaxis].repeat([num_channels,num_channels] + [1] * f.ndim)
-
+    f = f.to(dtype=x.dtype, device=x.device)
     x = F.conv3d(x, f)
 
     # Downsample by throwing away pixels.
