@@ -21,7 +21,7 @@ from biggan import Discriminator as BigD #Hihi
 from biggan import Generator as BigG
 from stylegan import Generator as StyleG
 #from stylegan import Discriminator as StyleD
-from style_test import discriminator as StyleD
+from style_test import Discriminator as StyleD
 from stylegan import EMA
 
 
