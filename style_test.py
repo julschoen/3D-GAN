@@ -138,18 +138,17 @@ def _upfirdn3d_ref(x, f, up=1, down=1, padding=0, flip_filter=False, gain=1):
     # Pad or crop.
     x = torch.nn.functional.pad(x, [max(padx0, 0), max(padx1, 0), max(pady0, 0), max(pady1, 0), max(padz0, 0), max(padz1, 0)])
     x = x[:, :, max(-pady0, 0) : x.shape[2] - max(-pady1, 0), max(-padx0, 0) : x.shape[3] - max(-padx1, 0), max(-padz0, 0) : x.shape[4] - max(-padz1, 0)]
-    print(x)
 
     # Setup filter.
     f = f * (gain ** (f.ndim / 2))
     if not flip_filter:
         f = f.flip(list(range(f.ndim)))
-
+    print(f)
     # Convolve with the filter.
     f = f[np.newaxis,np.newaxis].repeat([num_channels,num_channels] + [1] * f.ndim)
     f = f.to(dtype=x.dtype, device=x.device)
     x = F.conv3d(x, f)
-
+    print(x)
     # Downsample by throwing away pixels.
     x = x[:, :, ::downy, ::downx, ::downz]
     return x
