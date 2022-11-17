@@ -768,7 +768,7 @@ class MinibatchStdLayer(torch.nn.Module):
         G = torch.min(torch.as_tensor(self.group_size), torch.as_tensor(N)) if self.group_size is not None else N
         F = self.num_channels
         c = C // F
-
+    4,   
         y = x.reshape(G, -1, F, c, H, W, D)    # [GnFcHW] Split minibatch N into n groups of size G, and channels C into F groups of size c.
         y = y - y.mean(dim=0)               # [GnFcHW] Subtract mean over group.
         y = y.square().mean(dim=0)          # [nFcHW]  Calc variance over group.
@@ -788,7 +788,7 @@ class DiscriminatorEpilogue(torch.nn.Module):
         img_channels,                   # Number of input color channels.
         architecture        = 'resnet', # Architecture: 'orig', 'skip', 'resnet'.
         mbstd_group_size    = 4,        # Group size for the minibatch standard deviation layer, None = entire minibatch.
-        mbstd_num_channels  = 1,        # Number of features for the minibatch standard deviation layer, 0 = disable.
+        mbstd_num_channels  = 512,        # Number of features for the minibatch standard deviation layer, 0 = disable.
         activation          = 'lrelu',  # Activation function: 'relu', 'lrelu', etc.
         conv_clamp          = None,     # Clamp the output of convolution layers to +-X, None = disable clamping.
     ):
