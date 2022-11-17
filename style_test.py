@@ -729,7 +729,18 @@ class DiscriminatorBlock(torch.nn.Module):
             img = img.to(dtype=dtype, memory_format=memory_format)
             y = self.fromrgb(img)
             x = x + y if x is not None else y
-            img = upfirdn2d.downsample2d(img, self.resample_filter) if self.architecture == 'skip' else None
+            down = 2
+            padding = 0
+            downx, downy = _parse_scaling(down)
+            padx0, padx1, pady0, pady1 = _parse_padding(padding)
+            fw, fh = _get_filter_size(f)
+            p = [
+                padx0 + (fw - downx + 1) // 2,
+                padx1 + (fw - downx) // 2,
+                pady0 + (fh - downy + 1) // 2,
+                pady1 + (fh - downy) // 2,
+            ]
+            img = _upfirdn3d_ref(x, f, down=down, padding=p, flip_filter=False) if self.architecture == 'skip' else None
 
         # Main layers.
         if self.architecture == 'resnet':
@@ -834,7 +845,9 @@ class Discriminator(torch.nn.Module):
         self.img_resolution_log2 = int(np.log2(img_resolution))
         self.img_channels = img_channels
         self.block_resolutions = [2 ** i for i in range(self.img_resolution_log2, 2, -1)]
+        print(block_resolutions)
         channels_dict = {res: min(channel_base // res, channel_max) for res in self.block_resolutions + [4]}
+        print(channels_dict)
         fp16_resolution = max(2 ** (self.img_resolution_log2 + 1 - num_fp16_res), 8)
 
 
