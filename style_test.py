@@ -809,7 +809,7 @@ class DiscriminatorEpilogue(torch.nn.Module):
     def forward(self, x, img, force_fp32=False):
         dtype = torch.float32
         memory_format = torch.contiguous_format
-
+        print(x)
         # FromRGB.
         x = x.to(dtype=dtype, memory_format=memory_format)
         if self.architecture == 'skip':
@@ -823,7 +823,7 @@ class DiscriminatorEpilogue(torch.nn.Module):
         x = self.conv(x)
         x = self.fc(x.flatten(1))
         x = self.out(x)
-        print(x)
+
         return x
 
 #----------------------------------------------------------------------------
@@ -847,9 +847,7 @@ class Discriminator(torch.nn.Module):
         self.img_resolution_log2 = int(np.log2(img_resolution))
         self.img_channels = img_channels
         self.block_resolutions = [2 ** i for i in range(self.img_resolution_log2, 2, -1)]
-        print(self.block_resolutions)
         channels_dict = {res: min(channel_base // res, channel_max) for res in self.block_resolutions + [4]}
-        print(channels_dict)
         fp16_resolution = max(2 ** (self.img_resolution_log2 + 1 - num_fp16_res), 8)
 
 
