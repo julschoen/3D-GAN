@@ -775,9 +775,7 @@ class MinibatchStdLayer(torch.nn.Module):
         y = (y + 1e-8).sqrt()               # [nFcHWD]  Calc stddev over group.
         y = y.mean(dim=[2,3,4,5])             # [nF]     Take average over channels and pixels.
         y = y.reshape(-1, F, 1, 1, 1)          # [nF111]   Add missing dimensions.
-        print(y.shape)
         y = y.repeat(G, 1, H, W, D)            # [NFHWD]   Replicate over group and pixels.
-        print(x.shape, y.shape)
         x = torch.cat([x, y], dim=1)        # [NCHWD]   Append to input as new channels.
 
         return x
@@ -825,7 +823,7 @@ class DiscriminatorEpilogue(torch.nn.Module):
         x = self.conv(x)
         x = self.fc(x.flatten(1))
         x = self.out(x)
-
+        print(x)
         return x
 
 #----------------------------------------------------------------------------
