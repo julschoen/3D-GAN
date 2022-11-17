@@ -818,8 +818,9 @@ class DiscriminatorEpilogue(torch.nn.Module):
 #----------------------------------------------------------------------------
 class Discriminator(torch.nn.Module):
     def __init__(self,
-        img_resolution,                 # Input resolution.
-        img_channels,                   # Number of input color channels.
+        params,
+        img_resolution=128,                 # Input resolution.
+        img_channels=1,                   # Number of input color channels.
         architecture        = 'resnet', # Architecture: 'orig', 'skip', 'resnet'.
         channel_base        = 32768,    # Overall multiplier for the number of channels.
         channel_max         = 512,      # Maximum number of channels in any layer.
