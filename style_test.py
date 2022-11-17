@@ -561,7 +561,6 @@ class GeneratorBlock(torch.nn.Module):
         if self.in_channels == 0:
             x = self.const
             x = x.unsqueeze(0).repeat([ws.shape[0], 1, 1, 1])
-        print(x)
         # Main layers.
         if self.in_channels == 0:
             x = self.conv1(x, ws, fused_modconv=fused_modconv, **layer_kwargs)
@@ -572,6 +571,7 @@ class GeneratorBlock(torch.nn.Module):
             x = y.add_(x)
         else:
             x = self.conv0(x, ws, fused_modconv=fused_modconv, **layer_kwargs)
+            print(x)
             x = self.conv1(x, ws, fused_modconv=fused_modconv, **layer_kwargs)
         
         # ToRGB.
