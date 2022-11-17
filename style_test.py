@@ -21,7 +21,6 @@ activation_funcs = {
 
 
 def fma(a, b, c): # => a * b + c
-    print(a.shape, b.shape, c.shape)
     return _FusedMultiplyAdd.apply(a, b, c)
 
 class _FusedMultiplyAdd(torch.autograd.Function): # a * b + c
@@ -247,7 +246,7 @@ def conv3d_resample(x, w, f=None, up=1, down=1, padding=0, groups=1, flip_weight
     # Fast path: no up/downsampling, padding supported by the underlying implementation => use plain conv2d.
     if up == 1 and down == 1:
         if px0 == px1 and py0 == py1 and pz0 == pz1 and px0 >= 0 and py0 >= 0 and pz0 >= 0:
-            return _conv2d_wrapper(x=x, w=w, padding=[pz1,py0,px0], groups=groups, flip_weight=flip_weight)
+            return _conv3d_wrapper(x=x, w=w, padding=[pz1,py0,px0], groups=groups, flip_weight=flip_weight)
 
     # Fallback: Generic reference implementation.
     x = _upfirdn3d_ref(x=x, f=(f if up > 1 else None), up=up, padding=[px0,px1,py0,py1,pz0,pz1], gain=up**2, flip_filter=flip_filter)
@@ -338,7 +337,6 @@ def modulated_conv3d(
         w = weight.unsqueeze(0) # [NOIkk]
         w = w * styles.reshape(batch_size, 1, -1, 1, 1, 1) # [NOIkk]
     if demodulate:
-        print(w.shape)
         dcoefs = (w.square().sum(dim=[2,3,4,5]) + 1e-8).rsqrt() # [NO]
     if demodulate and fused_modconv:
         w = w * dcoefs.reshape(batch_size, -1, 1, 1, 1) # [NOIkk]
@@ -580,7 +578,6 @@ class SynthesisNetwork(nn.Module):
 
     def forward(self, styles):
         x = self.initial_block.expand(styles.shape[0], -1, -1, -1, -1)
-        print(x.shape)
         styles = styles.transpose(0, 1)
         for style, block in zip(styles, self.blocks):
             x = block(x, style)
