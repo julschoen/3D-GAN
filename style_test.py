@@ -594,7 +594,7 @@ class SynthesisNetwork(nn.Module):
             #    x = block(img, style)
             #else:
                 #if img is not None: print(img.shape, x.shape)
-            print(img)
+            print(x)
             x, img = block(x, style, img=img)
         print(x.shape)
         print(img)
