@@ -581,7 +581,7 @@ class SynthesisNetwork(nn.Module):
             )
             self.blocks.append(block)
 
-        out = OutBlock(out_channels, 1, w_dim=self.latent_dim)
+        self.out = OutBlock(out_channels, 1, w_dim=self.latent_dim)
 
     def forward(self, styles):
         x = self.initial_block.expand(styles.shape[0], -1, -1, -1, -1)
