@@ -477,13 +477,13 @@ class SynthesisLayer(torch.nn.Module):
     def forward(self, x, w, noise_mode='random', fused_modconv=True, gain=1):
         in_resolution = self.resolution // self.up
         styles = self.affine(w)
-
+        print(styles)
         noise = None
         if self.use_noise and noise_mode == 'random':
             noise = torch.randn([x.shape[0], 1, self.resolution, self.resolution, self.resolution], device=x.device) * self.noise_strength
         if self.use_noise and noise_mode == 'const':
             noise = self.noise_const * self.noise_strength
-
+            
         flip_weight = (self.up == 1) # slightly faster
         x = modulated_conv3d(x=x, weight=self.weight, styles=styles, noise=noise, up=self.up,
             padding=self.padding, resample_filter=self.resample_filter, flip_weight=flip_weight, fused_modconv=fused_modconv)
@@ -571,7 +571,6 @@ class GeneratorBlock(torch.nn.Module):
             x = y.add_(x)
         else:
             x = self.conv0(x, ws, fused_modconv=fused_modconv, **layer_kwargs)
-            print(x)
             x = self.conv1(x, ws, fused_modconv=fused_modconv, **layer_kwargs)
         
         # ToRGB.
