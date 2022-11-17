@@ -582,7 +582,6 @@ class SynthesisNetwork(nn.Module):
             self.blocks.append(block)
 
         out = OutBlock(out_channels, 1, w_dim=self.latent_dim)
-        self.blocks.append(out)
 
     def forward(self, styles):
         x = self.initial_block.expand(styles.shape[0], -1, -1, -1, -1)
@@ -591,7 +590,7 @@ class SynthesisNetwork(nn.Module):
         for style, block in zip(styles, self.blocks):
             x, img = block(x, style, img=img)
 
-        return torch.tanh(x)
+        return torch.tanh(self.out(x))
 
 #----------------------------------------------------------------------------
 ### Generator ###
