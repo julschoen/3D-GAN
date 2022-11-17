@@ -382,8 +382,8 @@ def modulated_conv3d(
         w = w * dcoefs.reshape(batch_size, -1, 1, 1, 1) # [NOIkk]
     # Execute by scaling the activations before and after the convolution.
     if not fused_modconv:
-        print(x)
         x = x * styles.to(x.dtype).reshape(batch_size, -1, 1, 1, 1)
+        print(x)
         x = conv3d_resample(x=x, w=weight.to(x.dtype), f=resample_filter, up=up, down=down, padding=padding, flip_weight=flip_weight)
         if demodulate and noise is not None:
             x = fma(x, dcoefs.to(x.dtype).reshape(batch_size, -1, 1, 1, 1), noise.to(x.dtype))
@@ -565,7 +565,6 @@ class GeneratorBlock(torch.nn.Module):
         elif self.architecture == 'resnet':
             y = self.skip(x, gain=np.sqrt(0.5))
             x = self.conv0(x, ws, fused_modconv=fused_modconv, **layer_kwargs)
-
             x = self.conv1(x, ws, fused_modconv=fused_modconv, gain=np.sqrt(0.5), **layer_kwargs)
             x = y.add_(x)
         else:
