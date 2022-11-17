@@ -833,7 +833,7 @@ class Discriminator(torch.nn.Module):
         img_resolution=128,                 # Input resolution.
         img_channels=1,                   # Number of input color channels.
         architecture        = 'resnet', # Architecture: 'orig', 'skip', 'resnet'.
-        channel_base        = 512,    # Overall multiplier for the number of channels.
+        channel_base        = 4096,    # Overall multiplier for the number of channels.
         channel_max         = 512,      # Maximum number of channels in any layer.
         num_fp16_res        = 0,        # Use FP16 for the N highest resolutions.
         conv_clamp          = None,     # Clamp the output of convolution layers to +-X, None = disable clamping.
