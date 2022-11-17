@@ -595,9 +595,9 @@ class SynthesisNetwork(nn.Module):
             #else:
                 #if img is not None: print(img.shape, x.shape)
             x, img = block(x, style, img=img)
-
-        print(img.shape)
-        return img#torch.tanh(img)
+        print(x.shape)
+        print(img)
+        return torch.tanh(img)
 
 #----------------------------------------------------------------------------
 ### Generator ###
