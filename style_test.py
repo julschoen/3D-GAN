@@ -733,7 +733,7 @@ class DiscriminatorBlock(torch.nn.Module):
             padding = 0
             downx, downy, downz = _parse_scaling(down)
             padx0, padx1, pady0, pady1, padz0, padz1 = _parse_padding(padding)
-            fw, fh, fd = _get_filter_size(f)
+            fw, fh, fd = _get_filter_size(self.resample_filter)
             p = [
                 padx0 + (fw - downx + 1) // 2,
                 padx1 + (fw - downx) // 2,
@@ -742,7 +742,7 @@ class DiscriminatorBlock(torch.nn.Module):
                 padz0 + (fd - downz + 1) // 2,
                 padz1 + (fd - downz) // 2,
             ]
-            img = _upfirdn3d_ref(x, f, down=down, padding=p, flip_filter=False) if self.architecture == 'skip' else None
+            img = _upfirdn3d_ref(x, self.resample_filter, down=down, padding=p, flip_filter=False) if self.architecture == 'skip' else None
 
         # Main layers.
         if self.architecture == 'resnet':
