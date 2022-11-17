@@ -534,6 +534,10 @@ class GeneratorBlock(torch.nn.Module):
         if self.is_last or self.architecture == 'skip':
             y = self.torgb(x, ws, fused_modconv=fused_modconv)
             y = y.to(dtype=torch.float32)
+            if img is not None:
+                print(y.shape, img.shape)
+            else:
+                print(y.shape)
             img = img.add_(y) if img is not None else y
 
         return x, img
