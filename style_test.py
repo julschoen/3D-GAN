@@ -690,7 +690,7 @@ class DiscriminatorBlock(torch.nn.Module):
         self.resample_filter = torch.Tensor(resample_filter)
         self.resample_filter = self.resample_filter[None, None, :] * self.resample_filter [None, :, None]
         self.resample_filter = self.resample_filter.repeat((1,4,1)).reshape(4,4,4)
-        self.resample_filter /= 64
+        self.resample_filter /= self.resample_filter.sum()
 
         self.num_layers = 0
         def trainable_gen():
@@ -868,7 +868,7 @@ class Discriminator(torch.nn.Module):
         for i,res in enumerate(self.block_resolutions):
             block = getattr(self, f'b{res}')
             x, img = block(x, img, **block_kwargs)
-            if i == 1:
+            if i == 2:
                 print(x)
         
         x = self.b4(x, img)
