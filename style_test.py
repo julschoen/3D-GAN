@@ -854,7 +854,7 @@ class Discriminator(torch.nn.Module):
 
         self.b4 = DiscriminatorEpilogue(channels_dict[4], resolution=4, **epilogue_kwargs, **common_kwargs)
 
-    def forward(self, img, c, **block_kwargs):
+    def forward(self, img, **block_kwargs):
         x = None
         for res in self.block_resolutions:
             block = getattr(self, f'b{res}')
