@@ -597,7 +597,7 @@ class SynthesisNetwork(nn.Module):
             x, img = block(x, style, img=img)
 
         print(img.shape)
-        return torch.tanh(img)
+        return img#torch.tanh(img)
 
 #----------------------------------------------------------------------------
 ### Generator ###
