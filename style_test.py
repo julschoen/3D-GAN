@@ -573,7 +573,7 @@ class GeneratorBlock(torch.nn.Module):
         else:
             x = self.conv0(x, ws, fused_modconv=fused_modconv, **layer_kwargs)
             x = self.conv1(x, ws, fused_modconv=fused_modconv, **layer_kwargs)
-        print(x)
+        
         # ToRGB.
         if img is not None:
             up = 2
