@@ -147,7 +147,6 @@ def _upfirdn3d_ref(x, f, up=1, down=1, padding=0, flip_filter=False, gain=1):
     # Convolve with the filter.
     f = f[np.newaxis,np.newaxis].repeat([num_channels,1] + [1] * f.ndim)
     f = f.to(dtype=x.dtype, device=x.device)
-    print(f.shape, f.ndim)
     x = F.conv3d(x, f, groups=num_channels)
     # Downsample by throwing away pixels.
     x = x[:, :, ::downy, ::downx, ::downz]
