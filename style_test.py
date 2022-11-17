@@ -588,16 +588,14 @@ class SynthesisNetwork(nn.Module):
         x = self.initial_block.expand(styles.shape[0], -1, -1, -1, -1)
         styles = styles.transpose(0, 1)
         img = None
+        print(x)
         for i, (style, block) in enumerate(zip(styles, self.blocks)):
             #if i == styles.shape[0]-1:
             #    print(img.shape, x.shape)
             #    x = block(img, style)
             #else:
                 #if img is not None: print(img.shape, x.shape)
-            print(x)
             x, img = block(x, style, img=img)
-        print(x.shape)
-        print(img)
         return torch.tanh(img)
 
 #----------------------------------------------------------------------------
