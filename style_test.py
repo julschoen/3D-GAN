@@ -233,8 +233,8 @@ def conv3d_resample(x, w, f=None, up=1, down=1, padding=0, groups=1, flip_weight
         pxt = max(min(-px0, -px1), 0)
         pyt = max(min(-py0, -py1), 0)
         pzt = max(min(-pz0, -pz1), 0)
-        print(x)
         x = _conv3d_wrapper(x=x, w=w, stride=up, padding=[pyt,pxt,pzt], groups=groups, transpose=True, flip_weight=(not flip_weight))
+        print(x)
         x = _upfirdn3d_ref(x=x, f=f, padding=[px0+pxt,px1+pxt,py0+pyt,py1+pyt,pz0+pzt,pz1+pzt], gain=up**2, flip_filter=flip_filter)
         if down > 1:
             x = _upfirdn3d_ref(x=x, f=f, down=down, flip_filter=flip_filter)
