@@ -380,10 +380,10 @@ def modulated_conv3d(
         dcoefs = (w.square().sum(dim=[2,3,4,5]) + 1e-8).rsqrt() # [NO]
     if demodulate and fused_modconv:
         w = w * dcoefs.reshape(batch_size, -1, 1, 1, 1) # [NOIkk]
-    print(w)
     # Execute by scaling the activations before and after the convolution.
     if not fused_modconv:
         x = x * styles.to(x.dtype).reshape(batch_size, -1, 1, 1, 1)
+        print(x)
         x = conv3d_resample(x=x, w=weight.to(x.dtype), f=resample_filter, up=up, down=down, padding=padding, flip_weight=flip_weight)
         if demodulate and noise is not None:
             x = fma(x, dcoefs.to(x.dtype).reshape(batch_size, -1, 1, 1, 1), noise.to(x.dtype))
