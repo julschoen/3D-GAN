@@ -589,7 +589,7 @@ class SynthesisNetwork(nn.Module):
         styles = styles.transpose(0, 1)
         img = None
         for i, (style, block) in enumerate(zip(styles, self.blocks)):
-            if i == styles.shape[0]:
+            if i == styles.shape[0]-1:
                 x = block(x, style)
             else:
                 x, img = block(x, style, img=img)
