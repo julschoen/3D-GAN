@@ -370,7 +370,7 @@ def modulated_conv3d(
     if x.dtype == torch.float16 and demodulate:
         weight = weight * (1 / np.sqrt(in_channels * kh * kw * kd) / weight.norm(float('inf'), dim=[1,2,3,4], keepdim=True)) # max_Ikk
         styles = styles / styles.norm(float('inf'), dim=1, keepdim=True) # max_I
-
+    print(weight)
     # Calculate per-sample weights and demodulation coefficients.
     w = None
     dcoefs = None
@@ -486,7 +486,6 @@ class SynthesisLayer(torch.nn.Module):
         flip_weight = (self.up == 1) # slightly faster
         x = modulated_conv3d(x=x, weight=self.weight, styles=styles, noise=noise, up=self.up,
             padding=self.padding, resample_filter=self.resample_filter, flip_weight=flip_weight, fused_modconv=fused_modconv)
-        print(x)
         x = bias_act(x, self.bias.to(x.dtype), act=self.activation)
         return x
 
