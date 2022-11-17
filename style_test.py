@@ -867,8 +867,9 @@ class Discriminator(torch.nn.Module):
         x = None
         for res in self.block_resolutions:
             block = getattr(self, f'b{res}')
-            print(x,img)
             x, img = block(x, img, **block_kwargs)
+            print(x)
+            break
 
         x = self.b4(x, img)
         return x
