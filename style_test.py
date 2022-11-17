@@ -139,15 +139,13 @@ def _upfirdn3d_ref(x, f, up=1, down=1, padding=0, flip_filter=False, gain=1):
     #x = x.reshape([batch_size, num_channels, in_height, 1, in_width, 1, in_depth, 1])
     #x = torch.nn.functional.pad(x, [0, upx - 1, 0, 0, 0, upy - 1, 0, upz -1])
     #x = x.reshape([batch_size, num_channels, in_height * upy, in_width * upx, in_depth * upz])
-    print(x.shape)
+
     up = nn.Upsample(scale_factor=(upx, upy, upz), mode='trilinear', align_corners=True)
     x = up(x)
-    print(x.shape)
+
     # Pad or crop.
-    print(padx0, padx1, pady0, pady1, padz0, padz1)
     x = torch.nn.functional.pad(x, [max(padx0, 0), max(padx1, 0), max(pady0, 0), max(pady1, 0), max(padz0, 0), max(padz1, 0)])
     x = x[:, :, max(-pady0, 0) : x.shape[2] - max(-pady1, 0), max(-padx0, 0) : x.shape[3] - max(-padx1, 0), max(-padz0, 0) : x.shape[4] - max(-padz1, 0)]
-    print(x.shape)
 
     # Setup filter.
     f = f * (gain ** (f.ndim / 2))
@@ -162,7 +160,6 @@ def _upfirdn3d_ref(x, f, up=1, down=1, padding=0, flip_filter=False, gain=1):
 
     # Downsample by throwing away pixels.
     x = x[:, :, ::downy, ::downx, ::downz]
-    print(x.shape)
     return x
 
 def conv3d_resample(x, w, f=None, up=1, down=1, padding=0, groups=1, flip_weight=True, flip_filter=False):
