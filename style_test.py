@@ -588,7 +588,7 @@ class SynthesisNetwork(nn.Module):
         x = self.initial_block.expand(styles.shape[0], -1, -1, -1, -1)
         styles = styles.transpose(0, 1)
         img = None
-        print(x)
+        print(styles)
         for i, (style, block) in enumerate(zip(styles, self.blocks)):
             #if i == styles.shape[0]-1:
             #    print(img.shape, x.shape)
