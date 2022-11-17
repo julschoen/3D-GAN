@@ -530,9 +530,19 @@ class GeneratorBlock(torch.nn.Module):
 
         # ToRGB.
         if img is not None:
-            print(img.shape)
-            img = _upfirdn3d_ref(img, self.resample_filter, up=2)
-            print(img.shape)
+            up = 2
+            upx, upy, upz = _parse_scaling(up)
+            padx0, padx1, pady0, pady1, padz0, padz1 = _parse_padding(padding)
+            fw, fh, fd = _get_filter_size(self.resample_filter)
+            p = [
+                padx0 + (fw + upx - 1) // 2,
+                padx1 + (fw - upx) // 2,
+                pady0 + (fh + upy - 1) // 2,
+                pady1 + (fh - upy) // 2,
+                padz0 + (fd + upz - 1) // 2,
+                padz1 + (fd - upz) // 2,
+            ]
+            img = _upfirdn3d_ref(img, self.resample_filter, up=up, padding=p, gain=gain*upx*upy*upz)
         if self.is_last or self.architecture == 'skip':
             y = self.torgb(x, ws, fused_modconv=fused_modconv)
             y = y.to(dtype=torch.float32)
