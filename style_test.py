@@ -703,7 +703,7 @@ class DiscriminatorBlock(torch.nn.Module):
         trainable_iter = trainable_gen()
 
         if in_channels == 0 or architecture == 'skip':
-            self.fromrgb = Conv2dLayer(img_channels, tmp_channels, kernel_size=1, activation=activation,
+            self.fromrgb = Conv3dLayer(img_channels, tmp_channels, kernel_size=1, activation=activation,
                 trainable=next(trainable_iter), conv_clamp=conv_clamp, channels_last=self.channels_last)
 
         self.conv0 = Conv3dLayer(tmp_channels, tmp_channels, kernel_size=3, activation=activation,
