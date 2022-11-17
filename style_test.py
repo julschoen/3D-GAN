@@ -769,16 +769,16 @@ class MinibatchStdLayer(torch.nn.Module):
         F = self.num_channels
         c = C // F
    
-        y = x.reshape(G, -1, F, c, H, W, D)    # [GnFcHW] Split minibatch N into n groups of size G, and channels C into F groups of size c.
-        y = y - y.mean(dim=0)               # [GnFcHW] Subtract mean over group.
-        y = y.square().mean(dim=0)          # [nFcHW]  Calc variance over group.
-        y = (y + 1e-8).sqrt()               # [nFcHW]  Calc stddev over group.
+        y = x.reshape(G, -1, F, c, H, W, D)    # [GnFcHWD] Split minibatch N into n groups of size G, and channels C into F groups of size c.
+        y = y - y.mean(dim=0)               # [GnFcHWD] Subtract mean over group.
+        y = y.square().mean(dim=0)          # [nFcHWD]  Calc variance over group.
+        y = (y + 1e-8).sqrt()               # [nFcHWD]  Calc stddev over group.
         y = y.mean(dim=[2,3,4,5])             # [nF]     Take average over channels and pixels.
-        y = y.reshape(-1, F, 1, 1, 1)          # [nF11]   Add missing dimensions.
+        y = y.reshape(-1, F, 1, 1, 1)          # [nF111]   Add missing dimensions.
         print(y.shape)
-        y = y.repeat(G, 1, H, W, D)            # [NFHW]   Replicate over group and pixels.
+        y = y.repeat(G, 1, H, W, D)            # [NFHWD]   Replicate over group and pixels.
         print(x.shape, y.shape)
-        x = torch.cat([x, y], dim=1)        # [NCHW]   Append to input as new channels.
+        x = torch.cat([x, y], dim=1)        # [NCHWD]   Append to input as new channels.
 
         return x
 
