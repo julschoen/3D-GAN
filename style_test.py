@@ -319,6 +319,7 @@ class MappingNetwork(torch.nn.Module):
     def forward(self, z, truncation_psi=1, truncation_cutoff=None, skip_w_avg_update=False):
         # Embed, normalize, and concat inputs.
         x = None
+        z = z.squeeze()
         with torch.autograd.profiler.record_function('input'):
             if self.z_dim > 0:
                 x = normalize_2nd_moment(z.to(torch.float32))
