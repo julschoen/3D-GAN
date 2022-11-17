@@ -731,14 +731,16 @@ class DiscriminatorBlock(torch.nn.Module):
             x = x + y if x is not None else y
             down = 2
             padding = 0
-            downx, downy = _parse_scaling(down)
-            padx0, padx1, pady0, pady1 = _parse_padding(padding)
-            fw, fh = _get_filter_size(f)
+            downx, downy, downz = _parse_scaling(down)
+            padx0, padx1, pady0, pady1, padz0, padz1 = _parse_padding(padding)
+            fw, fh, fd = _get_filter_size(f)
             p = [
                 padx0 + (fw - downx + 1) // 2,
                 padx1 + (fw - downx) // 2,
                 pady0 + (fh - downy + 1) // 2,
                 pady1 + (fh - downy) // 2,
+                padz0 + (fd - downz + 1) // 2,
+                padz1 + (fd - downz) // 2,
             ]
             img = _upfirdn3d_ref(x, f, down=down, padding=p, flip_filter=False) if self.architecture == 'skip' else None
 
@@ -831,7 +833,7 @@ class Discriminator(torch.nn.Module):
         img_resolution=128,                 # Input resolution.
         img_channels=1,                   # Number of input color channels.
         architecture        = 'resnet', # Architecture: 'orig', 'skip', 'resnet'.
-        channel_base        = 32768,    # Overall multiplier for the number of channels.
+        channel_base        = 512,    # Overall multiplier for the number of channels.
         channel_max         = 512,      # Maximum number of channels in any layer.
         num_fp16_res        = 0,        # Use FP16 for the N highest resolutions.
         conv_clamp          = None,     # Clamp the output of convolution layers to +-X, None = disable clamping.
