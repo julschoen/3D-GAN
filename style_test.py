@@ -148,7 +148,6 @@ def _upfirdn3d_ref(x, f, up=1, down=1, padding=0, flip_filter=False, gain=1):
     f = f[np.newaxis,np.newaxis].repeat([num_channels,num_channels] + [1] * f.ndim)
     f = f.to(dtype=x.dtype, device=x.device)
     x = F.conv3d(x, f)
-    print(x)
     # Downsample by throwing away pixels.
     x = x[:, :, ::downy, ::downx, ::downz]
     return x
@@ -567,7 +566,6 @@ class GeneratorBlock(torch.nn.Module):
             x = y.add_(x)
         else:
             x = self.conv0(x, ws, fused_modconv=fused_modconv, **layer_kwargs)
-            return x, x
             x = self.conv1(x, ws, fused_modconv=fused_modconv, **layer_kwargs)
         
         # ToRGB.
@@ -637,7 +635,7 @@ class SynthesisNetwork(nn.Module):
             #else:
                 #if img is not None: print(img.shape, x.shape)
             x, img = block(x, style, img=img)
-            break
+            
         return torch.tanh(img)
 
 #----------------------------------------------------------------------------
