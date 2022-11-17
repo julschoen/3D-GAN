@@ -5,7 +5,7 @@ from math import log2
 import math
 from kornia.filters import filter3d
 import torch.nn.functional as F
-from style_test import SynthesisNetwork
+from style_test import SynthesisNetwork, MappingNetwork
 
 #----------------------------------------------------------------------------
 ### Helpers ###
@@ -57,7 +57,7 @@ class FullyConnectedLayer(torch.nn.Module):
         if self.activation is not None:
             x = self.activation(x)
         return x
-
+"""
 class MappingNetwork(torch.nn.Module):
     def __init__(self,
         z_dim,                      # Input latent (Z) dimensionality, 0 = no latent.
@@ -85,7 +85,7 @@ class MappingNetwork(torch.nn.Module):
         # Embed, normalize, and concat inputs.
         x = F.normalize(z.squeeze(), dim=1)
         return self.net(x).unsqueeze(1).repeat([1, self.num_ws, 1])
-
+"""
 #----------------------------------------------------------------------------
 ### Synthesis Network ###
 class Conv3DMod(nn.Module):
