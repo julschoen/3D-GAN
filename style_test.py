@@ -581,16 +581,21 @@ class SynthesisNetwork(nn.Module):
             )
             self.blocks.append(block)
 
-        self.out = OutBlock(out_channels, 1, w_dim=self.latent_dim)
+        out = OutBlock(out_channels, 1, w_dim=self.latent_dim)
+        self.blocks.append(out)
 
     def forward(self, styles):
         x = self.initial_block.expand(styles.shape[0], -1, -1, -1, -1)
         styles = styles.transpose(0, 1)
         img = None
-        for style, block in zip(styles, self.blocks):
-            x, img = block(x, style, img=img)
+        for i, (style, block) in enumerate(zip(styles, self.blocks)):
+            if i == styles.shape[0]:
+                x = block(x, style)
+            else:
+                x, img = block(x, style, img=img)
 
-        return torch.tanh(self.out(x))
+
+        return torch.tanh(x)
 
 #----------------------------------------------------------------------------
 ### Generator ###
