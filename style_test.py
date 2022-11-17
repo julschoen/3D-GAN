@@ -140,8 +140,8 @@ def _upfirdn3d_ref(x, f, up=1, down=1, padding=0, flip_filter=False, gain=1):
     x = x[:, :, max(-pady0, 0) : x.shape[2] - max(-pady1, 0), max(-padx0, 0) : x.shape[3] - max(-padx1, 0), max(-padz0, 0) : x.shape[4] - max(-padz1, 0)]
 
     # Setup filter.
-    print(gain ** (f.ndim / 2))
-    f = f * (gain ** (f.ndim / 2))
+    print(gain ** (f.ndim / 3))
+    f = f * (gain ** (f.ndim / 3))
     if not flip_filter:
         f = f.flip(list(range(f.ndim)))
     
