@@ -753,8 +753,7 @@ class DiscriminatorBlock(torch.nn.Module):
         else:
             x = self.conv0(x)
             x = self.conv1(x)
-
-        assert x.dtype == dtype
+            
         return x, img
 
 #----------------------------------------------------------------------------
