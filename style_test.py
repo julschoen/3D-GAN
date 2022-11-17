@@ -561,7 +561,7 @@ class GeneratorBlock(torch.nn.Module):
         if self.in_channels == 0:
             x = self.const
             x = x.unsqueeze(0).repeat([ws.shape[0], 1, 1, 1])
-
+        print(x)
         # Main layers.
         if self.in_channels == 0:
             x = self.conv1(x, ws, fused_modconv=fused_modconv, **layer_kwargs)
@@ -573,7 +573,7 @@ class GeneratorBlock(torch.nn.Module):
         else:
             x = self.conv0(x, ws, fused_modconv=fused_modconv, **layer_kwargs)
             x = self.conv1(x, ws, fused_modconv=fused_modconv, **layer_kwargs)
-
+        print(x)
         # ToRGB.
         if img is not None:
             up = 2
@@ -634,7 +634,6 @@ class SynthesisNetwork(nn.Module):
         x = self.initial_block.expand(styles.shape[0], -1, -1, -1, -1)
         styles = styles.transpose(0, 1)
         img = None
-        print(styles)
         for i, (style, block) in enumerate(zip(styles, self.blocks)):
             #if i == styles.shape[0]-1:
             #    print(img.shape, x.shape)
