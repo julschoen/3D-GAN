@@ -543,7 +543,7 @@ class GeneratorBlock(torch.nn.Module):
                 padz0 + (fd + upz - 1) // 2,
                 padz1 + (fd - upz) // 2,
             ]
-            img = _upfirdn3d_ref(img, self.resample_filter, up=up, padding=p, gain=gain*upx*upy*upz)
+            img = _upfirdn3d_ref(img, self.resample_filter, up=up, padding=p, gain=1*upx*upy*upz)
         if self.is_last or self.architecture == 'skip':
             y = self.torgb(x, ws, fused_modconv=fused_modconv)
             y = y.to(dtype=torch.float32)
