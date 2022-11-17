@@ -21,6 +21,7 @@ activation_funcs = {
 
 
 def fma(a, b, c): # => a * b + c
+    print(a.shape, b.shape, c.shape)
     return _FusedMultiplyAdd.apply(a, b, c)
 
 class _FusedMultiplyAdd(torch.autograd.Function): # a * b + c
