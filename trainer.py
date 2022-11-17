@@ -118,7 +118,7 @@ class Trainer(object):
             self.fixed_test_noise = noise.clone()
     
         with torch.no_grad():
-            if self.p.stylegan:
+            if False and self.p.stylegan:
                 fake, _ = self.netG(self.fixed_test_noise)
                 fake = fake.detach().cpu()
             else:
@@ -220,7 +220,7 @@ class Trainer(object):
                         noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
                                     dtype=torch.float, device=self.device)
 
-                        if self.p.stylegan:
+                        if False and self.p.stylegan:
                             fake, _ = self.netG(noise)
                             real.requires_grad_()
                         else:
