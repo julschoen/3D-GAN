@@ -768,7 +768,7 @@ class MinibatchStdLayer(torch.nn.Module):
         G = torch.min(torch.as_tensor(self.group_size), torch.as_tensor(N)) if self.group_size is not None else N
         F = self.num_channels
         c = C // F
-    4,   
+   
         y = x.reshape(G, -1, F, c, H, W, D)    # [GnFcHW] Split minibatch N into n groups of size G, and channels C into F groups of size c.
         y = y - y.mean(dim=0)               # [GnFcHW] Subtract mean over group.
         y = y.square().mean(dim=0)          # [nFcHW]  Calc variance over group.
