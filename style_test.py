@@ -865,7 +865,6 @@ class Discriminator(torch.nn.Module):
 
     def forward(self, img, **block_kwargs):
         x = None
-        print(img)
         for i,res in enumerate(self.block_resolutions):
             block = getattr(self, f'b{res}')
             x, img = block(x, img, **block_kwargs)
