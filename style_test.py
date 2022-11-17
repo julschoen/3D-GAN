@@ -252,27 +252,7 @@ def conv3d_resample(x, w, f=None, up=1, down=1, padding=0, groups=1, flip_weight
     return x
 
 #----------------------------------------------------------------------------
-### Helpers ###
-class Blur(nn.Module):
-    def __init__(self):
-        super().__init__()
-        f = torch.Tensor([1, 3, 1])
-        self.register_buffer('f', f)
-    def forward(self, x):
-        f = self.f
-        f = f[None, None, :] * f [None, :, None]
-        f = f.repeat((1,3,1)).reshape(1,3,3,3)
-        return filter3d(x, f, normalized=True)
-
-class EMA():
-    def __init__(self, beta):
-        super().__init__()
-        self.beta = beta
-    def update_average(self, old, new):
-        if old is None:
-            return new
-        return old * self.beta + (1 - self.beta) * new
-
+### Mapping Network ###
 class FullyConnectedLayer(torch.nn.Module):
     def __init__(self,
         in_features,                # Number of input features.
@@ -341,7 +321,6 @@ class MappingNetwork(torch.nn.Module):
         x = None
         with torch.autograd.profiler.record_function('input'):
             if self.z_dim > 0:
-                misc.assert_shape(z, [None, self.z_dim])
                 x = normalize_2nd_moment(z.to(torch.float32))
 
         # Main layers.
@@ -370,7 +349,7 @@ class MappingNetwork(torch.nn.Module):
         return x
 
 #----------------------------------------------------------------------------
-### Mapping Network ###
+### Synthesis Blocks ###
 def modulated_conv3d(
     x,                          # Input tensor of shape [batch_size, in_channels, in_height, in_width].
     weight,                     # Weight tensor of shape [out_channels, in_channels, kernel_height, kernel_width].
