@@ -19,9 +19,10 @@ import torchvision.utils as vutils
 from dcgan import Discriminator, Generator
 from biggan import Discriminator as BigD #Hihi
 from biggan import Generator as BigG
-from stylegan import Generator as StyleG
+#from stylegan import Generator as StyleG
 #from stylegan import Discriminator as StyleD
 from style_test import Discriminator as StyleD
+from style_test import Generator as StyleG
 from stylegan import EMA
 
 
