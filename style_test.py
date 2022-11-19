@@ -548,7 +548,7 @@ class SynthesisBlock(torch.nn.Module):
         dtype = torch.float16 if self.use_fp16 and not force_fp32 else torch.float32
         if fused_modconv is None:
             fused_modconv = (not self.training) and (dtype == torch.float32 or int(x.shape[0]) == 1)
-         w_iter = iter(ws.unbind(dim=1))
+        w_iter = iter(ws.unbind(dim=1))
 
         if self.in_channels == 0:
             x = self.const
