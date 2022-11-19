@@ -662,7 +662,7 @@ class Generator(torch.nn.Module):
     def forward(self, z, **synthesis_kwargs):
         ws = self.mapping(z)
         img = self.synthesis(ws, **synthesis_kwargs)
-        return img, ws
+        return torch.tanh(img), ws
 
 #----------------------------------------------------------------------------
 class DiscriminatorBlock(torch.nn.Module):
