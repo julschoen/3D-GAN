@@ -637,7 +637,7 @@ class SynthesisNetwork(torch.nn.Module):
         for res, cur_ws in zip(self.block_resolutions, block_ws):
             block = getattr(self, f'b{res}')
             x, img = block(x, cur_ws, img, **block_kwargs)
-        return img
+        return torch.tanh(img)
 
 #----------------------------------------------------------------------------
 ### Generator ###
@@ -662,7 +662,7 @@ class Generator(torch.nn.Module):
     def forward(self, z, **synthesis_kwargs):
         ws = self.mapping(z)
         img = self.synthesis(ws, **synthesis_kwargs)
-        return torch.tanh(img), ws
+        return img, ws
 
 #----------------------------------------------------------------------------
 class DiscriminatorBlock(torch.nn.Module):
