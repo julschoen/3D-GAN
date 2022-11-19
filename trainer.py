@@ -75,10 +75,8 @@ class Trainer(object):
             self.netD = nn.DataParallel(self.netD)
             self.netG = nn.DataParallel(self.netG)
 
-        self.optimizerD = optim.Adam(self.netD.parameters(), lr=self.p.lrD,
-                                         betas=(0., 0.9))
-        self.optimizerG = optim.Adam(self.netG.parameters(), lr=self.p.lrG,
-                                         betas=(0., 0.9))
+        self.optimizerD = optim.Adam(self.netD.parameters(), lr=self.p.lrD, betas=(0., 0.9))
+        self.optimizerG = optim.Adam(self.netG.parameters(), lr=self.p.lrG, betas=(0., 0.9))
 
         self.scalerD = GradScaler()
         self.scalerG = GradScaler()
@@ -266,9 +264,9 @@ class Trainer(object):
                 noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
                             dtype=torch.float, device=self.device)
                 if self.p.stylegan:
-                    ws = self.netG.module.mapping(noise)
-                    fake = self.netG.module.synthesis(ws)
-                    #fake, ws = self.netG(noise)
+                    #ws = self.netG.module.mapping(noise)
+                    #fake = self.netG.module.synthesis(ws)
+                    fake, ws = self.netG(noise)
                 else:
                     fake = self.netG(noise)
 
