@@ -112,11 +112,7 @@ def _conv3d_wrapper(x, w, stride=1, padding=0, groups=1, transpose=False, flip_w
     if not flip_weight: 
         w = w.flip([2, 3, 4])
 
-    if transpose:
-        op = F.conv_transpose3d
-        #w = w.transpose(0,1)
-    else:
-        op = F.conv3d
+    op = F.conv_transpose3d if transpose else F.conv3d
 
     return op(x, w, stride=stride, padding=padding, groups=groups)
 
@@ -498,7 +494,7 @@ class OutBlock(torch.nn.Module):
         x = bias_act(x, self.bias.to(x.dtype))
         return x
 
-class GeneratorBlock(torch.nn.Module):
+class SynthesisBlock(torch.nn.Module):
     def __init__(self,
         in_channels,                        # Number of input channels, 0 = first block.
         out_channels,                       # Number of output channels.
@@ -552,21 +548,22 @@ class GeneratorBlock(torch.nn.Module):
         dtype = torch.float16 if self.use_fp16 and not force_fp32 else torch.float32
         if fused_modconv is None:
             fused_modconv = (not self.training) and (dtype == torch.float32 or int(x.shape[0]) == 1)
+         w_iter = iter(ws.unbind(dim=1))
 
         if self.in_channels == 0:
             x = self.const
             x = x.unsqueeze(0).repeat([ws.shape[0], 1, 1, 1])
         # Main layers.
         if self.in_channels == 0:
-            x = self.conv1(x, ws, fused_modconv=fused_modconv, **layer_kwargs)
+            x = self.conv1(x, next(w_iter), fused_modconv=fused_modconv, **layer_kwargs)
         elif self.architecture == 'resnet':
             y = self.skip(x, gain=np.sqrt(0.5))
-            x = self.conv0(x, ws, fused_modconv=fused_modconv, **layer_kwargs)
-            x = self.conv1(x, ws, fused_modconv=fused_modconv, gain=np.sqrt(0.5), **layer_kwargs)
+            x = self.conv0(x, next(w_iter), fused_modconv=fused_modconv, **layer_kwargs)
+            x = self.conv1(x, next(w_iter), fused_modconv=fused_modconv, gain=np.sqrt(0.5), **layer_kwargs)
             x = y.add_(x)
         else:
-            x = self.conv0(x, ws, fused_modconv=fused_modconv, **layer_kwargs)
-            x = self.conv1(x, ws, fused_modconv=fused_modconv, **layer_kwargs)
+            x = self.conv0(x, next(w_iter), fused_modconv=fused_modconv, **layer_kwargs)
+            x = self.conv1(x, next(w_iter), fused_modconv=fused_modconv, **layer_kwargs)
         
         # ToRGB.
         if img is not None:
@@ -585,7 +582,7 @@ class GeneratorBlock(torch.nn.Module):
             ]
             img = _upfirdn3d_ref(img, self.resample_filter, up=up, padding=p, gain=1*upx*upy*upz)
         if self.is_last or self.architecture == 'skip':
-            y = self.torgb(x, ws, fused_modconv=fused_modconv)
+            y = self.torgb(x, next(w_iter), fused_modconv=fused_modconv)
             y = y.to(dtype=torch.float32)
             img = img.add_(y) if img is not None else y
 
@@ -593,49 +590,54 @@ class GeneratorBlock(torch.nn.Module):
 
 #----------------------------------------------------------------------------
 ### Synthesis Network ###
-class SynthesisNetwork(nn.Module):
-    def __init__(self, w_dim, img_resolution, network_capacity = 16, fmap_max = 512):
+class SynthesisNetwork(torch.nn.Module):
+    def __init__(self,
+        w_dim,                      # Intermediate latent (W) dimensionality.
+        img_resolution=128,         # Output image resolution.
+        img_channels=1,             # Number of color channels.
+        channel_base= 4096,         # Overall multiplier for the number of channels.
+        channel_max= 512,           # Maximum number of channels in any layer.
+        num_fp16_res= 0,            # Use FP16 for the N highest resolutions.
+        **block_kwargs,             # Arguments for SynthesisBlock.
+    ):
+        assert img_resolution >= 4 and img_resolution & (img_resolution - 1) == 0
         super().__init__()
-        self.image_size = img_resolution
-        self.latent_dim = w_dim
-        self.num_layers = int(log2(self.image_size)-1)
-        self.block_resolutions = [2**(i+2) for i in range(self.num_layers)]
-        filters = [network_capacity * (2**i) for i in range(self.num_layers)][::-1]
+        self.w_dim = w_dim
+        self.img_resolution = img_resolution
+        self.img_resolution_log2 = int(np.log2(img_resolution))
+        self.img_channels = img_channels
+        self.block_resolutions = [2 ** i for i in range(2, self.img_resolution_log2 + 1)]
+        channels_dict = {res: min(channel_base // res, channel_max) for res in self.block_resolutions}
+        fp16_resolution = max(2 ** (self.img_resolution_log2 + 1 - num_fp16_res), 8)
 
-        channels_dict = {res: min(filters[i], fmap_max) for i, res in enumerate(self.block_resolutions)}
-
-        init_res = self.block_resolutions[0]
-        init_channels = channels_dict[init_res]
-        self.initial_block = nn.Parameter(torch.randn((1, init_channels, init_res, init_res, init_res)))
-        self.block_resolutions = self.block_resolutions[1:]
-
-        self.blocks = nn.ModuleList([])
-        for i, res in enumerate(self.block_resolutions):
-            in_channels = channels_dict[res//2]
+        self.num_ws = 0
+        for res in self.block_resolutions:
+            in_channels = channels_dict[res // 2] if res > 4 else 0
             out_channels = channels_dict[res]
-            block = GeneratorBlock(
-                in_channels,
-                out_channels,
-                self.latent_dim,
-                res
-            )
-            self.blocks.append(block)
+            use_fp16 = (res >= fp16_resolution)
+            is_last = (res == self.img_resolution)
+            block = SynthesisBlock(in_channels, out_channels, w_dim=w_dim, resolution=res,
+                img_channels=img_channels, is_last=is_last, use_fp16=use_fp16, **block_kwargs)
+            self.num_ws += block.num_conv
+            if is_last:
+                self.num_ws += block.num_torgb
+            setattr(self, f'b{res}', block)
 
-        #out = OutBlock(out_channels, 1, w_dim=self.latent_dim)
-        #self.blocks.append(out)
+    def forward(self, ws, **block_kwargs):
+        block_ws = []
+        with torch.autograd.profiler.record_function('split_ws'):
+            ws = ws.to(torch.float32)
+            w_idx = 0
+            for res in self.block_resolutions:
+                block = getattr(self, f'b{res}')
+                block_ws.append(ws.narrow(1, w_idx, block.num_conv + block.num_torgb))
+                w_idx += block.num_conv
 
-    def forward(self, styles):
-        x = self.initial_block.expand(styles.shape[0], -1, -1, -1, -1)
-        styles = styles.transpose(0, 1)
-        img = None
-        for i, (style, block) in enumerate(zip(styles, self.blocks)):
-            #if i == styles.shape[0]-1:
-            #    print(img.shape, x.shape)
-            #    x = block(img, style)
-            #else:
-                #if img is not None: print(img.shape, x.shape)
-            x, img = block(x, style, img=img)
-        return torch.tanh(img)
+        x = img = None
+        for res, cur_ws in zip(self.block_resolutions, block_ws):
+            block = getattr(self, f'b{res}')
+            x, img = block(x, img, cur_ws, **block_kwargs)
+        return img
 
 #----------------------------------------------------------------------------
 ### Generator ###
