@@ -283,7 +283,7 @@ class MappingNetwork(torch.nn.Module):
         num_layers      = 8,        # Number of mapping layers.
         layer_features  = None,     # Number of intermediate features in the mapping layers, None = same as w_dim.
         activation      = 'lrelu',  # Activation function: 'relu', 'lrelu', etc.
-        lr_multiplier   = 0.01,     # Learning rate multiplier for the mapping layers.
+        lr_multiplier   = 100,     # Learning rate multiplier for the mapping layers.
         w_avg_beta      = 0.995,    # Decay for tracking the moving average of W during training, None = do not track.
     ):
         super().__init__()
