@@ -58,7 +58,7 @@ class Trainer(object):
             self.netG = Generator(self.p).to(self.device)
         elif self.p.stylegan:
             self.netD = StyleD(self.p).to(self.device)
-            self.netG = StyleG(self.p).to(self.device)
+            self.netG = BigG(self.p).to(self.device)
             self.pl_mean = None
             self.pl_length_ema = EMA(0.99)
         else:
@@ -118,7 +118,7 @@ class Trainer(object):
     
         with torch.no_grad():
             if self.p.stylegan:
-                fake, _ = self.netG(self.fixed_test_noise)
+                fake = self.netG(self.fixed_test_noise)
                 fake = fake.detach().cpu()
             else:
                 fake = self.netG(self.fixed_test_noise).detach().cpu()
@@ -220,7 +220,7 @@ class Trainer(object):
                                     dtype=torch.float, device=self.device)
 
                         if self.p.stylegan:
-                            fake, _ = self.netG(noise)
+                            fake = self.netG(noise)
                             real.requires_grad_()
                         else:
                             fake = self.netG(noise)
@@ -266,7 +266,7 @@ class Trainer(object):
                 if self.p.stylegan:
                     #ws = self.netG.module.mapping(noise)
                     #fake = self.netG.module.synthesis(ws)
-                    fake, ws = self.netG(noise)
+                    fake = self.netG(noise)
                 else:
                     fake = self.netG(noise)
 
