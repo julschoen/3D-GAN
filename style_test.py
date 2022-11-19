@@ -552,7 +552,7 @@ class SynthesisBlock(torch.nn.Module):
 
         if self.in_channels == 0:
             x = self.const
-            x = x.unsqueeze(0).repeat([ws.shape[0], 1, 1, 1])
+            x = x.unsqueeze(0).repeat([ws.shape[0], 1, 1, 1, 1])
         # Main layers.
         if self.in_channels == 0:
             x = self.conv1(x, next(w_iter), fused_modconv=fused_modconv, **layer_kwargs)
