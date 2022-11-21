@@ -22,6 +22,7 @@ from biggan import Discriminator as BigD
 from biggan import Generator as BigG
 from style_test import Discriminator as StyleD
 from style_test import Generator as StyleG
+from style_test import styleGAN_gen as Style1G
 from stylegan import EMA
 
 
@@ -57,7 +58,7 @@ class Trainer(object):
             self.netG = Generator(self.p).to(self.device)
         elif self.p.stylegan:
             self.netD = StyleD(self.p).to(self.device)
-            self.netG = StyleG(self.p).to(self.device)
+            self.netG = Style1G(self.p).to(self.device)
             self.pl_mean = torch.zeros([], device=self.device)
             self.pl_decay=0.01
             self.pl_weight=2
@@ -288,7 +289,7 @@ class Trainer(object):
 
             errG = -self.netD(fake).mean()
 
-            if self.p.stylegan:
+            if False and self.p.stylegan:
                 pl_loss = self.ppl(fake, ws)
                 errG = errG + pl_loss
             
@@ -301,7 +302,7 @@ class Trainer(object):
         
         self.G_losses.append(errG.item())
 
-        self.weight_avg()
+        #self.weight_avg()
 
         return fake
 
