@@ -1,9 +1,6 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from math import log2
-import math
-from kornia.filters import filter3d
 import torch.nn.functional as F
 
 activation_funcs = {
@@ -127,9 +124,10 @@ def _upfirdn3d_ref(x, f, up=1, down=1, padding=0, flip_filter=False, gain=1):
     downx, downy, downz = _parse_scaling(down)
     padx0, padx1, pady0, pady1, padz0, padz1 = _parse_padding(padding)
 
-    # Upsample by inserting zeros.
-    up = nn.Upsample(scale_factor=(upx, upy, upz), mode='trilinear', align_corners=True)
-    x = up(x)
+    # Upsample
+    x = x.reshape([batch_size, num_channels, in_height, 1, in_width, 1, in_depth, 1])
+    x = torch.nn.functional.pad(x, [0, upx - 1, 0, 0, 0, upy - 1, 0, 0, 0, upz -1])
+    x = x.reshape([batch_size, num_channels, in_height * upy, in_width * upx, in_depth * upz])
 
     # Pad or crop.
     x = torch.nn.functional.pad(x, [max(padx0, 0), max(padx1, 0), max(pady0, 0), max(pady1, 0), max(padz0, 0), max(padz1, 0)])
