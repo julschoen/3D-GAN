@@ -871,3 +871,263 @@ class Discriminator(torch.nn.Module):
         
         x = self.b4(x, img)
         return x
+
+#----------------------------------------------------------------------------
+def meanAndStd(f, eps=1e-5):
+    batch_size, num_channels = f.shape[:2]
+    
+    # calculate the standard deviation across all elements per instance per channel
+    feat_var = f.view(batch_size, num_channels, -1).var(dim=2) + eps
+    feat_std = feat_var.sqrt().view(batch_size, num_channels, 1, 1, 1) #re-expand tp the original size
+    
+    # calculate the mean of the feature maps per instance per channel
+    feat_mean = f.view(batch_size, num_channels, -1).mean(dim=2).view(batch_size, num_channels, 1, 1 ,1)
+    return feat_mean, feat_std
+
+def AdaIN(f_content, f_style):
+    
+    # get the shape of the input content feature map
+    f_content_shape = f_content.size()
+    nc = f_content_shape[1]
+    
+    # calculate the instance mean and standard deviation for content
+    content_mean, content_std = meanAndStd(f_content)
+    
+    # split the f_style into the mean and std
+    style_mean = f_style[:,0:nc][:,:,None,None,None].repeat((1,1,f_content_shape[2],f_content_shape[3],f_content_shape[4]))
+    style_std = f_style[:,nc::][:,:,None,None,None].repeat((1,1,f_content_shape[2],f_content_shape[3],f_content_shape[4]))
+
+    # normallise the content features
+    f_content_norm = (f_content - content_mean.expand(f_content_shape)) / content_std.expand(f_content_shape)
+    
+    
+    return f_content_norm * style_std + style_mean
+
+def conditionalSplit(w,swapPoint,layerCtr,alreadySplit):
+    
+    if (layerCtr==swapPoint) & (alreadySplit!=True):
+        
+        w = w[torch.randperm(w.shape[0])] # shuffle along the batch dimension
+        
+    return w
+
+class Self_Attention(nn.Module):
+    def __init__(self,nc_in):
+        super(Self_Attention,self).__init__()
+        self.CBar = nc_in//8
+        
+        self.Wf = nn.Conv3d(in_channels = nc_in , out_channels = self.CBar , kernel_size= 1)
+        self.Wg = nn.Conv3d(in_channels = nc_in , out_channels = self.CBar , kernel_size= 1)
+        self.Wh = nn.Conv3d(in_channels = nc_in , out_channels = self.CBar , kernel_size= 1)
+        self.Wv = nn.Conv3d(in_channels = nc_in//8 , out_channels = nc_in , kernel_size= 1)
+
+        self.gamma = nn.Parameter(torch.zeros(1))        
+
+        self.softmax  = nn.Softmax(dim=-1) 
+    def forward(self,x,singleOutput=True):
+#        print('Self attention!')
+        batch_size, C, W ,H, D = x.size()
+        f  = self.Wf(x).view(batch_size,-1,W*H*D)
+        g =  self.Wg(x).view(batch_size,-1,W*H*D)
+        s =  torch.bmm(f.permute(0,2,1),g)
+        bta = self.softmax(s) 
+        h = self.Wh(x).view(batch_size,-1,W*H*D)
+
+        out = self.Wv(torch.bmm(h,bta.permute(0,2,1)).view(batch_size,self.CBar,W ,H, D))
+        
+        out = self.gamma*out + x
+        
+        if singleOutput == True:
+            return out
+        else:
+            return out, bta
+        
+
+class styleGAN_gen(nn.Module):
+    def __init__(self, params, styleMixing=True, mappingNet=True, SAflag=False):
+        super(styleGAN_gen, self).__init__()
+        self.p = params
+        self.nz = self.p.z_size
+        self.styleMixing = styleMixing
+        self.SAflag = SAflag
+        self.mappingNet = mappingNet
+
+        if self.mappingNet==True:
+            self.latentMapping = nn.Sequential(
+                    nn.Linear(nz,nz),
+                    nn.LeakyReLU(0.2, inplace=True),
+                    nn.Linear(nz,nz),
+                    nn.LeakyReLU(0.2, inplace=True),
+                    nn.Linear(nz,nz),
+                    nn.LeakyReLU(0.2, inplace=True),
+                    nn.Linear(nz,nz),
+                    nn.LeakyReLU(0.2, inplace=True),
+                    nn.Linear(nz,nz),
+                    nn.LeakyReLU(0.2, inplace=True),
+                    nn.Linear(nz,nz),
+                    nn.LeakyReLU(0.2, inplace=True),
+                    nn.Linear(nz,nz),
+                    nn.LeakyReLU(0.2, inplace=True),
+                    nn.Linear(nz,nz),
+                    nn.LeakyReLU(0.2, inplace=True)
+                )
+        
+        self.C1 = nn.Sequential(
+            nn.Conv3d(512, 512, (3,3,3), (1,1,1), (1,1,1), bias=False),
+            nn.LeakyReLU(0.2,inplace=True))
+        
+        self.C2 = nn.Sequential(
+            nn.Conv3d(512, 256, (3,3,3), (1,1,1), (1,1,1), bias=False),
+            nn.LeakyReLU(0.2,inplace=True))
+        
+        self.C3 = nn.Sequential(
+            nn.Conv3d(256, 256, (3,3,3), (1,1,1), (1,1,1), bias=False),
+            nn.LeakyReLU(0.2,inplace=True))
+        
+        self.C4 = nn.Sequential(
+            nn.Conv3d(256, 128, (3,3,3), (1,1,1), (1,1,1), bias=False),
+            nn.LeakyReLU(0.2,inplace=True))
+        
+        self.C5 = nn.Sequential(
+            nn.Conv3d(128, 128, (3,3,3), (1,1,1), (1,1,1), bias=False),
+            nn.LeakyReLU(0.2,inplace=True))
+        
+        self.C6 = nn.Sequential(
+            nn.Conv3d(128, 64, (3,3,3), (1,1,1), (1,1,1), bias=False),
+            nn.LeakyReLU(0.2,inplace=True))
+        
+        self.C7 = nn.Sequential(
+            nn.Conv3d(64, 64, (3,3,3), (1,1,1), (1,1,1), bias=False),
+            nn.LeakyReLU(0.2,inplace=True))
+        
+        if (self.SAflag == True):
+            self.SA = Self_Attention(64)
+        
+        self.C8 = nn.Sequential(
+            nn.Conv3d(64, 32, (3,3,3), (1,1,1), (1,1,1), bias=False),
+            nn.LeakyReLU(0.2,inplace=True))
+
+        self.C9 = nn.Sequential(
+            nn.Conv3d(32, 32, (3,3,3), (1,1,1), (1,1,1), bias=False),
+            nn.LeakyReLU(0.2,inplace=True))
+        
+        self.C10 = nn.Sequential(
+            nn.Conv3d(32, 16, (3,3,3), (1,1,1), (1,1,1), bias=False),
+            nn.LeakyReLU(0.2,inplace=True))
+        
+        self.C_out = nn.Sequential(
+            nn.Conv3d(16, 1, (3,3,3), (1,1,1), (1,1,1), bias=False),
+            nn.Tanh())
+        
+        # affine mappings produce style stds and means (so, need 2x the output channels)
+        self.A1 = nn.Linear(512,2*512)
+        self.A2 = nn.Linear(512,2*512)
+        self.A3 = nn.Linear(512,2*256)
+        self.A4 = nn.Linear(512,2*256)
+        self.A5 = nn.Linear(512,2*128)
+        self.A6 = nn.Linear(512,2*128)
+        self.A7 = nn.Linear(512,2*64)
+        self.A8 = nn.Linear(512,2*64)
+        self.A9 = nn.Linear(512,2*32)
+        self.A10 = nn.Linear(512,2*32)
+        self.A11 = nn.Linear(512,2*16)
+
+    def forward(self, z_in, w_passed=False):
+        batch_size = z_in.shape[0]
+        num_channels = z_in.shape[1]
+        assert num_channels == 512
+        
+        if (self.styleMixing == True) & (self.training == True):
+            swapPoint = torch.randint(6,(1,1,1)).detach().item()
+            alreadySplit = False
+            layerCtr = 0
+        
+        if (self.mappingNet == False) or (w_passed == True):
+            w = torch.squeeze(z_in)
+        else: # if mapping network is in use and w_passed is false, use the mapping network
+            w = self.latentMapping(torch.squeeze(z_in))
+        
+        constIm = torch.ones((batch_size,num_channels,4,4,4)).to(z_in.dtype).to(z_in.device)
+        
+        h = AdaIN(constIm,self.A1(w))        
+       
+        h = self.C1(h)
+        
+        if (self.styleMixing == True) & (self.training == True):
+            w = conditionalSplit(w,swapPoint,layerCtr,alreadySplit)
+            layerCtr += 1
+        
+        h = AdaIN(h,self.A2(w))        
+        
+        h = F.interpolate(h,scale_factor=2)
+        
+        h = self.C2(h)
+        
+        h = AdaIN(h,self.A3(w))  
+        
+        h = self.C3(h)
+
+        if (self.styleMixing == True) & (self.training == True):
+            w = conditionalSplit(w,swapPoint,layerCtr,alreadySplit)
+            layerCtr += 1
+        
+        h = AdaIN(h,self.A4(w))  
+
+        h = F.interpolate(h,scale_factor=2)
+
+        h = self.C4(h)
+
+        h = AdaIN(h,self.A5(w))  
+        
+        h = self.C5(h)
+
+        if (self.styleMixing == True) & (self.training == True):
+            w = conditionalSplit(w,swapPoint,layerCtr,alreadySplit)
+            layerCtr += 1
+        
+        h = AdaIN(h,self.A6(w))  
+
+        h = F.interpolate(h,scale_factor=2)
+ 
+        h = self.C6(h)
+
+        h = AdaIN(h,self.A7(w))  
+
+        h = self.C7(h)
+        
+        if (self.SAflag == True):
+            h, attn = self.SA(h)
+
+        if (self.styleMixing == True) & (self.training == True):
+            w = conditionalSplit(w,swapPoint,layerCtr,alreadySplit)
+            layerCtr += 1
+        
+        h = AdaIN(h,self.A8(w)) 
+        
+        h = F.interpolate(h,scale_factor=2)
+        
+        h = self.C8(h)
+        
+        h = AdaIN(h,self.A9(w))  
+        
+        h = self.C9(h)
+        
+        if (self.styleMixing == True) & (self.training == True):
+            w = conditionalSplit(w,swapPoint,layerCtr,alreadySplit)
+            layerCtr += 1
+        
+        h = AdaIN(h,self.A10(w)) 
+        
+        h = F.interpolate(h,scale_factor=2)
+        
+        h = self.C10(h)
+        
+        if (self.styleMixing == True) & (self.training == True):
+            w = conditionalSplit(w,swapPoint,layerCtr,alreadySplit)
+            layerCtr += 1
+        
+        h = AdaIN(h,self.A11(w))  
+        
+        h = self.C_out(h)
+        
+        return h, w
