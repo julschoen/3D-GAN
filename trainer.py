@@ -4,6 +4,7 @@ import pytorch_fid_wrapper as FID
 import pickle
 import os
 from carbontracker.tracker import CarbonTracker
+import copy
 
 import torch 
 import torch.optim as optim
@@ -60,6 +61,7 @@ class Trainer(object):
             self.pl_mean = torch.zeros([], device=self.device)
             self.pl_decay=0.01
             self.pl_weight=2
+            self.G_ema = copy.deepcopy(self.netG).eval()
         else:
             self.netD = BigD(self.p).to(self.device)
             self.netG = BigG(self.p).to(self.device)
@@ -187,6 +189,7 @@ class Trainer(object):
             gradients = grad(outputs=disc_interpolates,
                              inputs=interpolates,
                              grad_outputs=torch.ones(disc_interpolates.size()).to(self.device),
+                             create_graph=True,
                              retain_graph=True)[0]
 
             gradients = gradients.view(gradients.size(0), -1)
@@ -195,12 +198,99 @@ class Trainer(object):
 
     def ppl(self, gen_img, gen_ws):
         pl_noise = torch.randn_like(gen_img) / np.sqrt(gen_img.shape[2] * gen_img.shape[3])
-        pl_grads = torch.autograd.grad(outputs=[(gen_img * pl_noise).sum()], inputs=[gen_ws], create_graph=True, retain_graph=True, only_inputs=True)[0]
+        pl_grads = torch.autograd.grad(
+            outputs=[(gen_img * pl_noise).sum()], 
+            inputs=[gen_ws],
+            create_graph=False,
+            retain_graph=True,
+            only_inputs=True
+        )[0]
         pl_lengths = pl_grads.square().sum(2).mean(1).sqrt().mean()
         pl_mean = self.pl_mean.lerp(pl_lengths.mean(), self.pl_decay)
         self.pl_mean.copy_(pl_mean.detach())
         pl_penalty = (pl_lengths - pl_mean).square()
         return pl_penalty * self.pl_weight
+
+    def D_step(self, real):
+        for p in self.netD.parameters():
+                p.requires_grad = True
+        
+        self.netD.zero_grad()
+        with autocast():
+            if self.p.hinge:
+                noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
+                            dtype=torch.float, device=self.device)
+
+                if self.p.stylegan:
+                    fake, _ = self.netG(noise)
+                    real.requires_grad_()
+                else:
+                    fake = self.netG(noise)
+
+                real_out = self.netD(real)
+
+                errD_real = (nn.ReLU()(1.0 - real_out)).mean()
+                errD_fake = (nn.ReLU()(1.0 + self.netD(fake))).mean()
+                errD = errD_fake + errD_real
+
+                if self.p.stylegan:
+                    gradients = torch.autograd.grad(outputs=real_out, inputs=real,
+                                           grad_outputs=torch.ones(real_out.size(), device=real.device),
+                                           create_graph=False, retain_graph=True)[0]
+
+                    gradients = gradients.reshape(real.shape[0], -1)
+                    gp = 10 * ((gradients.norm(2, dim=1) - 1) ** 2).mean()
+
+                    errD = errD + gp
+            else:
+                noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
+                                dtype=torch.float, device=self.device)
+                fake = self.netG(noise)
+                errD_real = self.netD(real).mean()
+                errD_fake = self.netD(fake).mean()
+                gradient_penalty = self.calc_gradient_penalty(real.data, fake.data)
+                errD =  errD_fake - errD_real + gradient_penalty
+
+            self.scalerD.scale(errD).backward()
+            self.scalerD.step(self.optimizerD)
+            self.scalerD.update()
+
+        for p in self.netD.parameters():
+            p.requires_grad = False
+
+        self.D_losses.append((errD_real.item(), errD_fake.item()))
+
+    def G_step(self):
+        for p in self.netG.parameters():
+                p.requires_grad = True
+
+        self.netG.zero_grad()
+        with autocast():
+            noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
+                        dtype=torch.float, device=self.device)
+            if self.p.stylegan:
+                ws = self.netG.module.mapping(noise)
+                fake = self.netG.module.synthesis(ws)
+                #fake, ws = self.netG(noise)
+            else:
+                fake = self.netG(noise)
+
+            errG = -self.netD(fake).mean()
+
+            if self.p.stylegan:
+                pl_loss = self.ppl(fake, ws)
+                errG = errG + pl_loss
+            
+        self.scalerG.scale(errG).backward()
+        self.scalerG.step(self.optimizerG)
+        self.scalerG.update()
+
+        for p in self.netG.parameters():
+            p.requires_grad = False
+        
+        self.G_losses.append(errG.item())
+
+        return fake
 
     def train(self):
         step_done = self.start_from_checkpoint()
@@ -216,84 +306,15 @@ class Trainer(object):
         print("Starting Training...")
         for i in range(step_done, self.p.niters):
             #self.tracker.epoch_start()
-            for p in self.netD.parameters():
-                p.requires_grad = True
+
             for _ in range(self.p.iterD):    
                 data = next(gen)
                 real = data.to(self.device).unsqueeze(dim=1)
-                self.netD.zero_grad()
-                with autocast():
-                    if self.p.hinge:
-                        noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
-                                    dtype=torch.float, device=self.device)
+                self.D_step(real)
 
-                        if self.p.stylegan:
-                            fake, _ = self.netG(noise)
-                            real.requires_grad_()
-                        else:
-                            fake = self.netG(noise)
-
-                        real_out = self.netD(real)
-
-                        errD_real = (nn.ReLU()(1.0 - real_out)).mean()
-                        errD_fake = (nn.ReLU()(1.0 + self.netD(fake))).mean()
-                        errD = errD_fake + errD_real
-
-                        if self.p.stylegan:
-                            gradients = torch.autograd.grad(outputs=real_out, inputs=real,
-                                                   grad_outputs=torch.ones(real_out.size(), device=real.device),
-                                                   create_graph=False, retain_graph=True)[0]
-
-                            gradients = gradients.reshape(real.shape[0], -1)
-                            gp = 10 * ((gradients.norm(2, dim=1) - 1) ** 2).mean()
-
-                            errD = errD + gp
-                    else:
-                        noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
-                                        dtype=torch.float, device=self.device)
-                        fake = self.netG(noise)
-                        errD_real = self.netD(real).mean()
-                        errD_fake = self.netD(fake).mean()
-                        gradient_penalty = self.calc_gradient_penalty(real.data, fake.data)
-                        errD =  errD_fake - errD_real + gradient_penalty
-
-                self.scalerD.scale(errD).backward()
-                self.scalerD.step(self.optimizerD)
-                self.scalerD.update()
-
-            for p in self.netD.parameters():
-                p.requires_grad = False
-
-            for p in self.netG.parameters():
-                p.requires_grad = True
-
-            self.netG.zero_grad()
-            with autocast():
-                noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
-                            dtype=torch.float, device=self.device)
-                if self.p.stylegan:
-                    ws = self.netG.module.mapping(noise)
-                    fake = self.netG.module.synthesis(ws)
-                    #fake, ws = self.netG(noise)
-                else:
-                    fake = self.netG(noise)
-
-                errG = -self.netD(fake).mean()
-
-                if self.p.stylegan:
-                    pl_loss = self.ppl(fake, ws)
-                    errG = errG + pl_loss
-                
-            self.scalerG.scale(errG).backward()
-            self.scalerG.step(self.optimizerG)
-            self.scalerG.update()
-
-            for p in self.netG.parameters():
-                p.requires_grad = False
+            fake = self.G_step()
+            
             #self.tracker.epoch_end()
-
-            self.G_losses.append(errG.item())
-            self.D_losses.append((errD_real.item(), errD_fake.item()))
 
             self.log(i, fake, real)
             if i%100 == 0 and i>0:
