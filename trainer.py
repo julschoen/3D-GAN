@@ -266,7 +266,7 @@ class Trainer(object):
 
         self.netG.zero_grad()
         with autocast():
-            noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
+            noise = torch.randn(self.p.batch_size, self.p.z_size, 1, 1,1,
                         dtype=torch.float, device=self.device)
             if self.p.stylegan:
                 ws = self.netG.module.mapping(noise)
