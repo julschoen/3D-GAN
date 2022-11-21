@@ -272,7 +272,7 @@ class Trainer(object):
 
                 errG = -self.netD(fake).mean()
 
-                if False and self.p.stylegan:
+                if self.p.stylegan:
                     num_pixels = fake.shape[2] * fake.shape[3] * fake.shape[4]
                     pl_noise = torch.randn(fake.shape, device=self.p.device) / np.sqrt(num_pixels)
                     outputs = (fake * pl_noise).sum()
@@ -297,7 +297,7 @@ class Trainer(object):
                 p.requires_grad = False
             #self.tracker.epoch_end()
 
-            if False and self.p.stylegan:
+            if self.p.stylegan:
                 self.pl_mean = self.pl_length_ema.update_average(self.pl_mean, avg_pl_length)
 
             self.G_losses.append(errG.item())
