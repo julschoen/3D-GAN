@@ -17,17 +17,14 @@ import torchvision.utils as vutils
 #from torchsummary import summary
 
 from dcgan import Discriminator, Generator
-from biggan import Discriminator as BigD #Hihi
+from biggan import Discriminator as BigD
 from biggan import Generator as BigG
-#from stylegan import Generator as StyleG
-#from stylegan import Discriminator as StyleD
 from style_test import Discriminator as StyleD
 from style_test import Generator as StyleG
 from stylegan import EMA
 
 
 class Trainer(object):
-    def __init__(self, dataset, params):
         ### Misc ###
         self.device = params.device
 
@@ -57,7 +54,7 @@ class Trainer(object):
             self.netD = Discriminator(self.p).to(self.device)
             self.netG = Generator(self.p).to(self.device)
         elif self.p.stylegan:
-            self.netD = BigD(self.p).to(self.device)
+            self.netD = StyleD(self.p).to(self.device)
             self.netG = StyleG(self.p).to(self.device)
             self.pl_mean = None
             self.pl_length_ema = EMA(0.99)
@@ -231,7 +228,7 @@ class Trainer(object):
                         errD_fake = (nn.ReLU()(1.0 + self.netD(fake))).mean()
                         errD = errD_fake + errD_real
 
-                        if False and self.p.stylegan:
+                        if self.p.stylegan:
                             gradients = torch.autograd.grad(outputs=real_out, inputs=real,
                                                    grad_outputs=torch.ones(real_out.size(), device=real.device),
                                                    create_graph=False, retain_graph=True)[0]
