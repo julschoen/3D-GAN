@@ -593,7 +593,7 @@ class SynthesisNetwork(torch.nn.Module):
         w_dim,                      # Intermediate latent (W) dimensionality.
         img_resolution=128,         # Output image resolution.
         img_channels=1,             # Number of color channels.
-        channel_base= 4096,         # Overall multiplier for the number of channels.
+        channel_base= 2048,         # Overall multiplier for the number of channels.
         channel_max= 512,           # Maximum number of channels in any layer.
         num_fp16_res= 0,            # Use FP16 for the N highest resolutions.
         **block_kwargs,             # Arguments for SynthesisBlock.
