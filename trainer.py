@@ -25,6 +25,7 @@ from stylegan import EMA
 
 
 class Trainer(object):
+    def __init__(self, dataset, params):
         ### Misc ###
         self.device = params.device
 
