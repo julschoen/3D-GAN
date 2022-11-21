@@ -196,7 +196,7 @@ class Trainer(object):
     def ppl(self, gen_img, gen_ws):
         pl_noise = torch.randn_like(gen_img) / np.sqrt(gen_img.shape[2] * gen_img.shape[3])
         pl_grads = torch.autograd.grad(outputs=[(gen_img * pl_noise).sum()], inputs=[gen_ws], create_graph=True, retain_graph=True, only_inputs=True)[0]
-        pl_lengths = pl_grads.square().sum(2).mean(1).sqrt()
+        pl_lengths = pl_grads.square().sum(2).mean(1).sqrt().mean()
         pl_mean = self.pl_mean.lerp(pl_lengths.mean(), self.pl_decay)
         self.pl_mean.copy_(pl_mean.detach())
         pl_penalty = (pl_lengths - pl_mean).square()
