@@ -61,7 +61,7 @@ class Trainer(object):
             self.pl_mean = torch.zeros([], device=self.device)
             self.pl_decay=0.01
             self.pl_weight=2
-            self.G_ema = copy.deepcopy(self.netG).eval()
+            self.G_ema_state = self.netG.state_dict()
         else:
             self.netD = BigD(self.p).to(self.device)
             self.netG = BigG(self.p).to(self.device)
@@ -211,6 +211,15 @@ class Trainer(object):
         pl_penalty = (pl_lengths - pl_mean).square()
         return pl_penalty * self.pl_weight
 
+    def weight_avg(self):
+        state = self.netG.state_dict()
+
+        for key in state:
+            state[key] = (state[key] + self.G_ema_state[key]) / 2.
+
+        self.netG.load_state_dict(state)
+        self.G_ema_state = state_dict
+
     def D_step(self, real):
         for p in self.netD.parameters():
                 p.requires_grad = True
@@ -289,6 +298,8 @@ class Trainer(object):
             p.requires_grad = False
         
         self.G_losses.append(errG.item())
+
+        self.weight_avg()
 
         return fake
 
