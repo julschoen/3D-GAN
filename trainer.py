@@ -57,7 +57,7 @@ class Trainer(object):
         elif self.p.stylegan:
             self.netD = StyleD(self.p).to(self.device)
             self.netG = StyleG(self.p).to(self.device)
-            self.pl_mean = torch.zeros([], device=device)
+            self.pl_mean = torch.zeros([], device=self.device)
             self.pl_decay=0.01
             self.pl_weight=2
         else:
