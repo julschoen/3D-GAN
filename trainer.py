@@ -220,7 +220,7 @@ class Trainer(object):
             state[key] = (state[key] + self.G_ema_state[key]) / 2.
 
         self.netG.load_state_dict(state)
-        self.G_ema_state = state_dict
+        self.G_ema_state = state
 
     def D_step(self, real):
         for p in self.netD.parameters():
