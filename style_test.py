@@ -954,21 +954,21 @@ class styleGAN_gen(nn.Module):
 
         if self.mappingNet==True:
             self.latentMapping = nn.Sequential(
-                    nn.Linear(nz,nz),
+                    nn.Linear(self.nz,self.nz),
                     nn.LeakyReLU(0.2, inplace=True),
-                    nn.Linear(nz,nz),
+                    nn.Linear(self.nz,self.nz),
                     nn.LeakyReLU(0.2, inplace=True),
-                    nn.Linear(nz,nz),
+                    nn.Linear(self.nz,self.nz),
                     nn.LeakyReLU(0.2, inplace=True),
-                    nn.Linear(nz,nz),
+                    nn.Linear(self.nz,self.nz),
                     nn.LeakyReLU(0.2, inplace=True),
-                    nn.Linear(nz,nz),
+                    nn.Linear(self.nz,self.nz),
                     nn.LeakyReLU(0.2, inplace=True),
-                    nn.Linear(nz,nz),
+                    nn.Linear(self.nz,self.nz),
                     nn.LeakyReLU(0.2, inplace=True),
-                    nn.Linear(nz,nz),
+                    nn.Linear(self.nz,self.nz),
                     nn.LeakyReLU(0.2, inplace=True),
-                    nn.Linear(nz,nz),
+                    nn.Linear(self.nz,self.nz),
                     nn.LeakyReLU(0.2, inplace=True)
                 )
         
