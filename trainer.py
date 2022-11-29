@@ -289,7 +289,7 @@ class Trainer(object):
 
             errG = -self.netD(fake).mean()
 
-            if False and self.p.stylegan:
+            if self.p.stylegan:
                 pl_loss = self.ppl(fake, ws)
                 errG = errG + pl_loss
             
