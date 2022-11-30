@@ -223,7 +223,7 @@ class Trainer(object):
         self.netG.load_state_dict(state)
         self.G_ema_state = state
 
-    def D_step(self, real):
+    def D_step(self, step, real):
         for p in self.netD.parameters():
                 p.requires_grad = True
         
@@ -235,7 +235,7 @@ class Trainer(object):
 
                 if self.p.stylegan:
                     fake, _ = self.netG(noise)
-                    real.requires_grad_()
+                    #real.requires_grad_()
                 else:
                     fake = self.netG(noise)
 
@@ -245,13 +245,10 @@ class Trainer(object):
                 errD_fake = (nn.ReLU()(1.0 + self.netD(fake))).mean()
                 errD = errD_fake + errD_real
 
-                if self.p.stylegan:
-                    gradients = torch.autograd.grad(outputs=real_out, inputs=real,
-                                           grad_outputs=torch.ones(real_out.size(), device=real.device),
-                                           create_graph=False, retain_graph=True)[0]
-
-                    gradients = gradients.reshape(real.shape[0], -1)
-                    gp = 10 * ((gradients.norm(2, dim=1) - 1) ** 2).mean()
+                if self.p.stylegan and (step % 16) == 0:
+                    r1_grads = torch.autograd.grad(outputs=[real_out.sum()], inputs=[real], create_graph=True, only_inputs=True)[0]
+                    r1_penalty = r1_grads.square().sum([1,2,3])
+                    gp = r1_penalty * 10
 
                     errD = errD + gp
             else:
@@ -272,7 +269,7 @@ class Trainer(object):
 
         self.D_losses.append((errD_real.item(), errD_fake.item()))
 
-    def G_step(self):
+    def G_step(self, step):
         for p in self.netG.parameters():
                 p.requires_grad = True
 
@@ -292,7 +289,7 @@ class Trainer(object):
 
             errG = -self.netD(fake).mean()
 
-            if self.p.stylegan:
+            if self.p.stylegan and (step % 16) == 0:
                 pl_loss = self.ppl(fake, ws)
                 errG = errG + pl_loss
             
@@ -327,9 +324,9 @@ class Trainer(object):
             for _ in range(self.p.iterD):    
                 data = next(gen)
                 real = data.to(self.device).unsqueeze(dim=1)
-                self.D_step(real)
+                self.D_step(i, real)
 
-            fake = self.G_step()
+            fake = self.G_step(i)
             
             #self.tracker.epoch_end()
 
