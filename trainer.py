@@ -20,10 +20,9 @@ import torchvision.utils as vutils
 from dcgan import Discriminator, Generator
 from biggan import Discriminator as BigD
 from biggan import Generator as BigG
-from style_test import Discriminator as StyleD
-from style_test import Generator as StyleG
-from style_test import styleGAN_gen as Style1G
-from stylegan import EMA
+from stylegan import Discriminator as StyleD
+from stylegan import Generator as StyleG
+from stylegan import styleGAN_gen as Style1G
 
 
 class Trainer(object):
