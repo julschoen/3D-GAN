@@ -286,7 +286,7 @@ class Trainer(object):
                 fake, ws = self.netG(noise)
             else:
                 fake = self.netG(noise)
-
+            print(ws)
             errG = -self.netD(fake).mean()
 
             if self.p.stylegan:
