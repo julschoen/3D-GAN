@@ -324,7 +324,7 @@ class Trainer(object):
         print("Starting Training...")
         for i in range(step_done, self.p.niters):
             #self.tracker.epoch_start()
-            if self.stylegan:
+            if self.p.stylegan:
                 data = next(gen)
                 real = data.to(self.device).unsqueeze(dim=1)
                 noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
