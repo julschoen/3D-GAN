@@ -202,7 +202,7 @@ class Trainer(object):
     def ppl(self, gen_img, gen_ws):
         pl_noise = torch.randn_like(gen_img) / np.sqrt(gen_img.shape[2] * gen_img.shape[3])
         pl_grads = torch.autograd.grad(
-            outputs=[(gen_img).sum()], 
+            outputs=[(gen_img * pl_noise).sum()], 
             inputs=[gen_ws],
             create_graph=True,
             retain_graph=True,
@@ -281,9 +281,12 @@ class Trainer(object):
             noise = torch.randn(self.p.batch_size, self.p.z_size, 1, 1,1,
                         dtype=torch.float, device=self.device)
             if self.p.stylegan:
-                #ws = self.netG.module.mapping(noise)
-                #fake = self.netG.module.synthesis(ws)
-                fake, ws = self.netG(noise)
+                if self.p.ngpu > 1:
+                    ws = self.netG.module.mapping(noise)
+                    fake = self.netG.module.synthesis(ws)
+                else:
+                    ws = self.netG.mapping(noise)
+                    fake = self.netG.synthesis(ws)
             else:
                 fake = self.netG(noise)
 
