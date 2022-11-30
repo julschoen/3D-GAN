@@ -23,6 +23,7 @@ from biggan import Generator as BigG
 from stylegan import Discriminator as StyleD
 from stylegan import Generator as StyleG
 from stylegan import styleGAN_gen as Style1G
+from stylegan import StyleGAN2Loss
 
 
 class Trainer(object):
@@ -62,6 +63,7 @@ class Trainer(object):
             self.pl_decay=0.01
             self.pl_weight=2
             self.G_ema_state = self.netG.state_dict()
+            self.loss = StyleGAN2Loss(self.p.device, self.netG.mapping, self.netG.synthesis, self.netD)
         else:
             self.netD = BigD(self.p).to(self.device)
             self.netG = BigG(self.p).to(self.device)
@@ -227,6 +229,7 @@ class Trainer(object):
                 p.requires_grad = True
         
         self.netD.zero_grad()
+        self.optimizerD.zero_grad(set_to_none=True)
         with autocast():
             if self.p.hinge:
                 noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
@@ -311,6 +314,8 @@ class Trainer(object):
         one = torch.FloatTensor([1]).to(self.device)
         mone = one * -1
         gen = self.inf_train_gen()
+        self.netD.requires_grad_(False)
+        self.netG.requires_grad_(False)
         for p in self.netD.parameters():
                 p.requires_grad = False
         for p in self.netG.parameters():
@@ -319,13 +324,45 @@ class Trainer(object):
         print("Starting Training...")
         for i in range(step_done, self.p.niters):
             #self.tracker.epoch_start()
-
-            for _ in range(self.p.iterD):    
+            if self.stylegan:
                 data = next(gen)
                 real = data.to(self.device).unsqueeze(dim=1)
-                self.D_step(i, real)
+                noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
+                        dtype=torch.float, device=self.device)
 
-            fake = self.G_step(i)
+                self.netD.requires_grad_(True)
+                self.netD.zero_grad()
+                self.optimizerD.zero_grad(set_to_none=True)
+
+                errD_real, errD_fake = self.loss.step_D(i, real, noise)
+                self.D_losses.append((errD_real, errD_fake))
+
+                self.optimizerD.step()
+
+                self.netD.requires_grad_(False)
+
+                self.netG.requires_grad_(True)
+                self.netG.zero_grad()
+                self.optimizerG.zero_grad(set_to_none=True)
+
+                noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
+                        dtype=torch.float, device=self.device)
+
+                errG = self.loss.step_G(i, noise)
+
+                self.G_losses.append(errG)
+
+                self.optimizerG.step()
+
+                self.netG.requires_grad_(False)
+
+            else:
+                for _ in range(self.p.iterD):    
+                    data = next(gen)
+                    real = data.to(self.device).unsqueeze(dim=1)
+                    self.D_step(i, real)
+
+                fake = self.G_step(i)
             
             #self.tracker.epoch_end()
 
