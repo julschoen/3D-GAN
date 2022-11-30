@@ -204,7 +204,7 @@ class Trainer(object):
         pl_grads = torch.autograd.grad(
             outputs=[(gen_img * pl_noise).sum()], 
             inputs=[gen_ws],
-            create_graph=False,
+            create_graph=True,
             retain_graph=True,
             only_inputs=True
         )[0]
