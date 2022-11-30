@@ -65,7 +65,7 @@ class StyleGAN2Loss():
 
         return (real_logits * 0 + loss_Dreal + loss_Dr1).mean().mul(gain).item(), loss_Dgen.mean().mul(gain).item()
 
-    def stepG(self, step, gen_z, gain=1):
+    def step_G(self, step, gen_z, gain=1):
         do_Gpl   = (step % 16) == 0
 
         with torch.autograd.profiler.record_function('Gmain_forward'):
