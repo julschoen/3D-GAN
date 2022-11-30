@@ -283,10 +283,10 @@ class Trainer(object):
             if self.p.stylegan:
                 #ws = self.netG.module.mapping(noise)
                 #fake = self.netG.module.synthesis(ws)
-                fake, ws = self.netG(noise)
+                fake, ws = self.netG(noise.requires_grad_())
             else:
                 fake = self.netG(noise)
-            print(ws)
+            print(fake)
             errG = -self.netD(fake).mean()
 
             if self.p.stylegan:
