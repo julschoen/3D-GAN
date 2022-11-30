@@ -93,7 +93,7 @@ class StyleGAN2Loss():
 
         loss = (gen_img[:, 0, 0, 0, 0] * 0 + loss_Gpl).mean().mul(gain) + loss_Gmain.mean().mul(gain) if do_Gpl else loss_Gmain.mean().mul(gain)
 
-        return loss.item()
+        return loss.item(), fake
 
 activation_funcs = {
     'linear':   lambda x: x,
