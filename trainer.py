@@ -235,7 +235,7 @@ class Trainer(object):
 
                 if self.p.stylegan:
                     fake, _ = self.netG(noise)
-                    #real.requires_grad_()
+                    real = real.detach().requires_grad_((step % 16) == 0)
                 else:
                     fake = self.netG(noise)
 
