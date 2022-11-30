@@ -348,7 +348,7 @@ class Trainer(object):
                 noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
                         dtype=torch.float, device=self.device)
 
-                errG = self.loss.step_G(i, noise)
+                errG, fake = self.loss.step_G(i, noise)
 
                 self.G_losses.append(errG)
 
