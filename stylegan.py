@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class StyleGAN2Loss(Loss):
+class StyleGAN2Loss():
     def __init__(self, device, G_mapping, G_synthesis, D, augment_pipe=None, style_mixing_prob=0.9, r1_gamma=10, pl_batch_shrink=2, pl_decay=0.01, pl_weight=2):
         super().__init__()
         self.device = device
@@ -65,7 +65,6 @@ class StyleGAN2Loss(Loss):
 
         return (real_logits * 0 + loss_Dreal + loss_Dr1).mean().mul(gain).item(), loss_Dgen.mean().mul(gain).item()
 
-
     def stepG(self, step, gen_z, gain=1):
         do_Gpl   = (step % 16) == 0
 
@@ -95,9 +94,6 @@ class StyleGAN2Loss(Loss):
         loss = (gen_img[:, 0, 0, 0, 0] * 0 + loss_Gpl).mean().mul(gain) + loss_Gmain.mean().mul(gain) if do_Gpl else loss_Gmain.mean().mul(gain)
 
         return loss.item()
-
-        
-        
 
 activation_funcs = {
     'linear':   lambda x: x,
