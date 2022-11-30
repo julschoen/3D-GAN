@@ -356,6 +356,8 @@ class Trainer(object):
 
                 self.netG.requires_grad_(False)
 
+                self.weight_avg()
+
             else:
                 for _ in range(self.p.iterD):    
                     data = next(gen)
