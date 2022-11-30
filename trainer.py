@@ -247,7 +247,7 @@ class Trainer(object):
 
                 if self.p.stylegan and (step % 16) == 0:
                     r1_grads = torch.autograd.grad(outputs=[real_out.sum()], inputs=[real], create_graph=True, only_inputs=True)[0]
-                    r1_penalty = r1_grads.square().sum([1,2,3,4,5])
+                    r1_penalty = r1_grads.square().sum([1,2,3,4])
                     gp = r1_penalty * 10
 
                     errD = errD + gp
