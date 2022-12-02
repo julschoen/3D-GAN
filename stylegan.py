@@ -685,7 +685,7 @@ class SynthesisNetwork(torch.nn.Module):
         w_dim,                      # Intermediate latent (W) dimensionality.
         img_resolution=128,         # Output image resolution.
         img_channels=1,             # Number of color channels.
-        channel_base= 2048,         # Overall multiplier for the number of channels.
+        channel_base= 4096,         # Overall multiplier for the number of channels.
         channel_max= 512,           # Maximum number of channels in any layer.
         num_fp16_res= 0,            # Use FP16 for the N highest resolutions.
         **block_kwargs,             # Arguments for SynthesisBlock.
@@ -745,7 +745,7 @@ class Generator(torch.nn.Module):
         self.w_dim = w_dim
         self.img_resolution = img_resolution
         self.img_channels = img_channels
-        self.synthesis = SynthesisNetwork(w_dim=self.w_dim, img_resolution=self.img_resolution, **synthesis_kwargs)
+        self.synthesis = SynthesisNetwork(w_dim=self.w_dim, img_resolution=self.img_resolution, channel_base=params.filterG)
         self.num_ws = self.synthesis.num_ws
         self.mapping = MappingNetwork(z_dim=self.z_dim, w_dim=self.w_dim, num_ws=self.num_ws, **mapping_kwargs)
 
@@ -923,7 +923,6 @@ class Discriminator(torch.nn.Module):
         img_resolution=128,                 # Input resolution.
         img_channels=1,                   # Number of input color channels.
         architecture        = 'resnet', # Architecture: 'orig', 'skip', 'resnet'.
-        channel_base        = 2048,    # Overall multiplier for the number of channels.
         channel_max         = 512,      # Maximum number of channels in any layer.
         num_fp16_res        = 0,        # Use FP16 for the N highest resolutions.
         conv_clamp          = None,     # Clamp the output of convolution layers to +-X, None = disable clamping.
@@ -933,6 +932,7 @@ class Discriminator(torch.nn.Module):
         epilogue_kwargs     = {},       # Arguments for DiscriminatorEpilogue.
     ):
         super().__init__()
+        channel_base = params.filterD
         self.img_resolution = img_resolution
         self.img_resolution_log2 = int(np.log2(img_resolution))
         self.img_channels = img_channels
