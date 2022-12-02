@@ -325,38 +325,38 @@ class Trainer(object):
         for i in range(step_done, self.p.niters):
             #self.tracker.epoch_start()
             if self.p.stylegan:
-                data = next(gen)
-                real = data.to(self.device).unsqueeze(dim=1)
-                noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
-                        dtype=torch.float, device=self.device)
+                with autocast():
+                    data = next(gen)
+                    real = data.to(self.device).unsqueeze(dim=1)
+                    noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
+                            dtype=torch.float, device=self.device)
+                    self.netD.requires_grad_(True)
+                    self.netD.zero_grad()
+                    self.optimizerD.zero_grad(set_to_none=True)
 
-                self.netD.requires_grad_(True)
-                self.netD.zero_grad()
-                self.optimizerD.zero_grad(set_to_none=True)
+                    errD_real, errD_fake = self.loss.step_D(i, real, noise)
+                    self.D_losses.append((errD_real, errD_fake))
 
-                errD_real, errD_fake = self.loss.step_D(i, real, noise)
-                self.D_losses.append((errD_real, errD_fake))
+                    self.optimizerD.step()
 
-                self.optimizerD.step()
+                    self.netD.requires_grad_(False)
 
-                self.netD.requires_grad_(False)
+                    self.netG.requires_grad_(True)
+                    self.netG.zero_grad()
+                    self.optimizerG.zero_grad(set_to_none=True)
 
-                self.netG.requires_grad_(True)
-                self.netG.zero_grad()
-                self.optimizerG.zero_grad(set_to_none=True)
+                    noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
+                            dtype=torch.float, device=self.device)
 
-                noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
-                        dtype=torch.float, device=self.device)
+                    errG, fake = self.loss.step_G(i, noise)
 
-                errG, fake = self.loss.step_G(i, noise)
+                    self.G_losses.append(errG)
 
-                self.G_losses.append(errG)
+                    self.optimizerG.step()
 
-                self.optimizerG.step()
+                    self.netG.requires_grad_(False)
 
-                self.netG.requires_grad_(False)
-
-                self.weight_avg()
+                    self.weight_avg()
 
             else:
                 for _ in range(self.p.iterD):    
