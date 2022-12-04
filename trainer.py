@@ -267,7 +267,7 @@ class Trainer(object):
         self.netG.zero_grad()
         self.optimizerG.zero_grad(set_to_none=True)
         with autocast():
-            noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
+            noise = torch.randn(self.p.batch_size, self.p.z_size, 1, 1,1,
                             dtype=torch.float, device=self.device)
             if self.p.stylegan or self.p.stylegan2:
                 self.netG.requires_grad_(True)
