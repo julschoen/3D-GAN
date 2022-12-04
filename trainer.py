@@ -277,7 +277,7 @@ class Trainer(object):
                 self.G_losses.append(errG)
 
                 self.optimizerG.step()
-                if stylegan2:
+                if self.p.stylegan2:
                     self.weight_avg()
             else:
                 fake = self.netG(noise)
