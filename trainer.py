@@ -217,7 +217,7 @@ class Trainer(object):
                 noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
                         dtype=torch.float, device=self.device)
 
-                errD_real, errD_fake = self.loss.step_D(i, real, noise)
+                errD_real, errD_fake = self.loss.step_D(step, real, noise)
 
                 self.optimizerD.step()
                 self.netD.requires_grad_(False)
@@ -273,7 +273,7 @@ class Trainer(object):
                 self.netG.requires_grad_(True)
                 self.netG.zero_grad()
             
-                errG, fake = self.loss.step_G(i, noise)
+                errG, fake = self.loss.step_G(step, noise)
 
                 self.G_losses.append(errG)
 
