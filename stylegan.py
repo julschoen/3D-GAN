@@ -99,6 +99,8 @@ class StyleGAN2Loss():
 
         return loss, gen_img
 
+#----------------------------------------------------------------------------
+
 activation_funcs = {
     'linear':   lambda x: x,
     'relu':     lambda x: torch.nn.functional.relu(x),
@@ -110,7 +112,7 @@ activation_funcs = {
     'softplus': lambda x: torch.nn.functional.softplus(x),
     'swish':    lambda x: torch.sigmoid(x) * x
 }
-#----------------------------------------------------------------------------
+
 def normalize_2nd_moment(x, dim=1, eps=1e-8):
     return x * (x.square().mean(dim=dim, keepdim=True) + eps).rsqrt()
 
