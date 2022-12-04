@@ -17,7 +17,7 @@ class StyleGAN2Loss():
         self.pl_batch_shrink = pl_batch_shrink
         self.pl_decay = pl_decay
         self.pl_weight = pl_weight
-        self.pl_mean = torch.zeros([], device=device)
+        self.pl_mean = torch.zeros([], device=self.device)
 
     def run_G(self, z):
         if self.p.stylegan2:
@@ -67,7 +67,7 @@ class StyleGAN2Loss():
         with torch.autograd.profiler.record_function(name + '_backward'):
             (real_logits * 0 + loss_Dreal + loss_Dr1).mean().mul(gain).backward()
 
-        return (real_logits * 0 + loss_Dreal + loss_Dr1).mean().mul(gain).item(), loss_Dgen.mean().mul(gain).item()
+        return (real_logits * 0 + loss_Dreal + loss_Dr1).mean().mul(gain), loss_Dgen.mean().mul(gain)
 
     def step_G(self, step, gen_z, gain=1):
         do_Gpl   = (step % 16) == 0 and self.p.stylegan2
@@ -97,7 +97,7 @@ class StyleGAN2Loss():
 
         loss = (gen_img[:, 0, 0, 0, 0] * 0 + loss_Gpl).mean().mul(gain) + loss_Gmain.mean().mul(gain) if do_Gpl else loss_Gmain.mean().mul(gain)
 
-        return loss.item(), gen_img
+        return loss, gen_img
 
 activation_funcs = {
     'linear':   lambda x: x,
