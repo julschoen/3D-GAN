@@ -70,8 +70,8 @@ class Trainer(object):
         if self.p.ngpu > 1:
             self.netD = nn.DataParallel(self.netD)
             self.netG = nn.DataParallel(self.netG)
-            
-        if self.p.stylegan or self.p.stylegan2:
+
+        if self.p.stylegan2:
             self.G_ema_state = self.netG.state_dict()
 
         self.optimizerD = optim.Adam(self.netD.parameters(), lr=self.p.lrD, betas=(0., 0.9))
@@ -130,7 +130,7 @@ class Trainer(object):
         checkpoint = os.path.join(self.models_dir, 'checkpoint.pt')
         if os.path.isfile(checkpoint):
             state_dict = torch.load(checkpoint)
-            if self.stylegan2 or self.p.stylegan:
+            if self.stylegan2:
                 self.G_ema_state = state_dict['modelG_state_dict']
             step = state_dict['step']
 
@@ -277,8 +277,8 @@ class Trainer(object):
                 self.G_losses.append(errG)
 
                 self.optimizerG.step()
-
-                self.weight_avg()
+                if stylegan2:
+                    self.weight_avg()
             else:
                 fake = self.netG(noise)
                 errG = -self.netD(fake).mean()
@@ -297,8 +297,7 @@ class Trainer(object):
     def train(self):
         step_done = self.start_from_checkpoint()
         FID.set_config(device=self.device)
-        one = torch.FloatTensor([1]).to(self.device)
-        mone = one * -1
+
         gen = self.inf_train_gen()
         self.netD.requires_grad_(False)
         self.netG.requires_grad_(False)
