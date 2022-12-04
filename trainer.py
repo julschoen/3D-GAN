@@ -58,12 +58,10 @@ class Trainer(object):
         elif self.p.stylegan2:
             self.netD = StyleD(self.p).to(self.device)
             self.netG = StyleG(self.p).to(self.device)
-            self.G_ema_state = self.netG.state_dict()
             self.loss = StyleGAN2Loss(self.p, self.netG.mapping, self.netG.synthesis, self.netD)
         elif self.p.stylegan:
             self.netD = StyleD(self.p).to(self.device)
             self.netG = Style1G(self.p).to(self.device)
-            self.G_ema_state = self.netG.state_dict()
             self.loss = StyleGAN2Loss(self.p, self.netG, None, self.netD)
         else:
             self.netD = BigD(self.p).to(self.device)
@@ -72,7 +70,7 @@ class Trainer(object):
         if self.p.ngpu > 1:
             self.netD = nn.DataParallel(self.netD)
             self.netG = nn.DataParallel(self.netG)
-            if self.p.stylegan:
+            if self.p.stylegan or self.p.stylegan2:
                 self.G_ema_state = self.netG.state_dict()
 
         self.optimizerD = optim.Adam(self.netD.parameters(), lr=self.p.lrD, betas=(0., 0.9))
