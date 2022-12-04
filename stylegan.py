@@ -4,9 +4,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class StyleGAN2Loss():
-    def __init__(self, device, G_mapping, G_synthesis, D, augment_pipe=None, style_mixing_prob=0.9, r1_gamma=10, pl_batch_shrink=2, pl_decay=0.01, pl_weight=2):
+    def __init__(self, params, G_mapping, G_synthesis, D, augment_pipe=None, style_mixing_prob=0.9, r1_gamma=10, pl_batch_shrink=2, pl_decay=0.01, pl_weight=2):
         super().__init__()
-        self.device = device
+        self.p = params
+        self.device = self.p.device
         self.G_mapping = G_mapping
         self.G_synthesis = G_synthesis
         self.D = D
@@ -19,13 +20,16 @@ class StyleGAN2Loss():
         self.pl_mean = torch.zeros([], device=device)
 
     def run_G(self, z):
-        ws = self.G_mapping(z)
-        if self.style_mixing_prob > 0:
-            with torch.autograd.profiler.record_function('style_mixing'):
-                cutoff = torch.empty([], dtype=torch.int64, device=ws.device).random_(1, ws.shape[1])
-                cutoff = torch.where(torch.rand([], device=ws.device) < self.style_mixing_prob, cutoff, torch.full_like(cutoff, ws.shape[1]))
-                ws[:, cutoff:] = self.G_mapping(torch.randn_like(z), skip_w_avg_update=True)[:, cutoff:]
-        img = self.G_synthesis(ws)
+        if self.p.stylegan2:
+            ws = self.G_mapping(z)
+            if self.style_mixing_prob > 0:
+                with torch.autograd.profiler.record_function('style_mixing'):
+                    cutoff = torch.empty([], dtype=torch.int64, device=ws.device).random_(1, ws.shape[1])
+                    cutoff = torch.where(torch.rand([], device=ws.device) < self.style_mixing_prob, cutoff, torch.full_like(cutoff, ws.shape[1]))
+                    ws[:, cutoff:] = self.G_mapping(torch.randn_like(z), skip_w_avg_update=True)[:, cutoff:]
+            img = self.G_synthesis(ws)
+        else:
+            img, ws = self.G_mapping(z)
         return img, ws
 
     def run_D(self, img):
@@ -66,7 +70,7 @@ class StyleGAN2Loss():
         return (real_logits * 0 + loss_Dreal + loss_Dr1).mean().mul(gain).item(), loss_Dgen.mean().mul(gain).item()
 
     def step_G(self, step, gen_z, gain=1):
-        do_Gpl   = (step % 16) == 0
+        do_Gpl   = (step % 16) == 0 and self.p.stylegan2
 
         with torch.autograd.profiler.record_function('Gmain_forward'):
             gen_img, _gen_ws = self.run_G(gen_z) # May get synced by Gpl.
