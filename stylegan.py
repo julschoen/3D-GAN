@@ -38,7 +38,7 @@ class StyleGAN2Loss():
 
     def step_D(self, step, real_img, gen_z, gain=1):
         loss_Dgen = 0
-        do_Dr1   = (step % 16) == 0 and (self.r1_gamma != 0)
+        do_Dr1   = ((step % 16) == 0 and (self.r1_gamma != 0)) or (self.p.stylegan and (self.r1_gamma != 0))
         
         with torch.autograd.profiler.record_function('Dgen_forward'):
             gen_img, _gen_ws = self.run_G(gen_z)
