@@ -130,7 +130,7 @@ class Trainer(object):
         checkpoint = os.path.join(self.models_dir, 'checkpoint.pt')
         if os.path.isfile(checkpoint):
             state_dict = torch.load(checkpoint)
-            if self.stylegan2:
+            if self.p.stylegan2:
                 self.G_ema_state = state_dict['modelG_state_dict']
             step = state_dict['step']
 
