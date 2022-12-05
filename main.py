@@ -21,17 +21,15 @@ def main():
 	parser.add_argument('--device', type=str, default='cuda', help='Torch Device Choice')
 	parser.add_argument('--load_params', type=bool, default=False, help='Load Parameters form pickle in log dir')
 
-	## Base Model Type
+	## Model Type
 	parser.add_argument('--dcgan', type=bool, default=False, help='Use DCGAN Base Model else ResBlock')
 	parser.add_argument('--hybrid', type=bool, default=False, help='Res G with DCGAN D (Overwrites --dcgan)')
-
-	## Specific Model Type
+	parser.add_argument('--stylegan2', type=bool, default=False, help='Use StyleGAN2')
+	parser.add_argument('--stylegan', type=bool, default=False, help='Use StyleGAN')
 	parser.add_argument('--msl', type=bool, default=False, help='Use MSL Module in Discriminator (Currently only implemented with DCGAN Base Model)')
 	parser.add_argument('--sngan', type=bool, default=False, help='Use SNGAN')
 	parser.add_argument('--sagan', type=bool, default=False, help='Use SAGAN')
 	parser.add_argument('--biggan', type=bool, default=False, help='Use BigGAN-Deep')
-	parser.add_argument('--stylegan2', type=bool, default=False, help='Use StyleGAN2')
-	parser.add_argument('--stylegan', type=bool, default=False, help='Use StyleGAN')
 	
 	## Loss
 	parser.add_argument('--hinge', type=bool, default=False, help='Use Hinge Loss or Wasserstein loss')
