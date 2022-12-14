@@ -326,3 +326,5 @@ class Trainer(object):
         #self.tracker.stop()
         self.log_final(i, fake, real)
         print('...Done')
+
+
