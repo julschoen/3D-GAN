@@ -225,15 +225,9 @@ class Trainer(object):
                 noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
                             dtype=torch.float, device=self.device)
 
-                if self.p.stylegan:
-                    fake, _ = self.netG(noise)
-                    real = real.detach().requires_grad_((step % 16) == 0)
-                else:
-                    fake = self.netG(noise)
+                fake = self.netG(noise)
 
-                real_out = self.netD(real)
-
-                errD_real = (nn.ReLU()(1.0 - real_out)).mean()
+                errD_real = (nn.ReLU()(1.0 - self.netD(real))).mean()
                 errD_fake = (nn.ReLU()(1.0 + self.netD(fake))).mean()
                 errD = errD_fake + errD_real
 
