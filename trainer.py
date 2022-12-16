@@ -116,7 +116,7 @@ class Trainer(object):
             self.fixed_test_noise = noise.clone()
     
         with torch.no_grad():
-            if self.p.stylegan2 or self.p.stylegan:
+            if self.p.stylegan2:
                 fake, _ = self.netG(self.fixed_test_noise)
                 fake = fake.detach().cpu()
             else:
