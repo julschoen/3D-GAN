@@ -1228,4 +1228,4 @@ class styleGAN_gen(nn.Module):
         
         h = self.C_out(h)
         
-        return h, w
+        return h
