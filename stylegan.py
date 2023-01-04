@@ -1009,45 +1009,12 @@ def conditionalSplit(w,swapPoint,layerCtr,alreadySplit):
         
     return w
 
-class Self_Attention(nn.Module):
-    def __init__(self,nc_in):
-        super(Self_Attention,self).__init__()
-        self.CBar = nc_in//8
-        
-        self.Wf = nn.Conv3d(in_channels = nc_in , out_channels = self.CBar , kernel_size= 1)
-        self.Wg = nn.Conv3d(in_channels = nc_in , out_channels = self.CBar , kernel_size= 1)
-        self.Wh = nn.Conv3d(in_channels = nc_in , out_channels = self.CBar , kernel_size= 1)
-        self.Wv = nn.Conv3d(in_channels = nc_in//8 , out_channels = nc_in , kernel_size= 1)
-
-        self.gamma = nn.Parameter(torch.zeros(1))        
-
-        self.softmax  = nn.Softmax(dim=-1) 
-    def forward(self,x,singleOutput=True):
-#        print('Self attention!')
-        batch_size, C, W ,H, D = x.size()
-        f  = self.Wf(x).view(batch_size,-1,W*H*D)
-        g =  self.Wg(x).view(batch_size,-1,W*H*D)
-        s =  torch.bmm(f.permute(0,2,1),g)
-        bta = self.softmax(s) 
-        h = self.Wh(x).view(batch_size,-1,W*H*D)
-
-        out = self.Wv(torch.bmm(h,bta.permute(0,2,1)).view(batch_size,self.CBar,W ,H, D))
-        
-        out = self.gamma*out + x
-        
-        if singleOutput == True:
-            return out
-        else:
-            return out, bta
-        
-
 class styleGAN_gen(nn.Module):
-    def __init__(self, params, styleMixing=True, mappingNet=True, SAflag=False):
+    def __init__(self, params, styleMixing=True, mappingNet=True):
         super(styleGAN_gen, self).__init__()
         self.p = params
         self.nz = self.p.z_size
         self.styleMixing = styleMixing
-        self.SAflag = SAflag
         self.mappingNet = mappingNet
 
         if self.mappingNet==True:
@@ -1097,9 +1064,6 @@ class styleGAN_gen(nn.Module):
         self.C7 = nn.Sequential(
             nn.Conv3d(64, 64, (3,3,3), (1,1,1), (1,1,1), bias=False),
             nn.LeakyReLU(0.2,inplace=True))
-        
-        if (self.SAflag == True):
-            self.SA = Self_Attention(64)
         
         self.C8 = nn.Sequential(
             nn.Conv3d(64, 32, (3,3,3), (1,1,1), (1,1,1), bias=False),
@@ -1192,9 +1156,6 @@ class styleGAN_gen(nn.Module):
         h = AdaIN(h,self.A7(w))  
 
         h = self.C7(h)
-        
-        if (self.SAflag == True):
-            h, attn = self.SA(h)
 
         if (self.styleMixing == True) & (self.training == True):
             w = conditionalSplit(w,swapPoint,layerCtr,alreadySplit)
