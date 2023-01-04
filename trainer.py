@@ -301,7 +301,7 @@ class Trainer(object):
                 self.D_step(i, real)
 
             fake = self.G_step(i)
-            
+            print(real.max(), real.min(), fake.max(), fake.min())
             #self.tracker.epoch_end()
 
             self.log(i, fake, real)

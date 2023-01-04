@@ -719,6 +719,8 @@ class SynthesisNetwork(torch.nn.Module):
                 self.num_ws += block.num_torgb
             setattr(self, f'b{res}', block)
 
+        self.act = nn.Tanh()
+
     def forward(self, ws, **block_kwargs):
         block_ws = []
         with torch.autograd.profiler.record_function('split_ws'):
@@ -733,7 +735,7 @@ class SynthesisNetwork(torch.nn.Module):
         for res, cur_ws in zip(self.block_resolutions, block_ws):
             block = getattr(self, f'b{res}')
             x, img = block(x, cur_ws, img, **block_kwargs)
-        return torch.tanh(img)
+        return self.act(img)
 
 #----------------------------------------------------------------------------
 ### Generator ###
