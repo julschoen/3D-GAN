@@ -583,7 +583,7 @@ class OutBlock(torch.nn.Module):
         self.bias = torch.nn.Parameter(torch.zeros([out_channels]))
         self.weight_gain = 1 / np.sqrt(in_channels * (kernel_size ** 3))
 
-    def forward(self, x, w, fused_modconv=True):
+    def forward(self, x, w, fused_modconv=False):
         styles = self.affine(w) * self.weight_gain
         x = modulated_conv3d(x=x, weight=self.weight, styles=styles, demodulate=False, fused_modconv=fused_modconv)
         x = bias_act(x, self.bias.to(x.dtype))
