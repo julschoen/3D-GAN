@@ -1157,7 +1157,7 @@ class styleGAN_gen(nn.Module):
         
         h = AdaIN(h,self.A2(w))        
         
-        h = F.interpolate(h,scale_factor=2)
+        h = F.interpolate(h,scale_factor=2, mode='trilinear')
         
         h = self.C2(h)
         
@@ -1171,7 +1171,7 @@ class styleGAN_gen(nn.Module):
         
         h = AdaIN(h,self.A4(w))  
 
-        h = F.interpolate(h,scale_factor=2)
+        h = F.interpolate(h,scale_factor=2, mode='trilinear')
 
         h = self.C4(h)
 
@@ -1185,7 +1185,7 @@ class styleGAN_gen(nn.Module):
         
         h = AdaIN(h,self.A6(w))  
 
-        h = F.interpolate(h,scale_factor=2)
+        h = F.interpolate(h,scale_factor=2, mode='trilinear')
  
         h = self.C6(h)
 
@@ -1202,7 +1202,7 @@ class styleGAN_gen(nn.Module):
         
         h = AdaIN(h,self.A8(w)) 
         
-        h = F.interpolate(h,scale_factor=2)
+        h = F.interpolate(h,scale_factor=2, mode='trilinear')
         
         h = self.C8(h)
         
@@ -1216,7 +1216,7 @@ class styleGAN_gen(nn.Module):
         
         h = AdaIN(h,self.A10(w)) 
         
-        h = F.interpolate(h,scale_factor=2)
+        h = F.interpolate(h,scale_factor=2, mode='trilinear')
         
         h = self.C10(h)
         
