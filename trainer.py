@@ -208,9 +208,8 @@ class Trainer(object):
     def D_step(self, step, real):
         for p in self.netD.parameters():
                 p.requires_grad = True
-        
         self.netD.zero_grad()
-        self.optimizerD.zero_grad(set_to_none=True)
+
         with autocast():
             if self.p.stylegan2:
                 noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
@@ -219,7 +218,6 @@ class Trainer(object):
                 errD_real, errD_fake = self.loss.step_D(step, real, noise)
 
                 self.optimizerD.step()
-                self.netD.requires_grad_(False)
 
             elif self.p.hinge:
                 noise = torch.randn(real.shape[0], self.p.z_size, 1, 1,1,
@@ -258,14 +256,10 @@ class Trainer(object):
                 p.requires_grad = True
 
         self.netG.zero_grad()
-        self.optimizerG.zero_grad(set_to_none=True)
         with autocast():
             noise = torch.randn(self.p.batch_size, self.p.z_size, 1, 1,1,
                             dtype=torch.float, device=self.device)
             if self.p.stylegan2:
-                self.netG.requires_grad_(True)
-                self.netG.zero_grad()
-            
                 errG, fake = self.loss.step_G(step, noise)
 
                 self.G_losses.append(errG)
@@ -293,8 +287,6 @@ class Trainer(object):
         FID.set_config(device=self.device)
 
         gen = self.inf_train_gen()
-        self.netD.requires_grad_(False)
-        self.netG.requires_grad_(False)
         for p in self.netD.parameters():
                 p.requires_grad = False
         for p in self.netG.parameters():
