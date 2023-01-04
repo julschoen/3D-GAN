@@ -560,7 +560,7 @@ class SynthesisLayer(torch.nn.Module):
             self.noise_strength = torch.nn.Parameter(torch.zeros([]))
         self.bias = torch.nn.Parameter(torch.zeros([out_channels]))
 
-    def forward(self, x, w, noise_mode='random', fused_modconv=True, gain=1):
+    def forward(self, x, w, noise_mode='random', fused_modconv=False, gain=1):
         in_resolution = self.resolution // self.up
         styles = self.affine(w)
         noise = None
