@@ -280,7 +280,7 @@ class Trainer(object):
         
         self.G_losses.append(errG.item())
 
-        return fake
+        return fake.detach()
 
     def train(self):
         step_done = self.start_from_checkpoint()
