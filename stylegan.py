@@ -115,47 +115,6 @@ activation_funcs = {
 def normalize_2nd_moment(x, dim=1, eps=1e-8):
     return x * (x.square().mean(dim=dim, keepdim=True) + eps).rsqrt()
 
-def fma(a, b, c): # => a * b + c
-    return _FusedMultiplyAdd.apply(a, b, c)
-
-class _FusedMultiplyAdd(torch.autograd.Function): # a * b + c
-    @staticmethod
-    def forward(ctx, a, b, c): # pylint: disable=arguments-differ
-        out = torch.addcmul(c, a, b)
-        ctx.save_for_backward(a, b)
-        ctx.c_shape = c.shape
-        return out
-
-    @staticmethod
-    def backward(ctx, dout): # pylint: disable=arguments-differ
-        a, b = ctx.saved_tensors
-        c_shape = ctx.c_shape
-        da = None
-        db = None
-        dc = None
-
-        if ctx.needs_input_grad[0]:
-            da = _unbroadcast(dout * b, a.shape)
-
-        if ctx.needs_input_grad[1]:
-            db = _unbroadcast(dout * a, b.shape)
-
-        if ctx.needs_input_grad[2]:
-            dc = _unbroadcast(dout, c_shape)
-
-        return da, db, dc
-
-def _unbroadcast(x, shape):
-    extra_dims = x.ndim - len(shape)
-    assert extra_dims >= 0
-    dim = [i for i in range(x.ndim) if x.shape[i] > 1 and (i < extra_dims or shape[i - extra_dims] == 1)]
-    if len(dim):
-        x = x.sum(dim=dim, keepdim=True)
-    if extra_dims:
-        x = x.reshape(-1, *x.shape[extra_dims+1:])
-    assert x.shape == shape
-    return x
-
 def bias_act(x, b=None, dim=1, act='linear'):
     act = activation_funcs[act]
     
@@ -211,9 +170,6 @@ def _conv3d_wrapper(x, w, stride=1, padding=0, groups=1, transpose=False, flip_w
     return op(x, w, stride=stride, padding=padding, groups=groups)
 
 def _upfirdn3d_ref(x, f, up=1, down=1, padding=0, flip_filter=False, gain=1):
-    """Slow reference implementation of `upfirdn2d()` using standard PyTorch ops.
-    """
-    # Validate arguments.
     if f is None:
         f = torch.ones([1, 1, 1], dtype=x.dtype, device=x.device)
     batch_size, num_channels, in_height, in_width, in_depth = x.shape
@@ -471,7 +427,7 @@ def modulated_conv3d(
         x = x * styles.to(x.dtype).reshape(batch_size, -1, 1, 1, 1)
         x = conv3d_resample(x=x, w=weight.to(x.dtype), f=resample_filter, up=up, down=down, padding=padding, flip_weight=flip_weight)
         if demodulate and noise is not None:
-            x = fma(x, dcoefs.to(x.dtype).reshape(batch_size, -1, 1, 1, 1), noise.to(x.dtype))
+            x = torch.addcmul(noise.to(x.dtype), x, dcoefs.to(x.dtype).reshape(batch_size, -1, 1, 1, 1))
         elif demodulate:
             x = x * dcoefs.to(x.dtype).reshape(batch_size, -1, 1, 1, 1)
         elif noise is not None:
