@@ -107,7 +107,7 @@ class Trainer(object):
                 )
         d_real, d_fake = self.D_losses[-1]
         print('[%d|%d]\tD(x): %.4f\tD(G(z)): %.4f|%.4f\tFID %.4f'
-                    % (step, self.p.niters, d_real, d_fake, self.G_losses[-1], self.fid[-1]))
+                    % (step, self.p.niters, d_real, d_fake, self.G_losses[-1], self.fid[-1]), flush=True)
 
     def log_interpolation(self, step):
         noise = torch.randn(self.p.batch_size, self.p.z_size, 1, 1,1,
@@ -292,7 +292,7 @@ class Trainer(object):
         for p in self.netG.parameters():
             p.requires_grad = False
 
-        print("Starting Training...")
+        print("Starting Training...", flush=True)
         for i in range(step_done, self.p.niters):
             #self.tracker.epoch_start()
             for _ in range(self.p.iterD):    
@@ -310,6 +310,6 @@ class Trainer(object):
                 self.save_checkpoint(i)
         #self.tracker.stop()
         self.log_final(i, fake, real)
-        print('...Done')
+        print('...Done', flush=True)
 
 
