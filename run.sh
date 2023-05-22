@@ -1,1 +1,3 @@
-../Temp-GAN/gan/bin/python main.py --log_dir=Style --hinge=True --filterD=2048 --lrG=1e-4 --lrD=1e-4 --stylegan=True --iterD=1
+../Temp-GAN/gan/bin/python main.py --log_dir=BRATS_GANs/WGAN --dcgan=True --data_path=train_brats.npz --lrG=1e-4 --iterD=5
+../Temp-GAN/gan/bin/python main.py --log_dir=BRATS_GANs/WGAN1 --dcgan=True --data_path=train_brats.npz --lrG=1e-4 --iterD=5
+../Temp-GAN/gan/bin/python main.py --log_dir=BRATS_GANs/WGAN2 --dcgan=True --data_path=train_brats.npz --lrG=1e-4 --iterD=5
