@@ -1,4 +1,4 @@
-from data_handler import DATA
+from data_handler import DATA_DIR
 from trainer import Trainer
 import argparse
 
@@ -13,7 +13,7 @@ def main():
 	parser.add_argument('--iterD', type=int, default=2, help='Number of D iters per iter')
 	parser.add_argument('--lrG', type=float, default=5e-5, help='Learning rate G')
 	parser.add_argument('--lrD', type=float, default=1e-4, help='Learning rate D')
-	parser.add_argument('--data_path', type=str, default='train_lidc_128.npz',help='Path to data.')
+	parser.add_argument('--data_path', type=str, default='lidc_train',help='Path to data.')
 	parser.add_argument('--ngpu', type=int, default=2, help='Number of GPUs')
 	parser.add_argument('--steps_per_log', type=int, default=10, help='Output Iterations')
 	parser.add_argument('--steps_per_img_log', type=int, default=50, help='Image Save Iterations')
@@ -37,7 +37,7 @@ def main():
 	params = parser.parse_args()
 	print(params)
 	
-	dataset_train = DATA(path=params.data_path)
+	dataset_train = DATA_DIR(path=params.data_path)
 
 	trainer = Trainer(dataset_train, params=params)
 	trainer.train()
