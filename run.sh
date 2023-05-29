@@ -1,3 +1,3 @@
-../Temp-GAN/gan/bin/python main.py --log_dir=BRATS_GANs/SNGAN  --dcgan=True --sngan=True --data_path=brats_train --lrG=1e-4 --iterD=5
-../Temp-GAN/gan/bin/python main.py --log_dir=BRATS_GANs/SNGAN1 --dcgan=True --sngan=True --data_path=brats_train --lrG=1e-4 --iterD=5
-../Temp-GAN/gan/bin/python main.py --log_dir=BRATS_GANs/SNGAN2 --dcgan=True --sngan=True --data_path=brats_train --lrG=1e-4 --iterD=5
+../Temp-GAN/gan/bin/python main.py --log_dir=BRATS_GANs/ResSN  --sngan=True --data_path=brats_train --filterD=64 --filterG=64
+../Temp-GAN/gan/bin/python main.py --log_dir=BRATS_GANs/ResSN1 --sngan=True --data_path=brats_train --filterD=64 --filterG=64
+../Temp-GAN/gan/bin/python main.py --log_dir=BRATS_GANs/ResSN2 --sngan=True --data_path=brats_train --filterD=64 --filterG=64
