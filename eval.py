@@ -37,7 +37,7 @@ def eval(params):
 		fid_model = nn.DataParallel(fid_model)
 	os.makedirs(params.log_dir, exist_ok=True)
 	for model_path in params.model_log:
-		print(model_path)
+		print(model_path, flush=True)
 		ssims = []
 		mmds = []
 		fids = []
@@ -77,13 +77,13 @@ def eval(params):
 		fids_ax = np.array(fids_ax)
 		fids_cor = np.array(fids_cor)
 		fids_sag = np.array(fids_sag)
-		
+
 		print(f'SSIM: {ssims.mean():.2f}+-{ssims.std():.2f}'+ 
 			f'\tMMD: {mmds.mean():.2f}+-{mmds.std():.2f}'+
 			f'FID ax: {fids_ax.mean():.1f}+-{fids_ax.std():.1f}'+
 			f'\tFID cor: {fids_cor.mean():.1f}+-{fids_cor.std():.1f}'+
 			f'\tFID sag: {fids_sag.mean():.1f}+-{fids_sag.std():.1f}'#+
-			f'\t3d-FID: {fids.mean():.2f}+-{fids.std():.2f}'
+			f'\t3d-FID: {fids.mean():.2f}+-{fids.std():.2f}', flush=True
 			)
 		np.savez_compressed(os.path.join(params.log_dir,f'{model_path}_stats.npz'), fid_ax=fids_ax, fid_cor=fids_cor, fid_sag=fids_sag)
 		np.savez_compressed(os.path.join(params.log_dir,f'{model_path}_stats.npz'),
