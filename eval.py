@@ -31,7 +31,7 @@ def load_gen(path, ngpu):
 def eval(params):
 	dataset = DATA(path=params.data_path)
 	print(dataset.__len__())
-	generator = DataLoader(dataset, batch_size=params.batch_size, shuffle=True, num_workers=4)
+	generator = DataLoader(dataset, batch_size=params.batch_size, shuffle=True, num_workers=4, drop_last=True)
 	fid_model = get_fid_model(params.fid_checkpoint).to(params.device)
 	if params.ngpu > 1:
 		fid_model = nn.DataParallel(fid_model)
