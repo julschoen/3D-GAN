@@ -44,8 +44,8 @@ def eval(params):
 		fids_ax = []
 		fids_cor = []
 		fids_sag = []
-		for i in range(3):
-			model_run = model_path+=f'{i}'
+		for j in range(3):
+			model_run = model_path+=f'{j}'
 			netG = load_gen(model_run, params.ngpu).to(params.device)
 			with torch.no_grad():
 				for i, data in enumerate(generator):
@@ -69,7 +69,8 @@ def eval(params):
 					fids_cor.append(fc)
 					fids_sag.append(fs)
 
-					np.savez_compressed(f'{model_run}_ims.npz', x2[:6].cpu().numpy())
+					if i == 3:
+						np.savez_compressed(f'{model_run}_ims.npz', x2[:6].cpu().numpy())
 
 		ssims = np.array(ssims)
 		mmds = np.array(mmds)
