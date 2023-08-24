@@ -45,7 +45,7 @@ def eval(params):
 		fids_cor = []
 		fids_sag = []
 		for j in range(3):
-			model_run = model_path+=f'{j}'
+			model_run = model_path+f'{j}'
 			netG = load_gen(model_run, params.ngpu).to(params.device)
 			with torch.no_grad():
 				for i, data in enumerate(generator):
