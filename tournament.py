@@ -11,11 +11,6 @@ from biggan import Discriminator as BigD
 from biggan import Generator as BigG
 from data_handler import DATA
 
-def inf_train_gen(generator_train):
-        while True:
-            for data in generator_train:
-                yield data
-
 def load_model(path, ngpu):
     with open(os.path.join(path, 'params.pkl'), 'rb') as file:
         params = pickle.load(file)
@@ -37,27 +32,27 @@ def load_model(path, ngpu):
 
     return netD, netG
 
-def get_decision_bound(discs, gens, data, params):
-	decision_boundaries = []
-	for i, disc in enumerate(discs):
-		x = next(data).unsqueeze(1)
+def get_decision_bound(disc, gen, data, params):
+	for x in data:
+		x = x.unsqueeze(1).to(params.device)
+		rs, fs = torch.tensor([]), torch.tensor([])
 		with torch.no_grad():
 			disc = disc.to(params.device)
-			gen = gens[i].to(params.device)
-			r = disc(x).mean()
+			gen = gen.to(params.device)
+			r = disc(x)
 			if params.ngpu > 1:
 				noise = torch.randn(x.shape[0], gen.module.dim_z,
 						1, 1, 1, dtype=torch.float, device=params.device)
 			else:
 				noise = torch.randn(x.shape[0], gen.dim_z,
 						1, 1, 1, dtype=torch.float, device=params.device)
-			f = disc(gen(noise)).mean()
+			f = disc(gen(noise))
 
-		disc, gen = disc.cpu(), gen.cpu()
+			rs = torch.concat((rs, r.detach().cpu().squeeze()))
+			fs = torch.concat((fs, f.detach().cpu().squeeze()))
 
-		decision_boundaries.append((f+r)/2)
-
-	return decision_boundaries
+	disc, gen = disc.cpu(), gen.cpu()
+	return ((rs.mean()+fs.mean())/2).item()
 
 def round(disc, gen, bound, params):
 	disc = disc.to(params.device)
@@ -79,19 +74,22 @@ def round(disc, gen, bound, params):
 	wrt =wrt/(params.batch_size*2)
 	return wrt
 
-def tournament(discs, gens, data, params):
+def tournament(data, params):
 	names = params.model_log
 	res = {}
-	bounds = get_decision_bound(discs, gens, data, params)
-
 	for n in names:
 		res[n] = []
-	for i, d in enumerate(discs):
-		for j, g in enumerate(gens):
-			if i == j:
-				continue
-			wr = round(d, g, bounds[i], params)
-			res[names[j]].append(wr)
+	for i, name_d in enumerate(names):
+		for k in range(3):
+			d,g_d = load_model(name_d+f'{k}', params.ngpu)
+			bound = get_decision_bound(d, g, data, params)
+			for j, name_g in enumerate(names):
+				if name_d == name_g:
+						continue
+				for l in range(3):
+					_, g = load_model(name_g+f'{l}', params.ngpu)
+					wr = round(d, g, bound, params)
+					res[name_g].append(wr)
 
 	print('------------- Tournament Results -------------')
 	for n in names:
@@ -109,18 +107,11 @@ def main():
 	parser.add_argument('-l', '--model_log', action='append', type=str, required=True, help='Model log directories to evaluate')
 	params = parser.parse_args()
 
-	discs, gens = [], []
-	for model in params.model_log:
-		d,g = load_model(model, params.ngpu)
-		discs.append(d)
-		gens.append(g)
-
 	dataset = DATA(path=params.data_path)
 	print(dataset.__len__())
 	generator = DataLoader(dataset, batch_size=params.batch_size, shuffle=True, num_workers=4)
-	data = inf_train_gen(generator)
 
-	tournament(discs, gens, data, params)
+	tournament(generator, params)
 
 if __name__ == '__main__':
 	main()
