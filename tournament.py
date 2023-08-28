@@ -82,7 +82,7 @@ def tournament(data, params):
 	for i, name_d in enumerate(names):
 		for k in range(3):
 			d,g_d = load_model(name_d+f'{k}', params.ngpu)
-			bound = get_decision_bound(d, g, data, params)
+			bound = get_decision_bound(d, g_d, data, params)
 			for j, name_g in enumerate(names):
 				if name_d == name_g:
 						continue
