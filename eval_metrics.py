@@ -107,7 +107,7 @@ def eval(params):
 	fss = []
 	f3 = []
 
-	for _ in range(3)
+	for _ in range(3):
 		x1 = torch.randn(32, 1,128, 128, 128, dtype=torch.float, device=params.device)
 		x2 = torch.rand(32, 1,128, 128, 128, dtype=torch.float, device=params.device)
 
