@@ -51,7 +51,6 @@ class Generator(nn.Module):
           or isinstance(module, nn.Embedding)):
         init.orthogonal_(module.weight)
         self.param_count += sum([p.data.nelement() for p in module.parameters()])
-    print('Param count for G''s initialized parameters: %d' % self.param_count)
 
   def forward(self, z):
     # First linear layer
@@ -107,7 +106,6 @@ class Discriminator(nn.Module):
           or isinstance(module, nn.Linear)):
         init.orthogonal_(module.weight)
         self.param_count += sum([p.data.nelement() for p in module.parameters()])
-    print('Param count for D''s initialized parameters: %d' % self.param_count)
 
   def forward(self, x):
     # Run input conv
