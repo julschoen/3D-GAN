@@ -95,7 +95,8 @@ def tournament(data, params):
 	for n in names:
 		g = res[n]
 		wr = np.mean(g)
-		print(f'G of {n} with Mean Win Rate of {wr:.4f}')
+		std = np.std(g)
+		print(f'G of {n} with Mean Win Rate of {wr:.4f}\\pm{std:.4f}')
 
 def main():
 	parser = argparse.ArgumentParser()
